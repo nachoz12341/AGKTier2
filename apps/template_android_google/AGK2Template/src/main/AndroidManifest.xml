@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      android:versionCode="51"
+      android:versionName="2.0.21" package="com.mycompany.mytemplate" android:installLocation="auto">
+    <uses-feature android:glEsVersion="0x00020000"></uses-feature>
+    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="22" />
+    
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
+    <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.gamepad" android:required="false" />
+
+    <permission android:name="com.mycompany.mytemplate.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+	<uses-permission android:name="com.mycompany.mytemplate.permission.C2D_MESSAGE" />
+    
+    <application android:label="@string/app_name"
+                 android:hasCode="true" 
+                 android:theme="@style/AGKTheme"
+                 android:icon="@drawable/icon"
+                 android:hardwareAccelerated="true">
+                 
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <meta-data android:name="com.google.android.gms.games.APP_ID"
+            android:value="@string/games_app_id" />
+
+        <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="false"/>
+        
+        <activity android:name="com.thegamecreators.agk_player.AGKActivity"
+                  android:label="@string/app_name"
+                  android:configChanges="keyboard|keyboardHidden|layoutDirection|locale|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+                  android:screenOrientation="fullSensor"
+                  android:theme="@style/AGKTheme">
+            
+            <meta-data android:name="android.app.lib_name" android:value="android_player" />
+            
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
+		<activity android:name="com.thegamecreators.agk_player.MyJavaActivity"
+		    	  android:configChanges="keyboard|keyboardHidden|layoutDirection|locale|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+	 			  android:label="@string/app_name"
+	 		      android:exported="false">
+  		</activity>
+
+        <activity android:name="com.chartboost.sdk.CBImpressionActivity"
+				  android:theme="@style/AGKTheme.Transparent"
+				  android:excludeFromRecents="true"
+                  android:configChanges="keyboardHidden|orientation|screenSize"/>
+  				
+		<activity android:name="com.google.android.gms.ads.AdActivity"
+              	  android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+              	  android:theme="@android:style/Theme.Translucent"/>
+
+        <activity android:name="com.amazon.device.ads.AdActivity" android:configChanges="keyboardHidden|orientation|screenSize"/>
+        
+        <receiver android:name="com.thegamecreators.agk_player.GCMReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
+		  <intent-filter>
+		    <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+		    <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+		    <category android:name="com.thegamecreators.agk_player" />
+		  </intent-filter>
+		</receiver>
+		
+        <service android:name="com.thegamecreators.agk_player.GCMIntentService" />
+
+        <activity android:name="com.facebook.LoginActivity"
+            android:label="@string/app_name"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:theme="@style/AGKTheme.Transparent" />
+
+        <activity android:name="com.thegamecreators.agk_player.MyFacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
+            android:label="@string/app_name"
+            android:exported="false"
+            android:theme="@style/AGKTheme.Transparent">
+        </activity>
+
+        <receiver android:name="com.thegamecreators.agk_player.NotificationAlarmReceiver" />
+    </application>
+</manifest> 

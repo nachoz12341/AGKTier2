@@ -1,0 +1,3 @@
+include ':FacebookSDK'
+include ':GameCircleSDK'
+include ':AGKPlayer2'

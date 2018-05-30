@@ -1,0 +1,5 @@
+include ':ExpansionDownloader'
+include ':ExpansionZipFile'
+include ':FacebookSDK'
+include ':GooglePlayLicensing'
+include ':AGKPlayer2'

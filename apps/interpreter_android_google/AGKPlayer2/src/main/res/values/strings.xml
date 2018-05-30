@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AGK Player</string>
+    <string name="games_app_id">900475732431</string>
+    <string name="backtext">Press back to return to the app</string>
+    <string name="waittext">Please Wait...</string>
+</resources>

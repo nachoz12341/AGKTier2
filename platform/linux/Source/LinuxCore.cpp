@@ -4759,6 +4759,29 @@ char* agk::PlatformGetInAppPurchaseSignature(int iID)
 
 
 // ADMOB COMMANDS
+void agk::LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy )
+//****
+{
+
+}
+
+int agk::GetConsentStatusAdMob()
+//****
+{
+	return 0;
+}
+
+void agk::RequestConsentAdMob()
+//****
+{
+
+}
+
+void agk::OverrideConsentAdMob( int consent )
+//****
+{
+	
+}
 
 // szID: publisher ID provided by AdMob
 // horz: 0=left, 1=center, 2=right

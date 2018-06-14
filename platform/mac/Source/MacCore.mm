@@ -4698,6 +4698,30 @@ char* agk::GetCurrentTime()
 	return str;
 }
 
+void agk::LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy )
+//****
+{
+
+}
+
+int agk::GetConsentStatusAdMob()
+//****
+{
+	return 0;
+}
+
+void agk::RequestConsentAdMob()
+//****
+{
+
+}
+
+void agk::OverrideConsentAdMob( int consent )
+//****
+{
+	
+}
+
 int agk::PlatformGetAdPortal()
 {
 	//return 659; // Windows Phone 7

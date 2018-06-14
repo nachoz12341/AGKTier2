@@ -2303,7 +2303,7 @@ void cSprite::SetAnimation ( int iFrameWidth, int iFrameHeight, int iFrameCount 
 	if ( iFrameWidth > m_pImage->GetWidth() || iFrameHeight > m_pImage->GetHeight() ) 
 	{
 #ifdef _AGK_ERROR_CHECK
-		uString errStr( "Image does not contain enough animation frames ", 100 ); errStr.Append( m_pImage->GetPath() );
+		uString errStr( "Image is not big enough to have that many animation frames ", 100 ); errStr.Append( m_pImage->GetPath() );
 		agk::Error( errStr );
 #endif
 		return;
@@ -2340,13 +2340,19 @@ void cSprite::SetAnimation ( int iFrameWidth, int iFrameHeight, int iFrameCount 
 
 		x += iFrameWidth;
 
-		if ( x+iFrameWidth > endX+1 )
+		if ( x+iFrameWidth > endX )
 		{
-			if ( y+iFrameHeight > endY+1 ) break;
-
 			x = (int) (m_pImage->GetU1() * imageTotalWidth);
 			y = y+iFrameHeight;
+
+			if ( y+iFrameHeight > endY ) break;
 		}
+	}
+
+	if ( iFrameCount != count )
+	{
+		uString errStr( "Image is not big enough to have that many animation frames ", 100 ); errStr.Append( m_pImage->GetPath() );
+		agk::Error( errStr );
 	}
 
 	// may not have loaded all frames
@@ -2446,12 +2452,12 @@ void cSprite::AppendAnimation ( cImage *pImage, int iFrameWidth, int iFrameHeigh
 
 		x += iFrameWidth;
 
-		if ( x+iFrameWidth > endX+1 )
+		if ( x+iFrameWidth > endX )
 		{
-			if ( y+iFrameHeight > endY+1 ) break;
-
 			x = (int) (pImage->GetU1() * imageTotalWidth);
 			y = y+iFrameHeight;
+
+			if ( y+iFrameHeight > endY ) break;
 		}
 	}
 

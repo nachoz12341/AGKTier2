@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1940;
+int g_iNumAGKFunctions = 1944;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -429,6 +429,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETCOLORBLUE_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetColorBlue) },
 	{"GETCOLORGREEN_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetColorGreen) },
 	{"GETCOLORRED_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetColorRed) },
+	{"GETCONSENTSTATUSADMOB_L_0", (AGKVoidFunc) (int(*)()) (agk::GetConsentStatusAdMob) },
 	{"GETCONTACTSPRITEID1_L_0", (AGKVoidFunc) (UINT(*)()) (agk::GetContactSpriteID1) },
 	{"GETCONTACTSPRITEID2_L_0", (AGKVoidFunc) (UINT(*)()) (agk::GetContactSpriteID2) },
 	{"GETCONTACTWORLDX_F_0", (AGKVoidFunc) (float(*)()) (agk::GetContactWorldX) },
@@ -1079,6 +1080,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"KICKNETWORKCLIENT_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::KickNetworkClient) },
 	{"LEFT_S_S_L", (AGKVoidFunc) (char*(*)(const char*,UINT)) (agk::Left) },
 	{"LEN_L_S", (AGKVoidFunc) (UINT(*)(const char*)) (agk::Len) },
+	{"LOADCONSENTSTATUSADMOB_0_S_S", (AGKVoidFunc) (void(*)(const char*,const char*)) (agk::LoadConsentStatusAdMob) },
 	{"LOADFONT_0_L_S", (AGKVoidFunc) (void(*)(UINT,const char *)) (agk::LoadFont) },
 	{"LOADFONT_L_S", (AGKVoidFunc) (UINT(*)(const char *)) (agk::LoadFont) },
 	{"LOADFULLSCREENSHADER_0_L_S", (AGKVoidFunc) (void(*)(UINT,const char*)) (agk::LoadFullScreenShader) },
@@ -1153,6 +1155,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"OPENTOWRITE_0_L_S_L", (AGKVoidFunc) (void(*)(UINT,const char *,int)) (agk::OpenToWrite) },
 	{"OPENTOWRITE_L_S", (AGKVoidFunc) (UINT(*)(const char *)) (agk::OpenToWrite) },
 	{"OPENTOWRITE_L_S_L", (AGKVoidFunc) (UINT(*)(const char *,int)) (agk::OpenToWrite) },
+	{"OVERRIDECONSENTADMOB_0_L", (AGKVoidFunc) (void(*)(int)) (agk::OverrideConsentAdMob) },
 	{"PAUSEMUSICOGG_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::PauseMusicOGG) },
 	{"PAUSEMUSIC_0_0", (AGKVoidFunc) (void(*)()) (agk::PauseMusic) },
 	{"PAUSETWEENCAMERA_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::PauseTweenCamera) },
@@ -1228,6 +1231,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"REPLACESTRING_S_S_S_S_L", (AGKVoidFunc) (char*(*)(const char*,const char*,const char*,int)) (agk::ReplaceString) },
 	{"REQUESTADVERTREFRESH_0_0", (AGKVoidFunc) (void(*)()) (agk::RequestAdvertRefresh) },
 	{"REQUESTAPPREVIEW_0_0", (AGKVoidFunc) (void(*)()) (agk::RequestAppReview) },
+	{"REQUESTCONSENTADMOB_0_0", (AGKVoidFunc) (void(*)()) (agk::RequestConsentAdMob) },
 	{"REQUESTPERMISSION_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::RequestPermission) },
 	{"RESET3DPARTICLECOUNT_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::Reset3DParticleCount) },
 	{"RESET3DPHYSICSWORLD_0_0", (AGKVoidFunc) (void(*)()) (agk::Reset3DPhysicsWorld) },

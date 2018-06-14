@@ -9106,6 +9106,29 @@ char* agk::GetCurrentTime()
 }
 
 // advert commands
+void agk::LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy )
+//****
+{
+
+}
+
+int agk::GetConsentStatusAdMob()
+//****
+{
+	return 0;
+}
+
+void agk::RequestConsentAdMob()
+//****
+{
+
+}
+
+void agk::OverrideConsentAdMob( int consent )
+//****
+{
+	
+}
 
 int agk::PlatformGetAdPortal()
 {
@@ -9998,7 +10021,10 @@ void agk::GameCenterAchievementsReset ( )
 //   but you should explain why your app needs it first so they can make an informed choice. If they still reject it
 //   you should not normally ask a third time. After the first attempt Android will give the user the option to
 //   never allow the permission. In this case this command will always return -1 and <i>RequestPermission</i> will do 
-//   nothing. The user will have to go into the device app settings to reverse this decision.
+//   nothing. The user will have to go into the device app settings to reverse this decision.<br/><br/>
+//   Any permission not listed here does not require you to prompt the user for permission, it will be auto granted 
+//   on install if your app requires it. All permissions that your app uses, even those that require prompting, must
+//   be specified in the APK export dialog by ticking the appropriate check boxes.
 // INPUTS
 //   szPermission -- The permission to check
 // SOURCE
@@ -10019,7 +10045,10 @@ int agk::CheckPermission( const char* szPermission )
 //   You can check the result of the request by calling <i>CheckPermission</i>.
 //   After the first request Android will give the user the option to stop displaying the request dialog. In this case 
 //   this command will no longer generate a request dialog and instead do nothing. The user will have to go into 
-//   the device app settings to reverse this decision.
+//   the device app settings to reverse this decision.<br/><br/>
+//   Any permission not listed here does not require you to prompt the user for permission, it will be auto granted 
+//   on install if your app requires it. All permissions that your app uses, even those that require prompting, must
+//   be specified in the APK export dialog by ticking the appropriate check boxes.
 // INPUTS
 //   szPermission -- The permission to request
 // SOURCE

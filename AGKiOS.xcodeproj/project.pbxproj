@@ -204,8 +204,9 @@
 		4A45AB381D00E96900CF29C4 /* vorbisenc.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A45AB091D00E96900CF29C4 /* vorbisenc.h */; };
 		4A45AB391D00E96900CF29C4 /* vorbisfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A45AB0A1D00E96900CF29C4 /* vorbisfile.h */; };
 		4A45AB3A1D00E96900CF29C4 /* window.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A45AB0B1D00E96900CF29C4 /* window.h */; };
+		4A54010E20C59D7F002874FA /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A54010D20C59D7E002874FA /* PersonalizedAdConsent.framework */; };
+		4A54011020C5DFD1002874FA /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A54010F20C5DFD0002874FA /* GoogleMobileAds.framework */; };
 		4A5720E619F0716F001BA462 /* Chartboost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5720E519F0716F001BA462 /* Chartboost.framework */; };
-		4A58BA4B206A9B730038F2F0 /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA49206A9A890038F2F0 /* GoogleMobileAds.framework */; };
 		4A58BA4D206AA20B0038F2F0 /* FirebaseAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */; };
 		4A653C1D2062C68F008B519B /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A653C1C2062C68F008B519B /* ARKit.framework */; };
 		4A6E38031FDF325B0098EFBA /* b2MotorJoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A6E38011FDF325A0098EFBA /* b2MotorJoint.h */; };
@@ -1624,8 +1625,9 @@
 		4A45AB091D00E96900CF29C4 /* vorbisenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vorbisenc.h; sourceTree = "<group>"; };
 		4A45AB0A1D00E96900CF29C4 /* vorbisfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vorbisfile.h; sourceTree = "<group>"; };
 		4A45AB0B1D00E96900CF29C4 /* window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = window.h; path = libogg/include/window.h; sourceTree = "<group>"; };
+		4A54010D20C59D7E002874FA /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
+		4A54010F20C5DFD0002874FA /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = "platform/apple/Source/Social Plugins/GoogleMobileAds.framework"; sourceTree = "<group>"; };
 		4A5720E519F0716F001BA462 /* Chartboost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Chartboost.framework; path = "platform/apple/Source/Social Plugins/Chartboost.framework"; sourceTree = "<group>"; };
-		4A58BA49206A9A890038F2F0 /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = "platform/apple/Source/Social Plugins/GoogleMobileAds.framework"; sourceTree = "<group>"; };
 		4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = "platform/apple/Source/Social Plugins/Firebase/FirebaseAnalytics.framework"; sourceTree = "<group>"; };
 		4A653C1C2062C68F008B519B /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
 		4A6E38011FDF325A0098EFBA /* b2MotorJoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = b2MotorJoint.h; sourceTree = "<group>"; };
@@ -2867,7 +2869,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4A58BA4B206A9B730038F2F0 /* GoogleMobileAds.framework in Frameworks */,
+				4A54010E20C59D7F002874FA /* PersonalizedAdConsent.framework in Frameworks */,
 				4A653C1D2062C68F008B519B /* ARKit.framework in Frameworks */,
 				4A367B8C1D6F164F00CF46E6 /* CoreVideo.framework in Frameworks */,
 				4A0A411A1D9EA34B0065F425 /* FacebookSDK.framework in Frameworks */,
@@ -2881,6 +2883,7 @@
 				4A58BA4D206AA20B0038F2F0 /* FirebaseAnalytics.framework in Frameworks */,
 				9B99759312D313B400F8A432 /* AudioToolbox.framework in Frameworks */,
 				9B99759712D313CC00F8A432 /* OpenAL.framework in Frameworks */,
+				4A54011020C5DFD1002874FA /* GoogleMobileAds.framework in Frameworks */,
 				9B99759E12D315BA00F8A432 /* OpenGLES.framework in Frameworks */,
 				4A5720E619F0716F001BA462 /* Chartboost.framework in Frameworks */,
 				9B9975A212D315CB00F8A432 /* AVFoundation.framework in Frameworks */,
@@ -2916,8 +2919,9 @@
 		0867D69AFE84028FC02AAC07 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4A54010F20C5DFD0002874FA /* GoogleMobileAds.framework */,
+				4A54010D20C59D7E002874FA /* PersonalizedAdConsent.framework */,
 				4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */,
-				4A58BA49206A9A890038F2F0 /* GoogleMobileAds.framework */,
 				4A653C1C2062C68F008B519B /* ARKit.framework */,
 				4A0A41191D9EA34B0065F425 /* FacebookSDK.framework */,
 				4A367B8B1D6F164F00CF46E6 /* CoreVideo.framework */,

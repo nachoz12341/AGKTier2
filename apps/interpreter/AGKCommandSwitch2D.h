@@ -9745,3 +9745,26 @@ case AGKI_SPEAK_0_S_L:
     agk::Speak( param0, param1 );
     break;
 }
+case AGKI_OVERRIDECONSENTADMOB_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::OverrideConsentAdMob( param0 );
+    break;
+}
+case AGKI_LOADCONSENTSTATUSADMOB_0_S_S:
+{
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::LoadConsentStatusAdMob( param0, param1 );
+    break;
+}
+case AGKI_GETCONSENTSTATUSADMOB_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetConsentStatusAdMob( );
+    break;
+}
+case AGKI_REQUESTCONSENTADMOB_0_0:
+{
+    agk::RequestConsentAdMob( );
+    break;
+}

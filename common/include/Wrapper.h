@@ -1127,6 +1127,7 @@ namespace AGK
 			static void SetRenderToImage( int colorImage, int depthImage );
 			static void SetRenderToScreen();
 			static UINT IsSupportedDepthTexture();
+			static int GetSupportedShaderVaryings();
 			
 			// sprite functions
 			static cSprite* GetSpritePtr ( UINT iSpriteIndex );
@@ -2418,6 +2419,11 @@ namespace AGK
 			static void SetAdMobRewardAdDetails( const char* szID );
 			static void SetChartboostDetails( const char* szKey1, const char* szKey2 );
 			static void SetAmazonAdDetails( const char* szKey );
+
+			static void LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy );
+			static int GetConsentStatusAdMob();
+			static void RequestConsentAdMob();
+			static void OverrideConsentAdMob( int consent );
         
             static void SetAmazonAdTesting( int mode );
 			static void SetAdMobTesting( int mode );

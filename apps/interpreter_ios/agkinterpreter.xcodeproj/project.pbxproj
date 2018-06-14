@@ -27,6 +27,8 @@
 		4A1DB89019C1DC6A0048316C /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A1DB88F19C1DC6A0048316C /* CoreLocation.framework */; };
 		4A26DEC11D7F11D500AAF62F /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A26DEC01D7F11D500AAF62F /* CoreVideo.framework */; };
 		4A44D45F1FBC84190074C59C /* Default-375w-812h@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A44D45E1FBC84190074C59C /* Default-375w-812h@3x.png */; };
+		4A54011220C5E8F2002874FA /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A54011120C5E8F2002874FA /* PersonalizedAdConsent.framework */; };
+		4A54011420C5F476002874FA /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4A54011320C5F476002874FA /* PersonalizedAdConsent.bundle */; };
 		4A58BA55206AA23C0038F2F0 /* FirebaseAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA4E206AA23B0038F2F0 /* FirebaseAnalytics.framework */; };
 		4A58BA56206AA23C0038F2F0 /* FirebaseCoreDiagnostics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA4F206AA23B0038F2F0 /* FirebaseCoreDiagnostics.framework */; };
 		4A58BA57206AA23C0038F2F0 /* FirebaseInstanceID.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA50206AA23B0038F2F0 /* FirebaseInstanceID.framework */; };
@@ -50,6 +52,7 @@
 		4A952B111FA00CC2006F2215 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A952B101FA00CC2006F2215 /* WatchConnectivity.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A9A52821FDF6BEE00E3AE27 /* Icons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A9A52811FDF6BEE00E3AE27 /* Icons.xcassets */; };
 		4A9D50791996814400473873 /* ProgramData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A9D50781996814400473873 /* ProgramData.cpp */; };
+		4AB6380720CAD754007F0A18 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380620CAD754007F0A18 /* WebKit.framework */; };
 		4ABD90A41AB88A4400ADB1BA /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABD90A31AB88A4400ADB1BA /* AdSupport.framework */; };
 		4ABD90A61AB88FCF00ADB1BA /* Chartboost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABD90A51AB88FCF00ADB1BA /* Chartboost.framework */; };
 		4ABD90AC1AB890EB00ADB1BA /* libAGKiOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABD90AB1AB890EB00ADB1BA /* libAGKiOS.a */; };
@@ -94,6 +97,8 @@
 		4A1DB88F19C1DC6A0048316C /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		4A26DEC01D7F11D500AAF62F /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		4A44D45E1FBC84190074C59C /* Default-375w-812h@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-375w-812h@3x.png"; sourceTree = "<group>"; };
+		4A54011120C5E8F2002874FA /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
+		4A54011320C5F476002874FA /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
 		4A58BA4E206AA23B0038F2F0 /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseAnalytics.framework"; sourceTree = "<group>"; };
 		4A58BA4F206AA23B0038F2F0 /* FirebaseCoreDiagnostics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseCoreDiagnostics.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseCoreDiagnostics.framework"; sourceTree = "<group>"; };
 		4A58BA50206AA23B0038F2F0 /* FirebaseInstanceID.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseInstanceID.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseInstanceID.framework"; sourceTree = "<group>"; };
@@ -117,6 +122,7 @@
 		4A952B101FA00CC2006F2215 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		4A9A52811FDF6BEE00E3AE27 /* Icons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Icons.xcassets; sourceTree = "<group>"; };
 		4A9D50781996814400473873 /* ProgramData.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = ProgramData.cpp; path = ../../interpreter/ProgramData.cpp; sourceTree = "<group>"; };
+		4AB6380620CAD754007F0A18 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		4ABD90A31AB88A4400ADB1BA /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
 		4ABD90A51AB88FCF00ADB1BA /* Chartboost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Chartboost.framework; path = "../../platform/apple/Source/Social Plugins/Chartboost.framework"; sourceTree = "<group>"; };
 		4ABD90AB1AB890EB00ADB1BA /* libAGKiOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libAGKiOS.a; path = ../../platform/apple/Lib/Release/libAGKiOS.a; sourceTree = "<group>"; };
@@ -179,6 +185,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AB6380720CAD754007F0A18 /* WebKit.framework in Frameworks */,
+				4A54011220C5E8F2002874FA /* PersonalizedAdConsent.framework in Frameworks */,
 				4A58BA5D206AA2970038F2F0 /* libsqlite3.tbd in Frameworks */,
 				4A58BA55206AA23C0038F2F0 /* FirebaseAnalytics.framework in Frameworks */,
 				4A653C1F20642CFE008B519B /* ARKit.framework in Frameworks */,
@@ -274,6 +282,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4A54011320C5F476002874FA /* PersonalizedAdConsent.bundle */,
 				4A44D45E1FBC84190074C59C /* Default-375w-812h@3x.png */,
 				4A6879F21EB0F81A00281DB2 /* Default-414w-736h@3x.png */,
 				4A6879F31EB0F81A00281DB2 /* Default-568h@2x.png */,
@@ -297,6 +306,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AB6380620CAD754007F0A18 /* WebKit.framework */,
+				4A54011120C5E8F2002874FA /* PersonalizedAdConsent.framework */,
 				4A58BA5C206AA2970038F2F0 /* libsqlite3.tbd */,
 				4A653C1E20642CFE008B519B /* ARKit.framework */,
 				4A952B101FA00CC2006F2215 /* WatchConnectivity.framework */,
@@ -462,6 +473,7 @@
 				4A6879FD1EB0F81A00281DB2 /* Default-Landscape-1366h@2x~ipad.png in Resources */,
 				D8897F6812ADCB6500573108 /* MainWindow.xib in Resources */,
 				4A687A001EB0F81A00281DB2 /* Default-Portrait-1366h@2x~ipad.png in Resources */,
+				4A54011420C5F476002874FA /* PersonalizedAdConsent.bundle in Resources */,
 				4A6879FE1EB0F81A00281DB2 /* Default-Landscape@2x~ipad.png in Resources */,
 				4A687A021EB0F81A00281DB2 /* Default-Portrait~ipad.png in Resources */,
 				4A6879FC1EB0F81A00281DB2 /* Default-568h@2x.png in Resources */,

@@ -49,6 +49,9 @@
 		4A687A3E1EB0FBB700281DB2 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A687A341EB0FBB700281DB2 /* Default@2x.png */; };
 		4A7962021FE0311800153A39 /* Icons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A7962011FE0311800153A39 /* Icons.xcassets */; };
 		4A952B171FA00D1C006F2215 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A952B161FA00D1C006F2215 /* WatchConnectivity.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		4AB6380920CAD7CD007F0A18 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380820CAD7CD007F0A18 /* WebKit.framework */; };
+		4AB6380B20CAD82B007F0A18 /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380A20CAD82A007F0A18 /* PersonalizedAdConsent.framework */; };
+		4AB6380D20CAD842007F0A18 /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4AB6380C20CAD842007F0A18 /* PersonalizedAdConsent.bundle */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
 		D80B81BE16FD2615009D21D8 /* libAGKiOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D80B81BD16FD2615009D21D8 /* libAGKiOS.a */; };
@@ -117,6 +120,9 @@
 		4A687A341EB0FBB700281DB2 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		4A7962011FE0311800153A39 /* Icons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Icons.xcassets; sourceTree = "<group>"; };
 		4A952B161FA00D1C006F2215 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		4AB6380820CAD7CD007F0A18 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		4AB6380A20CAD82A007F0A18 /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
+		4AB6380C20CAD842007F0A18 /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
 		726A37B215B8DA0D002F8919 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		72EF411814632D6400C96B0A /* UntitledViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UntitledViewController.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* agkinterpreter-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "agkinterpreter-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -179,6 +185,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AB6380B20CAD82B007F0A18 /* PersonalizedAdConsent.framework in Frameworks */,
+				4AB6380920CAD7CD007F0A18 /* WebKit.framework in Frameworks */,
 				4A58BA8F206AAF0D0038F2F0 /* ARKit.framework in Frameworks */,
 				4A952B171FA00D1C006F2215 /* WatchConnectivity.framework in Frameworks */,
 				4A5FF6FC1F6C306200BFF8C8 /* ReplayKit.framework in Frameworks */,
@@ -273,6 +281,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4AB6380C20CAD842007F0A18 /* PersonalizedAdConsent.bundle */,
 				4A7962011FE0311800153A39 /* Icons.xcassets */,
 				4A44D4681FBC8E5B0074C59C /* Default-375w-812h@3x.png */,
 				4A687A2C1EB0FBB700281DB2 /* Default-375w-667h@2x.png */,
@@ -297,6 +306,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AB6380A20CAD82A007F0A18 /* PersonalizedAdConsent.framework */,
+				4AB6380820CAD7CD007F0A18 /* WebKit.framework */,
 				4A58BA8E206AAF0C0038F2F0 /* ARKit.framework */,
 				4A952B161FA00D1C006F2215 /* WatchConnectivity.framework */,
 				4A5FF6FB1F6C306200BFF8C8 /* ReplayKit.framework */,
@@ -465,6 +476,7 @@
 				D88342E816F8C88C006ABD6F /* Default-568h@2x.png in Resources */,
 				4A687A371EB0FBB700281DB2 /* Default-414w-736h@3x.png in Resources */,
 				D8D8207216FD160300D08FAD /* media in Resources */,
+				4AB6380D20CAD842007F0A18 /* PersonalizedAdConsent.bundle in Resources */,
 				4A687A3E1EB0FBB700281DB2 /* Default@2x.png in Resources */,
 				4A687A3C1EB0FBB700281DB2 /* Default-Portrait@2x~ipad.png in Resources */,
 				4A44D4691FBC8E5C0074C59C /* Default-375w-812h@3x.png in Resources */,

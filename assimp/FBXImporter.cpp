@@ -151,9 +151,10 @@ void FBXImporter::InternReadFile( const std::string& pFile,
 	// streaming for its output data structures so the net win with
 	// streaming input data would be very low.
 	std::vector<char> contents;
-	contents.resize(stream->FileSize());
+	contents.resize(stream->FileSize()+1);
 
 	stream->Read(&*contents.begin(),contents.size(),1);
+	contents[ contents.size()-1 ] = 0;
 	const char* const begin = &*contents.begin();
 
 	// broadphase tokenizing pass in which we identify the core

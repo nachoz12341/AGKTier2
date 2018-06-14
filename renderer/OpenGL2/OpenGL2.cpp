@@ -752,7 +752,7 @@ int agk::PlatformGetMaxVaryings()
 {
 	int maxUniformVectors;
 	glGetIntegerv(GL_MAX_VARYING_COMPONENTS, &maxUniformVectors);
-	return maxUniformVectors/4;
+	return maxUniformVectors / 4;
 }
 
 int agk::PlatformGetMaxVertexTextures()

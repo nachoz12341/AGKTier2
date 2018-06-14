@@ -7799,6 +7799,12 @@ void agk::ShareImageAndText( const char* szFilename, const char* szText )
 void agk::FacebookActivateAppTracking()
 //****
 {
+	if ( m_sFBAppID.GetLength() == 0 )
+	{
+		agk::Error("FacebookSetup must be called before FacebookActivateAppTracking");
+		return;
+	}
+
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);
@@ -8239,6 +8245,87 @@ void agk::PlatformInAppPurchaseRestore()
 
 
 // ADMOB COMMANDS
+void agk::LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy )
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "LoadAdMobConsentStatus","(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)V" );
+
+	jstring strID = lJNIEnv->NewStringUTF( szPubID );
+	jstring strPrivacy = lJNIEnv->NewStringUTF( privacyPolicy );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, strID, strPrivacy );
+	lJNIEnv->DeleteLocalRef( strPrivacy );
+	lJNIEnv->DeleteLocalRef( strID );
+	
+	vm->DetachCurrentThread();
+}
+
+int agk::GetConsentStatusAdMob()
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetAdMobConsentStatus","(Landroid/app/Activity;)I" );
+	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, method, lNativeActivity );
+	
+	vm->DetachCurrentThread();
+	return result;
+}
+
+void agk::RequestConsentAdMob()
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "RequestAdMobConsent","(Landroid/app/Activity;)V" );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity );
+	
+	vm->DetachCurrentThread();
+}
+
+void agk::OverrideConsentAdMob( int consent )
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "OverrideAdMobConsent","(Landroid/app/Activity;I)V" );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, consent );
+	
+	vm->DetachCurrentThread();
+}
 
 // szID: publisher ID provided by AdMob
 // horz: 0=left, 1=center, 2=right

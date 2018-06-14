@@ -10,6 +10,7 @@
 
 #import "GoogleMobileAds/GADInterstitialDelegate.h"
 #import "GoogleMobileAds/GADRewardBasedVideoAdDelegate.h"
+#import "GoogleMobileAds/GADExtras.h"
 
 #import <Chartboost/Chartboost.h>
 
@@ -21,9 +22,16 @@
 #import <AdSupport/ASIdentifierManager.h>
 #include <CommonCrypto/CommonDigest.h>
 
+#import <PersonalizedAdConsent/PersonalizedAdConsent.h>
+
 // a few defines
 #define DEG 0.0174532925
 #define DEGREES_TO_RADIANS(__ANGLE__) ((__ANGLE__) / 180.0 * 3.14)
+
+namespace AGK
+{
+    extern UIViewController *g_pViewController;
+}
 
 // our globals, maybe these should go in a namespace
 struct sFriend
@@ -63,6 +71,8 @@ uString m_sFBName;
 @end
 
 int g_iAdMobTesting = 0;
+int g_iAdMobConsentStatus = -2; //-2=initial value, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
+uString g_sAdMobPrivacyPolicy;
 
 @implementation InterstitialListener
 -(id)init
@@ -121,6 +131,12 @@ int g_iAdMobTesting = 0;
                 [output appendFormat:@"%02x", digest[i]];
             
             [request setTestDevices:@[output]];
+        }
+        if ( g_iAdMobConsentStatus != 2 )
+        {
+            GADExtras *extras = [[GADExtras alloc] init];
+            extras.additionalParameters = @{@"npa": @"1"};
+            [request registerAdNetworkExtras:extras];
         }
         [pInterstitial loadRequest:request];
     }
@@ -207,14 +223,21 @@ InterstitialListener *g_pInterstitialListener = nil;
     if ( loaded == 0 && loading == 0 )
     {
         loading = 1;
+        GADRequest *request = [GADRequest request];
+        if ( g_iAdMobConsentStatus != 2 )
+        {
+            GADExtras *extras = [[GADExtras alloc] init];
+            extras.additionalParameters = @{@"npa": @"1"};
+            [request registerAdNetworkExtras:extras];
+        }
         if ( g_iAdMobTesting == 1 )
         {
-            [[GADRewardBasedVideoAd sharedInstance] loadRequest:[GADRequest request]
+            [[GADRewardBasedVideoAd sharedInstance] loadRequest:request
                                                withAdUnitID:@"ca-app-pub-3940256099942544/1712485313"];
         }
         else
         {
-            [[GADRewardBasedVideoAd sharedInstance] loadRequest:[GADRequest request]
+            [[GADRewardBasedVideoAd sharedInstance] loadRequest:request
                                                    withAdUnitID:[NSString stringWithUTF8String: sKey.GetStr()]];
         }
     }
@@ -874,6 +897,87 @@ char* agk::PlatformGetInAppPurchaseSignature( int iID )
 #pragma mark -
 #pragma mark AdMob Commands
 
+void agk::LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy )
+//****
+{
+    if ( g_iAdMobConsentStatus > -2 ) return;
+    g_iAdMobConsentStatus = -1;
+    g_sAdMobPrivacyPolicy.SetStr( privacyPolicy );
+    
+    [PACConsentInformation.sharedInstance
+     requestConsentInfoUpdateForPublisherIdentifiers:@[ [NSString stringWithUTF8String:szPubID] ]
+     completionHandler:^(NSError *_Nullable error) {
+         if (error)
+         {
+             agk::Warning( [[error localizedDescription] UTF8String] );
+             g_iAdMobConsentStatus = 0;
+         }
+         else
+         {
+             if ( PACConsentInformation.sharedInstance.requestLocationInEEAOrUnknown == NO )
+             {
+                 g_iAdMobConsentStatus = 2;
+             }
+             else
+             {
+                 switch( PACConsentInformation.sharedInstance.consentStatus )
+                 {
+                     case PACConsentStatusPersonalized: g_iAdMobConsentStatus = 2; break;
+                     case PACConsentStatusNonPersonalized: g_iAdMobConsentStatus = 1; break;
+                     default: g_iAdMobConsentStatus = 0;
+                 }
+             }
+         }
+     }];
+}
+
+int agk::GetConsentStatusAdMob()
+//****
+{
+    if ( g_iAdMobConsentStatus < -1 ) return -1;
+	return g_iAdMobConsentStatus;
+}
+
+void agk::RequestConsentAdMob()
+//****
+{
+    NSURL *privacyURL = [NSURL URLWithString:[NSString stringWithUTF8String:g_sAdMobPrivacyPolicy.GetStr()]];
+    PACConsentForm *form = [[PACConsentForm alloc] initWithApplicationPrivacyPolicyURL:privacyURL];
+    form.shouldOfferPersonalizedAds = YES;
+    form.shouldOfferNonPersonalizedAds = YES;
+    form.shouldOfferAdFree = NO;
+    
+    [form loadWithCompletionHandler:^(NSError *_Nullable error) {
+        NSLog(@"Load complete. Error: %@", error);
+        if (error) {
+            // Handle error.
+        } else {
+            // Load successful.
+            [g_pViewController setInactive];
+            [form presentFromViewController: g_pViewController
+              dismissCompletion:^(NSError *_Nullable error, BOOL userPrefersAdFree) {
+                  if (error) {
+                      // Handle error.
+                  } else {
+                      switch( PACConsentInformation.sharedInstance.consentStatus )
+                      {
+                          case PACConsentStatusPersonalized: g_iAdMobConsentStatus = 2; break;
+                          case PACConsentStatusNonPersonalized: g_iAdMobConsentStatus = 1; break;
+                          default: g_iAdMobConsentStatus = 0;
+                      }
+                  }
+                  [g_pViewController setActive];
+              }];
+        }
+    }];
+}
+
+void agk::OverrideConsentAdMob( int consent )
+{
+    g_iAdMobConsentStatus = 1;
+    if ( consent == 1 ) g_iAdMobConsentStatus = 2;
+}
+
 void agk::PlatformAdMobSetupRelative ( const char* szID, int iHorz, int iVert, float fOffsetX, float fOffsetY, int type )
 {
     //****    
@@ -963,6 +1067,13 @@ void agk::PlatformAdMobSetupRelative ( const char* szID, int iHorz, int iVert, f
     [ [ viewController view ] addSubview: g_pSocialPlugins->bannerView_ ];
     
     GADRequest* p = [ GADRequest request ];
+    
+    if ( g_iAdMobConsentStatus != 2 )
+    {
+        GADExtras *extras = [[GADExtras alloc] init];
+        extras.additionalParameters = @{@"npa": @"1"};
+        [p registerAdNetworkExtras:extras];
+    }
     
     //NSLog( @"View: %f, %f", g_pSocialPlugins->bannerView_.frame.size.width, g_pSocialPlugins->bannerView_.frame.size.height );
     

@@ -1,15 +1,16 @@
 // Temporary until the NDK build system can deal with there being no Java source.
 package com.thegamecreators.agk_player;
 
+import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -27,6 +28,10 @@ import com.google.android.gms.drive.DriveResourceClient;
 import com.google.android.gms.drive.Metadata;
 import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.events.ChangeEvent;
+import com.google.android.gms.drive.events.ListenerToken;
+import com.google.android.gms.drive.events.OnChangeListener;
+import com.google.android.gms.drive.metadata.SearchableMetadataField;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
@@ -44,6 +49,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.SearchableInfo;
 import android.content.ActivityNotFoundException;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
@@ -68,13 +74,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
 import java.lang.Runnable;
 import java.lang.String;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -87,6 +96,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -111,10 +122,12 @@ import android.provider.Settings.Secure;
 import android.os.Bundle;
 import android.os.Looper;
 
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.thegamecreators.agk_player.iap.*;
 
 import com.facebook.*;
@@ -162,6 +175,8 @@ import com.amazon.device.ads.*;
 
 import com.android.vending.expansion.zipfile.*;
 import com.google.android.vending.expansion.downloader.*;
+
+import com.google.ads.consent.*;
 
 import com.thegamecreators.agk_pocket.R;
 
@@ -442,7 +457,6 @@ class RunnableChartboost implements Runnable
 				cached = 0;
 				caching = 1;
 				Chartboost.startWithAppId(this.act, AppID, AppSig);
-				Chartboost.setImpressionsUseActivities(true);
 				Chartboost.onCreate(this.act);
                 Chartboost.setShouldRequestInterstitialsInFirstSession(true);
 				Chartboost.setDelegate(this.chartBoostDelegate);
@@ -722,6 +736,14 @@ class RunnableAd implements Runnable
 						String deviceId = md5(android_id).toUpperCase();
 						request.addTestDevice(deviceId);
 					}
+
+					// if we don't have consent for personalized ads then tell Google
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+					{
+						Bundle extras = new Bundle();
+						extras.putString("npa", "1");
+						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+					}
 					
 					ad.loadAd( request.build() );
 				}
@@ -759,6 +781,12 @@ class RunnableAd implements Runnable
 						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 						String deviceId = md5(android_id).toUpperCase();
 						request.addTestDevice(deviceId);
+					}
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+					{
+						Bundle extras = new Bundle();
+						extras.putString("npa", "1");
+						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
 					}
 					ad.loadAd(request.build());
 				}
@@ -810,6 +838,12 @@ class RunnableAd implements Runnable
 								  String deviceId = md5(android_id).toUpperCase();
 								  request.addTestDevice(deviceId);
 							  }
+							  if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+							  {
+								  Bundle extras = new Bundle();
+								  extras.putString("npa", "1");
+								  request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+							  }
 							  interstitial.loadAd(request.build());
 							  Log.i("AdMob", "Interstitial closed");
 						  }
@@ -831,6 +865,12 @@ class RunnableAd implements Runnable
 							String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 							String deviceId = md5(android_id).toUpperCase();
 							request.addTestDevice(deviceId);
+						}
+						if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+						{
+							Bundle extras = new Bundle();
+							extras.putString("npa", "1");
+							request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
 						}
 						interstitial.loadAd(request.build());
 					}
@@ -858,6 +898,12 @@ class RunnableAd implements Runnable
 								  String deviceId = md5(android_id).toUpperCase();
 								  request.addTestDevice(deviceId);
 							  }
+							  if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+							  {
+								  Bundle extras = new Bundle();
+								  extras.putString("npa", "1");
+								  request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+							  }
 							  interstitial.loadAd(request.build());
 							  Log.i("AdMob", "Interstitial closed");
 						  }
@@ -872,6 +918,12 @@ class RunnableAd implements Runnable
 						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 						String deviceId = md5(android_id).toUpperCase();
 						request.addTestDevice(deviceId);
+					}
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+					{
+						Bundle extras = new Bundle();
+						extras.putString("npa", "1");
+						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
 					}
 					interstitial.loadAd(request.build());
 				}
@@ -896,26 +948,23 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdClosed()
 						{
 							Log.i("AdMob", "Reward ad closed");
-							// doesn't work with reward videos
-							/*
-							AdRequest.Builder request = new AdRequest.Builder();
-							if ( testMode == 1 )
-							{
-								String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-								String deviceId = md5(android_id).toUpperCase();
-								request.addTestDevice(deviceId);
-							}
-							rewardAd.loadAd(rewardpubID, request.build());
-							*/
+
+							Bundle extras = new Bundle();
+							extras.putString("npa", "1");
+
 							if ( testMode == 1 )
 							{
 								Log.i("AdMob", "loading test reward ad");
-								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 							}
 							else
 							{
 								Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
-								rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd(rewardpubID, request.build());
 							}
 						}
 					});
@@ -928,26 +977,22 @@ class RunnableAd implements Runnable
 				}
 				else
 				{
-					// doesn't work with reward videos
-					/*
-					AdRequest.Builder request = new AdRequest.Builder();
-					if ( testMode == 1 )
-					{
-						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-						String deviceId = md5(android_id).toUpperCase();
-						request.addTestDevice(deviceId);
-					}
-					rewardAd.loadAd(rewardpubID, request.build());
-					*/
+					Bundle extras = new Bundle();
+					extras.putString("npa", "1");
+
 					if ( testMode == 1 )
 					{
 						Log.i("AdMob", "loading test reward ad");
-						rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+						AdRequest.Builder request = new AdRequest.Builder();
+						if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+						rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 					}
 					else
 					{
-						Log.i("AdMob", "loading real reward ad with: "+rewardpubID);
-						rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+						Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
+						AdRequest.Builder request = new AdRequest.Builder();
+						if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+						rewardAd.loadAd(rewardpubID, request.build());
 					}
 				}
 
@@ -970,51 +1015,44 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
 						public void onRewardedVideoAdClosed() {
 							Log.i("AdMob", "Reward ad closed");
-							// doesn't work with reqard videos
-							/*
-							AdRequest.Builder request = new AdRequest.Builder();
-							if ( testMode == 1 )
-							{
-								String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-								String deviceId = md5(android_id).toUpperCase();
-								request.addTestDevice(deviceId);
-							}
-							rewardAd.loadAd(rewardpubID, request.build());
-							*/
+
+							Bundle extras = new Bundle();
+							extras.putString("npa", "1");
+
 							if ( testMode == 1 )
 							{
 								Log.i("AdMob", "loading test reward ad");
-								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 							}
 							else
 							{
-								Log.i("AdMob", "loading real reward ad with: "+rewardpubID);
-								rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+								Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd(rewardpubID, request.build());
 							}
 						}
 					});
 				}
 
-				// doesn't work with reward videos
-				/*
-				AdRequest.Builder request = new AdRequest.Builder();
-				if ( testMode == 1 )
-				{
-					String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-					String deviceId = md5(android_id).toUpperCase();
-					request.addTestDevice(deviceId);
-				}
-				rewardAd.loadAd(rewardpubID, request.build());
-				*/
+				Bundle extras = new Bundle();
+				extras.putString("npa", "1");
+
 				if ( testMode == 1 )
 				{
 					Log.i("AdMob", "loading test reward ad");
-					rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+					AdRequest.Builder request = new AdRequest.Builder();
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+					rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 				}
 				else
 				{
-					Log.i("AdMob", "loading real reward ad with: "+rewardpubID);
-					rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+					Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
+					AdRequest.Builder request = new AdRequest.Builder();
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+					rewardAd.loadAd(rewardpubID, request.build());
 				}
 
 				break;
@@ -1029,6 +1067,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 	public Activity act;
 	public SurfaceHolder pHolder = null;
 	public SurfaceTexture pTexture = null;
+	public int iLastTex = 0;
 	public int m_x = -10;
 	public int m_y = 0;
 	public int m_width = 1;
@@ -1258,6 +1297,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		synchronized( AGKHelper.videoLock )
 		{
 			if ( pTexture != null ) pTexture = null;
+			iLastTex = 0;
 			if ( player != null )
 			{
 				player.reset();
@@ -1270,7 +1310,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 	public void PlayVideo()
 	{
 		Log.i("Video","Play Video");
-		if ( m_filename == "" || m_filename == "Error" ) return;
+		if ( m_filename.equals("") || m_filename.equals("Error") ) return;
 		
 		if ( player != null )
 		{
@@ -1302,7 +1342,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 	public void PlayVideoToTexture(int tex)
 	{
 		Log.i("Video","Play Video To Image");
-		if ( m_filename == "" || m_filename == "Error" ) return;
+		if ( m_filename.equals("") || m_filename.equals("Error") ) return;
 
 		if ( player != null )
 		{
@@ -1323,6 +1363,12 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		{
 			if ( Build.VERSION.SDK_INT >= 14 )
 			{
+				if ( pTexture != null && tex != iLastTex )
+				{
+					OnContextLost();
+				}
+				iLastTex = tex;
+
 				if ( pTexture == null )
 				{
 					pTexture = new SurfaceTexture(tex);
@@ -1379,6 +1425,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		synchronized( AGKHelper.videoLock )
 		{
 			if ( pTexture != null ) pTexture = null;
+			iLastTex = 0;
 			if ( player != null )
 			{
 				player.reset();
@@ -1590,6 +1637,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 			if (pTexture != null) {
 				pTexture = null;
 			}
+			iLastTex = 0;
 
 			if (player != null) {
 				if (completed == 0) pausePos = player.getCurrentPosition();
@@ -1677,6 +1725,7 @@ class AGKCamera
 	public Camera deviceCamera = null;
 	public Activity act;
 	public SurfaceTexture pTexture = null;
+	public int iLastTex = 0;
 	public int cameraWidth = 0;
 	public int cameraHeight = 0;
 
@@ -1700,6 +1749,7 @@ class AGKCamera
 		{
 			pTexture = null;
 		}
+		iLastTex = 0;
 	}
 
 	public void Start(int tex, int cameraID)
@@ -1708,6 +1758,12 @@ class AGKCamera
 
 		if ( Build.VERSION.SDK_INT >= 14 )
 		{
+			if ( pTexture != null && tex != iLastTex )
+			{
+				OnContextLost();
+			}
+			iLastTex = tex;
+
 			if ( pTexture == null )
 			{
 				if ( cameraID >= Camera.getNumberOfCameras() ) cameraID = 0;
@@ -1764,6 +1820,7 @@ class AGKCamera
 		{
 			pTexture = null;
 		}
+		iLastTex = 0;
 	}
 }
 
@@ -2899,9 +2956,115 @@ public class AGKHelper {
 	static int m_iRewardAdRewarded = 0;
 	static int m_iRewardAdRewardedChartboost = 0;
 
+	static int m_iAdMobConsentStatus = -2; // -2=startup value triggers consent load, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
+	static String m_sAdMobPrivacyPolicy = "";
+	static ConsentForm m_pAdMobConsentForm = null;
+
 	public static void SetAdMobTestMode( int mode )
 	{
 		RunnableAd.testMode = mode;
+	}
+
+	public static void LoadAdMobConsentStatus( Activity act, String publisherID, String privacyPolicy )
+	{
+		if ( m_iAdMobConsentStatus == -2 )
+		{
+			m_iAdMobConsentStatus = -1;
+			m_sAdMobPrivacyPolicy = privacyPolicy;
+			final Activity pAct = act;
+			ConsentInformation consentInformation = ConsentInformation.getInstance(act);
+			String[] publisherIds = {publisherID};
+			consentInformation.requestConsentInfoUpdate(publisherIds, new ConsentInfoUpdateListener() {
+				@Override
+				public void onConsentInfoUpdated(ConsentStatus consentStatus) {
+					// if not EEA then we can use personalized ads
+					if ( ConsentInformation.getInstance(pAct).isRequestLocationInEeaOrUnknown() == false ) m_iAdMobConsentStatus = 2;
+					else
+					{
+						switch( consentStatus )
+						{
+							case PERSONALIZED: m_iAdMobConsentStatus = 2; break;
+							case NON_PERSONALIZED: m_iAdMobConsentStatus = 1; break;
+							default: m_iAdMobConsentStatus = 0;
+						}
+					}
+				}
+
+				@Override
+				public void onFailedToUpdateConsentInfo(String errorDescription) {
+					Log.w( "AdMob Consent", "Failed to request consent status");
+					m_iAdMobConsentStatus = 0;
+				}
+			});
+		}
+	}
+
+	public static int GetAdMobConsentStatus( Activity act )
+	{
+		if ( m_iAdMobConsentStatus < 0 ) return -1;
+		else return m_iAdMobConsentStatus;
+	}
+
+	public static void RequestAdMobConsent( Activity act )
+	{
+		final Activity pAct = act;
+		act.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				URL privacyUrl = null;
+				try {
+					privacyUrl = new URL( m_sAdMobPrivacyPolicy );
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+					ShowMessage( pAct, "Failed to construct privacy policy URL" );
+					return;
+				}
+
+				m_pAdMobConsentForm = new ConsentForm.Builder(pAct, privacyUrl)
+						.withListener(new ConsentFormListener() {
+							@Override
+							public void onConsentFormLoaded() {
+								Log.i( "AdMob Consent", "Form loaded, showing form");
+								m_pAdMobConsentForm.show();
+							}
+
+							@Override
+							public void onConsentFormOpened() {
+								Log.i( "AdMob Consent", "Form displayed");
+							}
+
+							@Override
+							public void onConsentFormClosed( ConsentStatus consentStatus, Boolean userPrefersAdFree ) {
+								switch( consentStatus )
+								{
+									case PERSONALIZED: m_iAdMobConsentStatus = 2; break;
+									case NON_PERSONALIZED: m_iAdMobConsentStatus = 1; break;
+									default: m_iAdMobConsentStatus = 0;
+								}
+								Log.i( "AdMob Consent", "Form closed");
+							}
+
+							@Override
+							public void onConsentFormError(String errorDescription) {
+								Log.w( "AdMob Consent", "Failed to load consent form: "+ errorDescription);
+								ShowMessage( pAct, "Ad Consent Form " + errorDescription );
+								m_pAdMobConsentForm = null;
+							}
+						})
+						.withPersonalizedAdsOption()
+						.withNonPersonalizedAdsOption()
+						.build();
+
+				Log.i("Ad Consent", "Loading consent form" );
+				m_pAdMobConsentForm.load();
+			}
+		});
+	}
+
+	public static void OverrideAdMobConsent( Activity act, int mode )
+	{
+		m_iAdMobConsentStatus = 1;
+		if ( mode == 2 ) m_iAdMobConsentStatus = 2;
 	}
 
 	public static void CreateAd(Activity act, String publisherID, int horz, int vert, int offsetX, int offsetY, int type)
@@ -3584,6 +3747,7 @@ public class AGKHelper {
 	{
 		ConnectivityManager connectivityManager = (ConnectivityManager) act.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+		if ( activeNetworkInfo == null ) return -1;
 		switch( activeNetworkInfo.getType() ) {
 			case ConnectivityManager.TYPE_MOBILE: return 0;
 			case ConnectivityManager.TYPE_WIFI: return 1;
@@ -3914,7 +4078,7 @@ public class AGKHelper {
 		int index = -1;
 		for( int i = 0; i < g_sPermissions.length; i++ )
 		{
-			if (g_sPermissions[i] == permission) { index = i; break; }
+			if (g_sPermissions[i].equals(permission)) { index = i; break; }
 		}
 
 		return index;

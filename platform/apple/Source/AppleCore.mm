@@ -1679,12 +1679,27 @@ bool agk::GetAGKShouldRotate()
 
 void agk::PlatformSetOrientationAllowed( int portrait, int portrait2, int landscape, int landscape2 )
 {
-    // not much you can do in iOS to force the orientation
-    // if you are reading this and you found a way, you may need to clear the touch events afterwards
+    bool bAllowed = true;
+    switch( m_iOrientation )
+    {
+        case 1: if ( portrait == 0 ) bAllowed=false; break;
+        case 2: if ( portrait2 == 0 ) bAllowed=false; break;
+        case 3: if ( landscape == 0 ) bAllowed=false; break;
+        case 4: if ( landscape2 == 0 ) bAllowed=false; break;
+    }
     
-    //cTouch::ClearAll();
-    
-    //NSLog( @"Platform Orientation Allowed %d %d %d %d", portrait, portrait2, landscape, landscape2 );
+    if ( !bAllowed )
+    {
+        UIInterfaceOrientation orien = UIInterfaceOrientationUnknown;
+        if ( portrait != 0 ) orien = UIInterfaceOrientationPortrait;
+        else if ( portrait2 != 0 ) orien = UIInterfaceOrientationPortraitUpsideDown;
+        else if ( landscape != 0 ) orien = UIInterfaceOrientationLandscapeRight;
+        else if ( landscape2 != 0 ) orien = UIInterfaceOrientationLandscapeLeft;
+        else return;
+        
+        [[UIDevice currentDevice] setValue:@(orien) forKey:@"orientation"];
+        [UINavigationController attemptRotationToDeviceOrientation];
+    }
 }
 
 bool agk::PlatformGetDeviceID( uString &out )
@@ -5834,7 +5849,6 @@ char* agk::GetCurrentTime()
 }
 
 // advert commands
-
 int agk::PlatformGetAdPortal()
 {
 	//return 659; // Windows Phone 7

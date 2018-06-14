@@ -1,6 +1,7 @@
 // Temporary until the NDK build system can deal with there being no Java source.
 package com.thegamecreators.agk_player;
 
+import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.reward.RewardItem;
@@ -72,7 +73,9 @@ import java.lang.String;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -156,6 +159,7 @@ import com.chartboost.sdk.*;
 import com.chartboost.sdk.Model.CBError.CBImpressionError;
 
 import com.amazon.device.ads.*;
+import com.google.ads.consent.*;
 
 import com.mycompany.mytemplate.R;
 
@@ -436,7 +440,6 @@ class RunnableChartboost implements Runnable
 				cached = 0;
 				caching = 1;
 				Chartboost.startWithAppId(this.act, AppID, AppSig);
-				Chartboost.setImpressionsUseActivities(true);
 				Chartboost.onCreate(this.act);
 				Chartboost.setShouldRequestInterstitialsInFirstSession(true);
 				Chartboost.setDelegate(this.chartBoostDelegate);
@@ -717,6 +720,14 @@ class RunnableAd implements Runnable
 						request.addTestDevice(deviceId);
 					}
 
+					// if we don't have consent for personalized ads then tell Google
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+					{
+						Bundle extras = new Bundle();
+						extras.putString("npa", "1");
+						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+					}
+
 					ad.loadAd( request.build() );
 				}
 				break;
@@ -753,6 +764,13 @@ class RunnableAd implements Runnable
 						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 						String deviceId = md5(android_id).toUpperCase();
 						request.addTestDevice(deviceId);
+					}
+					// if we don't have consent for personalized ads then tell Google
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+					{
+						Bundle extras = new Bundle();
+						extras.putString("npa", "1");
+						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
 					}
 					ad.loadAd(request.build());
 				}
@@ -804,6 +822,13 @@ class RunnableAd implements Runnable
 								String deviceId = md5(android_id).toUpperCase();
 								request.addTestDevice(deviceId);
 							}
+							// if we don't have consent for personalized ads then tell Google
+							if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+							{
+								Bundle extras = new Bundle();
+								extras.putString("npa", "1");
+								request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+							}
 							interstitial.loadAd(request.build());
 							Log.i("AdMob", "Interstitial closed");
 						}
@@ -825,6 +850,13 @@ class RunnableAd implements Runnable
 							String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 							String deviceId = md5(android_id).toUpperCase();
 							request.addTestDevice(deviceId);
+						}
+						// if we don't have consent for personalized ads then tell Google
+						if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+						{
+							Bundle extras = new Bundle();
+							extras.putString("npa", "1");
+							request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
 						}
 						interstitial.loadAd(request.build());
 					}
@@ -852,6 +884,13 @@ class RunnableAd implements Runnable
 								String deviceId = md5(android_id).toUpperCase();
 								request.addTestDevice(deviceId);
 							}
+							// if we don't have consent for personalized ads then tell Google
+							if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+							{
+								Bundle extras = new Bundle();
+								extras.putString("npa", "1");
+								request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+							}
 							interstitial.loadAd(request.build());
 							Log.i("AdMob", "Interstitial closed");
 						}
@@ -866,6 +905,13 @@ class RunnableAd implements Runnable
 						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 						String deviceId = md5(android_id).toUpperCase();
 						request.addTestDevice(deviceId);
+					}
+					// if we don't have consent for personalized ads then tell Google
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
+					{
+						Bundle extras = new Bundle();
+						extras.putString("npa", "1");
+						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
 					}
 					interstitial.loadAd(request.build());
 				}
@@ -889,27 +935,25 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
 						public void onRewardedVideoAdClosed()
 						{
-							// doesn't work with reward videos
-							/*
-							AdRequest.Builder request = new AdRequest.Builder();
+							Log.i("AdMob", "Reward ad closed");
+
+							Bundle extras = new Bundle();
+							extras.putString("npa", "1");
+
 							if ( testMode == 1 )
 							{
-								String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-								String deviceId = md5(android_id).toUpperCase();
-								request.addTestDevice(deviceId);
-							}
-							rewardAd.loadAd(rewardpubID, request.build());
-							*/
-							if ( testMode == 1 )
-							{
-								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+								Log.i("AdMob", "loading test reward ad");
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 							}
 							else
 							{
-								rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+								Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd(rewardpubID, request.build());
 							}
-
-							Log.i("AdMob", "Reward ad closed");
 						}
 					});
 				}
@@ -921,24 +965,22 @@ class RunnableAd implements Runnable
 				}
 				else
 				{
-					// doesn't work with reward videos
-					/*
-					AdRequest.Builder request = new AdRequest.Builder();
+					Bundle extras = new Bundle();
+					extras.putString("npa", "1");
+
 					if ( testMode == 1 )
 					{
-						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-						String deviceId = md5(android_id).toUpperCase();
-						request.addTestDevice(deviceId);
-					}
-					rewardAd.loadAd(rewardpubID, request.build());
-					*/
-					if ( testMode == 1 )
-					{
-						rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+						Log.i("AdMob", "loading test reward ad");
+						AdRequest.Builder request = new AdRequest.Builder();
+						if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+						rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 					}
 					else
 					{
-						rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+						Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
+						AdRequest.Builder request = new AdRequest.Builder();
+						if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+						rewardAd.loadAd(rewardpubID, request.build());
 					}
 				}
 
@@ -960,48 +1002,45 @@ class RunnableAd implements Runnable
 						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
 						public void onRewardedVideoAdClosed() {
-							// doesn't work with reqard videos
-							/*
-							AdRequest.Builder request = new AdRequest.Builder();
+							Log.i("AdMob", "Reward ad closed");
+
+							Bundle extras = new Bundle();
+							extras.putString("npa", "1");
+
 							if ( testMode == 1 )
 							{
-								String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-								String deviceId = md5(android_id).toUpperCase();
-								request.addTestDevice(deviceId);
-							}
-							rewardAd.loadAd(rewardpubID, request.build());
-							*/
-							if ( testMode == 1 )
-							{
-								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+								Log.i("AdMob", "loading test reward ad");
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 							}
 							else
 							{
-								rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+								Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
+								AdRequest.Builder request = new AdRequest.Builder();
+								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+								rewardAd.loadAd(rewardpubID, request.build());
 							}
-							Log.i("AdMob", "Reward ad closed");
 						}
 					});
 				}
 
-				// doesn't work with reward videos
-				/*
-				AdRequest.Builder request = new AdRequest.Builder();
+				Bundle extras = new Bundle();
+				extras.putString("npa", "1");
+
 				if ( testMode == 1 )
 				{
-					String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-					String deviceId = md5(android_id).toUpperCase();
-					request.addTestDevice(deviceId);
-				}
-				rewardAd.loadAd(rewardpubID, request.build());
-				*/
-				if ( testMode == 1 )
-				{
-					rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().build() );
+					Log.i("AdMob", "loading test reward ad");
+					AdRequest.Builder request = new AdRequest.Builder();
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+					rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
 				}
 				else
 				{
-					rewardAd.loadAd(rewardpubID, new AdRequest.Builder().build());
+					Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
+					AdRequest.Builder request = new AdRequest.Builder();
+					if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+					rewardAd.loadAd(rewardpubID, request.build());
 				}
 
 				break;
@@ -2898,9 +2937,115 @@ public class AGKHelper {
 	static int m_iRewardAdRewarded = 0;
 	static int m_iRewardAdRewardedChartboost = 0;
 
+	static int m_iAdMobConsentStatus = -2; // -2=startup value triggers consent load, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
+	static String m_sAdMobPrivacyPolicy = "";
+	static ConsentForm m_pAdMobConsentForm = null;
+
 	public static void SetAdMobTestMode( int mode )
 	{
 		RunnableAd.testMode = mode;
+	}
+
+	public static void LoadAdMobConsentStatus( Activity act, String publisherID, String privacyPolicy )
+	{
+		if ( m_iAdMobConsentStatus == -2 )
+		{
+			m_iAdMobConsentStatus = -1;
+			m_sAdMobPrivacyPolicy = privacyPolicy;
+			final Activity pAct = act;
+			ConsentInformation consentInformation = ConsentInformation.getInstance(act);
+			String[] publisherIds = {publisherID};
+			consentInformation.requestConsentInfoUpdate(publisherIds, new ConsentInfoUpdateListener() {
+				@Override
+				public void onConsentInfoUpdated(ConsentStatus consentStatus) {
+					// if not EEA then we can use personalized ads
+					if ( ConsentInformation.getInstance(pAct).isRequestLocationInEeaOrUnknown() == false ) m_iAdMobConsentStatus = 2;
+					else
+					{
+						switch( consentStatus )
+						{
+							case PERSONALIZED: m_iAdMobConsentStatus = 2; break;
+							case NON_PERSONALIZED: m_iAdMobConsentStatus = 1; break;
+							default: m_iAdMobConsentStatus = 0;
+						}
+					}
+				}
+
+				@Override
+				public void onFailedToUpdateConsentInfo(String errorDescription) {
+					Log.w( "AdMob Consent", "Failed to request consent status");
+					m_iAdMobConsentStatus = 0;
+				}
+			});
+		}
+	}
+
+	public static int GetAdMobConsentStatus( Activity act )
+	{
+		if ( m_iAdMobConsentStatus < 0 ) return -1;
+		else return m_iAdMobConsentStatus;
+	}
+
+	public static void RequestAdMobConsent( Activity act )
+	{
+		final Activity pAct = act;
+		act.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				URL privacyUrl = null;
+				try {
+					privacyUrl = new URL( m_sAdMobPrivacyPolicy );
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+					ShowMessage( pAct, "Failed to construct privacy policy URL" );
+					return;
+				}
+
+				m_pAdMobConsentForm = new ConsentForm.Builder(pAct, privacyUrl)
+						.withListener(new ConsentFormListener() {
+							@Override
+							public void onConsentFormLoaded() {
+								Log.i( "AdMob Consent", "Form loaded, showing form");
+								m_pAdMobConsentForm.show();
+							}
+
+							@Override
+							public void onConsentFormOpened() {
+								Log.i( "AdMob Consent", "Form displayed");
+							}
+
+							@Override
+							public void onConsentFormClosed( ConsentStatus consentStatus, Boolean userPrefersAdFree ) {
+								switch( consentStatus )
+								{
+									case PERSONALIZED: m_iAdMobConsentStatus = 2; break;
+									case NON_PERSONALIZED: m_iAdMobConsentStatus = 1; break;
+									default: m_iAdMobConsentStatus = 0;
+								}
+								Log.i( "AdMob Consent", "Form closed");
+							}
+
+							@Override
+							public void onConsentFormError(String errorDescription) {
+								Log.w( "AdMob Consent", "Failed to load consent form: "+ errorDescription);
+								ShowMessage( pAct, "Ad Consent Form " + errorDescription );
+								m_pAdMobConsentForm = null;
+							}
+						})
+						.withPersonalizedAdsOption()
+						.withNonPersonalizedAdsOption()
+						.build();
+
+				Log.i("Ad Consent", "Loading consent form" );
+				m_pAdMobConsentForm.load();
+			}
+		});
+	}
+
+	public static void OverrideAdMobConsent( Activity act, int mode )
+	{
+		m_iAdMobConsentStatus = 1;
+		if ( mode == 2 ) m_iAdMobConsentStatus = 2;
 	}
 
 	public static void CreateAd(Activity act, String publisherID, int horz, int vert, int offsetX, int offsetY, int type)

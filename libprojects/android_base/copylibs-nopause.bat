@@ -29,33 +29,41 @@ copy /y "..\android_curl\obj\local\x86\libAGKCurl.a" "..\..\platform\android\jni
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 
 rem copy ARCore libs to projects that might use it
+IF NOT EXIST ..\..\IDE GOTO NOIDE
 copy /y "..\..\platform\android\ARCore\libs\armeabi-v7a\libarcore_sdk.so" "..\..\IDE\Geany-1.24.1\data\android\lib\armeabi-v7a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\arm64-v8a\libarcore_sdk.so" "..\..\IDE\Geany-1.24.1\data\android\lib\arm64-v8a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\x86\libarcore_sdk.so" "..\..\IDE\Geany-1.24.1\data\android\lib\x86\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
+:NOIDE
 
+IF NOT EXIST ..\..\apps\interpreter_android_google GOTO NOAPP1
 copy /y "..\..\platform\android\ARCore\libs\armeabi-v7a\libarcore_sdk.so" "..\..\apps\interpreter_android_google\AGKPlayer2\src\main\jniLibs\armeabi-v7a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\arm64-v8a\libarcore_sdk.so" "..\..\apps\interpreter_android_google\AGKPlayer2\src\main\jniLibs\arm64-v8a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\x86\libarcore_sdk.so" "..\..\apps\interpreter_android_google\AGKPlayer2\src\main\jniLibs\x86\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
+:NOAPP1
 
+IF NOT EXIST ..\..\apps\interpreter_android_google_compiler GOTO NOAPP2
 copy /y "..\..\platform\android\ARCore\libs\armeabi-v7a\libarcore_sdk.so" "..\..\apps\interpreter_android_google_compiler\AGKPlayer2\src\main\jniLibs\armeabi-v7a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\arm64-v8a\libarcore_sdk.so" "..\..\apps\interpreter_android_google_compiler\AGKPlayer2\src\main\jniLibs\arm64-v8a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\x86\libarcore_sdk.so" "..\..\apps\interpreter_android_google_compiler\AGKPlayer2\src\main\jniLibs\x86\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
+:NOAPP2
 
+IF NOT EXIST ..\..\apps\template_android_google GOTO NOAPP3
 copy /y "..\..\platform\android\ARCore\libs\armeabi-v7a\libarcore_sdk.so" "..\..\apps\template_android_google\AGK2Template\src\main\jniLibs\armeabi-v7a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\arm64-v8a\libarcore_sdk.so" "..\..\apps\template_android_google\AGK2Template\src\main\jniLibs\arm64-v8a\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
 copy /y "..\..\platform\android\ARCore\libs\x86\libarcore_sdk.so" "..\..\apps\template_android_google\AGK2Template\src\main\jniLibs\x86\libarcore_sdk.so"
 if not %ERRORLEVEL% equ 0 ( GOTO failed )
+:NOAPP3
 
 goto :eof
 

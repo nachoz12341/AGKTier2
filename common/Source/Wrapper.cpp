@@ -2312,8 +2312,6 @@ void agk::ResumedOpenGL( int mode )
 void agk::SetOrientationAllowed( int portrait, int portrait2, int landscape, int landscape2 )
 //****
 {
-	agk::PlatformSetOrientationAllowed( portrait, portrait2, landscape, landscape2 );
-
 	if ( portrait != 0 ) m_bAGKFlags |= AGK_FLAG_PORTRAIT;
 	else m_bAGKFlags &= ~AGK_FLAG_PORTRAIT;
 
@@ -2336,6 +2334,8 @@ void agk::SetOrientationAllowed( int portrait, int portrait2, int landscape, int
 		case 3: if ( !(m_bAGKFlags & AGK_FLAG_LANDSCAPE) ) bAllowed=false; break;
 		case 4: if ( !(m_bAGKFlags & AGK_FLAG_LANDSCAPE2) ) bAllowed=false; break;
 	}
+
+	agk::PlatformSetOrientationAllowed( portrait, portrait2, landscape, landscape2 );
 	
 	if ( !bAllowed )
 	{
@@ -6821,6 +6821,22 @@ void agk::SetImageSavePixels( int mode )
 //****
 {
 	// deprecated, this was wasting memory and loading times are now much faster
+}
+
+//****f* 3D/Shaders/GetSupportedShaderVaryings
+// FUNCTION
+//   Returns the number of vec4 varyings that can be used in shaders on the current device. Varyings are
+//   the variables that pass data between the vertex and pixel shaders. This value is guaranteed to be at 
+//   least 8, but most devices support more. Note that a single vec4 varying can hold multiple variables,
+//   for example two vec2 variables passed between the vertex and pixel shader would count as a single vec4 
+//   varying, since they can be packed together. Similarly a vec3 and a float can be packed together.
+//   However this only works if the variables remain whole, for example 4 vec3 variables cannot be packed
+//   into 3 vec4 varyings as it would require splitting up one of the vec3 variables.
+// SOURCE
+int agk::GetSupportedShaderVaryings()
+//****
+{
+	return PlatformGetMaxVaryings();
 }
 
 //
@@ -34765,7 +34781,7 @@ void agk::SetInneractiveDetails( const char* szCode )
 //   immediately later. You can check the progress of this by using <i>GetFullscreenAdvertLoadedAdMob</i>.<br><br>
 //   AdMob ads are currently supported by iOS and Android.
 // INPUTS
-//   ID     -- Ad unit ID as provided by AdMob.
+//   ID -- Ad unit ID as provided by AdMob.
 // SOURCE
 void agk::SetAdMobDetails ( const char* szID )
 //****    

@@ -13781,7 +13781,7 @@ int agk::PhysicsRayCastCategory( UINT category, float x, float y, float x2, floa
 //   Casts a ray through a particular sprite (can be physics or non physics) and stores the result of any 
 //   intersection. Results of a ray cast can be retrieved using the other ray cast functions such as 
 //   <i>GetRayCastNormalX</i>. If the ray starts inside a shape that shape will not be counted in the results.
-//   This function is sepcial in that it also works on all sprites even those that do not have physics turned on, 
+//   This function is special in that it also works on all sprites even those that do not have physics turned on, 
 //   but the sprite must have been assigned a shape using one of the sprite shape commands.<br><br>
 //   Returns 1 if there was a collision, 0 if not.
 // INPUTS
@@ -13812,7 +13812,7 @@ int agk::SpriteRayCastSingle( UINT sprite, float x, float y, float x2, float y2 
 //   Casts a ray through a particular sprite (can be physics or non physics) and stores the result of any 
 //   intersection. Results of a ray cast can be retrieved using the other ray cast functions such as 
 //   <i>GetRayCastNormalX</i>. If the ray starts inside a shape that shape will not be counted in the results.<br><br>
-//   This function is sepcial in that it also works on all sprites even those that do not have physics turned on, 
+//   This function is special in that it also works on all sprites even those that do not have physics turned on, 
 //   but the sprite must have been assigned a shape using one of the sprite shape commands.<br><br>
 //   Returns 1 if there was a collision, 0 if not.
 // INPUTS
@@ -28357,7 +28357,7 @@ void agk::SetNetworkAllowClients( UINT iNetID )
 //   Joins an AGK network hosted by another app. The network is specified by name, or by IP address and 
 //   port number. For named networks the app will look for any AGK networks broadcast with that name 
 //   and connect to it if found. Alternatively using an IP address and port number will attempt a direct
-//   connection to the host the host. In the case of internet connections an IP and port is the only way 
+//   connection to the host. In the case of internet connections an IP and port is the only way 
 //   to connect as broadcasts will not leave the local area network. IP addresses can be IPv4 or IPv6
 //   depending on what IP addresses the host is using (it could have one or more of each).<br><br>
 //
@@ -28413,7 +28413,7 @@ UINT agk::JoinNetwork( const char *szNetworkName, const char *szMyName )
 //   Joins an AGK network hosted by another app. The network is specified by name, or by IP address and 
 //   port number. For named networks the app will look for any AGK networks broadcast with that name 
 //   and connect to it if found. Alternatively using an IP address and port number will attempt a direct
-//   connection to the host the host. In the case of internet connections an IP and port is the only way 
+//   connection to the host. In the case of internet connections an IP and port is the only way 
 //   to connect as broadcasts will not leave the local area network. IP addresses can be IPv4 or IPv6
 //   depending on what IP addresses the host is using (it could have one or more of each).<br><br>
 //
@@ -38505,7 +38505,7 @@ void agk::CreateFileFromMemblock( const char* filename, UINT memID )
 //   values in the range 0-255 into 0.0-1.0 for use in a shader. Usually the normalize flag will be 
 //   1 for color attributes and 0 for everything else. The string length byte will always be a 
 //   multiple of 4 to simplify alignment issues, the string itself might have slightly less 
-//   characters and be padded with null terminators, but read all the bytes sepcified and you will 
+//   characters and be padded with null terminators, but read all the bytes specified and you will 
 //   get the correct length string. The attribute name string will be used by the shader to recognise
 //   what the vertex data is, the attribute names recognised by AGK are "position", "normal", 
 //   "tangent", "binormal", "color", "uv", "uv1", "boneweights", and "boneindices", however you may 
@@ -38610,7 +38610,7 @@ void agk::CreateMemblockFromObjectMesh( UINT memID, UINT objID, UINT meshIndex )
 //   values in the range 0-255 into 0.0-1.0 for use in a shader. Usually the normalize flag will be 
 //   1 for color attributes and 0 for everything else. The string length byte will always be a 
 //   multiple of 4 to simplify alignment issues, the string itself might have slightly less 
-//   characters and be padded with null terminators, but read all the bytes sepcified and you will 
+//   characters and be padded with null terminators, but read all the bytes specified and you will 
 //   get the correct length string. The attribute name string will be used by the shader to recognise
 //   what the vertex data is, the attribute names recognised by AGK are "position", "normal", 
 //   "tangent", "binormal", "color", "uv", "uv1", "boneweights", and "boneindices", however you may 

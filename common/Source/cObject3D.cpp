@@ -733,7 +733,6 @@ void AGKFileClose( aiFileIO* pFileIO, aiFile* pFile )
 
 void cObject3D::LoadObject( const char *szFilename, int withChildren,  float height )
 {
-	// todo: do extension look up
 	const char *ext = strrchr( szFilename, '.' );
 	uString sExt;
 	if ( ext ) 

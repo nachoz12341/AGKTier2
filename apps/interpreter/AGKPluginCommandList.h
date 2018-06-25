@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1944;
+int g_iNumAGKFunctions = 1949;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -894,6 +894,9 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETSOUNDMAXRATE_F_0", (AGKVoidFunc) (float(*)()) (agk::GetSoundMaxRate) },
 	{"GETSOUNDMINRATE_F_0", (AGKVoidFunc) (float(*)()) (agk::GetSoundMinRate) },
 	{"GETSOUNDSPLAYING_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetSoundsPlaying) },
+	{"GETSPEECHNUMVOICES_L_0", (AGKVoidFunc) (int(*)()) (agk::GetSpeechNumVoices) },
+	{"GETSPEECHVOICELANGUAGE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetSpeechVoiceLanguage) },
+	{"GETSPEECHVOICENAME_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetSpeechVoiceName) },
 	{"GETSPRITEACTIVE_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetSpriteActive) },
 	{"GETSPRITEANGLERAD_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetSpriteAngleRad) },
 	{"GETSPRITEANGLE_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetSpriteAngle) },
@@ -958,6 +961,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETSTORAGETOTAL_L_S", (AGKVoidFunc) (int(*)(const char *)) (agk::GetStorageTotal) },
 	{"GETSTRINGTOKEN2_S_S_S_L", (AGKVoidFunc) (char*(*)(const char*,const char*,int)) (agk::GetStringToken2) },
 	{"GETSTRINGTOKEN_S_S_S_L", (AGKVoidFunc) (char*(*)(const char*,const char*,int)) (agk::GetStringToken) },
+	{"GETSUPPORTEDSHADERVARYINGS_L_0", (AGKVoidFunc) (int(*)()) (agk::GetSupportedShaderVaryings) },
 	{"GETSYSTEMFONTEXISTS_L_S", (AGKVoidFunc) (int(*)(const char *)) (agk::GetSystemFontExists) },
 	{"GETTEXTALIGNMENT_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetTextAlignment) },
 	{"GETTEXTCHARANGLERAD_F_L_L", (AGKVoidFunc) (float(*)(UINT,UINT)) (agk::GetTextCharAngleRad) },
@@ -1156,6 +1160,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"OPENTOWRITE_L_S", (AGKVoidFunc) (UINT(*)(const char *)) (agk::OpenToWrite) },
 	{"OPENTOWRITE_L_S_L", (AGKVoidFunc) (UINT(*)(const char *,int)) (agk::OpenToWrite) },
 	{"OVERRIDECONSENTADMOB_0_L", (AGKVoidFunc) (void(*)(int)) (agk::OverrideConsentAdMob) },
+	{"OVERRIDECONSENTCHARTBOOST_0_L", (AGKVoidFunc) (void(*)(int)) (agk::OverrideConsentChartboost) },
 	{"PAUSEMUSICOGG_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::PauseMusicOGG) },
 	{"PAUSEMUSIC_0_0", (AGKVoidFunc) (void(*)()) (agk::PauseMusic) },
 	{"PAUSETWEENCAMERA_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::PauseTweenCamera) },

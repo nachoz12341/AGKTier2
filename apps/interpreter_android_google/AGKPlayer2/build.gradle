@@ -8,7 +8,7 @@ android {
     defaultConfig {
         applicationId "com.thegamecreators.agk_player2"
         minSdkVersion 15
-        targetSdkVersion 22
+        targetSdkVersion 26
     }
 
     buildTypes {
@@ -32,7 +32,7 @@ dependencies {
     compile project(':ExpansionZipFile')
     compile files('libs/chartboost.jar')
     compile files('libs/gcm.jar')
-    compile files('libs/amazon-ads-5.6.20.jar')
+    compile files('libs/amazon-ads-5.8.2.jar')
     implementation 'com.google.ar:core:1.0.0'
     implementation 'com.google.android.ads.consent:consent-library:1.0.3'
 }

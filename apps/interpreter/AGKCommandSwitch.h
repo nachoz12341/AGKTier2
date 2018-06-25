@@ -13313,5 +13313,37 @@ case AGKI_REQUESTCONSENTADMOB_0_0:
     agk::RequestConsentAdMob( );
     break;
 }
+case AGKI_GETSUPPORTEDSHADERVARYINGS_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSupportedShaderVaryings( );
+    break;
+}
+case AGKI_GETSPEECHNUMVOICES_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSpeechNumVoices( );
+    break;
+}
+case AGKI_GETSPEECHVOICELANGUAGE_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetSpeechVoiceLanguage( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_GETSPEECHVOICENAME_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetSpeechVoiceName( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_OVERRIDECONSENTCHARTBOOST_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::OverrideConsentChartboost( param0 );
+    break;
+}
 
 

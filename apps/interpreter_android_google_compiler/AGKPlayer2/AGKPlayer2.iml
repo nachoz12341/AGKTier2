@@ -136,12 +136,12 @@
     <orderEntry type="library" name="com.google.android.gms:play-services-auth-api-phone-license-11.8.0" level="project" />
     <orderEntry type="library" name="com.google.android.gms:play-services-base-11.8.0" level="project" />
     <orderEntry type="library" name="com.google.firebase:firebase-analytics-impl-11.8.0" level="project" />
+    <orderEntry type="library" name="__local_aars__:C.\Paul's\VC Projects\SVN Projects\AGKTrunk\apps\interpreter_android_google_compiler\AGKPlayer2\libs\amazon-ads-5.8.2.jar:unspecified@jar" level="project" />
     <orderEntry type="library" name="com.google.android.ads.consent:consent-library-1.0.3" level="project" />
     <orderEntry type="library" name="com.google.android.gms:play-services-plus-license-11.8.0" level="project" />
     <orderEntry type="library" name="com.google.firebase:firebase-iid-license-11.8.0" level="project" />
     <orderEntry type="library" name="com.google.android.gms:play-services-auth-api-phone-11.8.0" level="project" />
     <orderEntry type="library" name="com.android.support:support-fragment-26.1.0" level="project" />
-    <orderEntry type="library" name="__local_aars__:C.\Paul's\VC Projects\SVN Projects\AGKTrunk\apps\interpreter_android_google_compiler\AGKPlayer2\libs\amazon-ads-5.6.20.jar:unspecified@jar" level="project" />
     <orderEntry type="library" name="com.android.support:support-vector-drawable-26.1.0" level="project" />
     <orderEntry type="library" name="com.google.android.gms:play-services-gass-license-11.8.0" level="project" />
     <orderEntry type="library" name="com.android.support:support-core-utils-26.1.0" level="project" />

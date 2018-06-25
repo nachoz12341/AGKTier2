@@ -23,7 +23,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2018.05.24</string>
+	<string>2018.06.22</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -36,7 +36,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>2043</string>
+	<string>2044</string>
 	<key>FacebookAppID</key>
 	<string>358083327620324</string>
 	<key>FacebookAutoLogAppEventsEnabled</key>

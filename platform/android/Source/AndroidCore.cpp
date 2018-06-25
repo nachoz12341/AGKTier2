@@ -761,6 +761,37 @@ float agk::GetExpansionFileProgress()
 	return progress;
 }
 
+bool agk::ExtractExpansionFile( const char* localFile, const char* expansionFile )
+{
+	// extract file from expansion file then load normally
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+		
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+	jmethodID Extract = lJNIEnv->GetStaticMethodID( AGKHelper, "ExtractExpansionFileImage", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)I" );
+
+	jstring text = lJNIEnv->NewStringUTF( expansionFile );
+	jstring path = lJNIEnv->NewStringUTF( localFile );
+	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, Extract, lNativeActivity, text, path );
+	lJNIEnv->DeleteLocalRef( path );
+	lJNIEnv->DeleteLocalRef( text );
+
+	vm->DetachCurrentThread();
+
+	if ( result == 0 )
+	{
+		uString err; err.Format( "Failed to extract file from expansion file: %s", expansionFile );
+		agk::Error( err );
+		return false;
+	}
+
+	return true;
+}
+
 void agk::SetWindowTitle( const char *szTitle )
 {
 
@@ -3427,32 +3458,12 @@ bool cImage::PlatformGetDataFromFile( const char* szFile, unsigned char **pData,
 	{
 		sPath.SetStr( szFile + strlen("expansion") );
 		sPath.Replace( ':', '/' );
-		agk::PlatformGetFullPathWrite( sPath );
 
-		// extract file from expansion file then load normally
-		JNIEnv* lJNIEnv = g_pActivity->env;
-		JavaVM* vm = g_pActivity->vm;
-		vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-		jobject lNativeActivity = g_pActivity->clazz;
-		if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-		
-		jclass AGKHelper = GetAGKHelper(lJNIEnv);
-		jmethodID Extract = lJNIEnv->GetStaticMethodID( AGKHelper, "ExtractExpansionFileImage", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;)I" );
-
-		jstring text = lJNIEnv->NewStringUTF(szFile);
-		jstring path = lJNIEnv->NewStringUTF(sPath.GetStr());
-		int result = lJNIEnv->CallStaticIntMethod( AGKHelper, Extract, lNativeActivity, text, path );
-		lJNIEnv->DeleteLocalRef( path );
-		lJNIEnv->DeleteLocalRef( text );
-
-		vm->DetachCurrentThread();
-
-		if ( result == 0 )
+		if ( cFile::ExistsWrite( sPath ) ) agk::PlatformGetFullPathWrite( sPath );
+		else
 		{
-			uString err; err.Format( "Failed to load image from expansion file: %s", szFile );
-			agk::Error( err );
-			return false;
+			agk::PlatformGetFullPathWrite( sPath );
+			if ( !agk::ExtractExpansionFile( sPath, szFile ) ) return false;
 		}
 	}
 	else
@@ -5518,6 +5529,81 @@ void agk::SetSpeechRate( float rate )
 	vm->DetachCurrentThread();
 }
 
+int agk::GetSpeechNumVoices()
+//****
+{
+    JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetSpeechNumVoices","(Landroid/app/Activity;)I" );
+	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, method, lNativeActivity );
+
+	vm->DetachCurrentThread();
+	return result;
+}
+
+char* agk::GetSpeechVoiceLanguage( int index )
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetSpeechVoiceLanguage","(Landroid/app/Activity;I)Ljava/lang/String;" );
+	
+	jstring str = (jstring) lJNIEnv->CallStaticObjectMethod( AGKHelper, method, lNativeActivity, index );
+	jboolean bCopy;
+	const char* str2 = lJNIEnv->GetStringUTFChars( str, &bCopy );
+
+	char *retstr = new char[ strlen(str2) + 1 ];
+	strcpy( retstr, str2 );
+		
+	lJNIEnv->ReleaseStringUTFChars( str, str2 );
+	lJNIEnv->DeleteLocalRef( str );
+
+	vm->DetachCurrentThread();
+	return retstr;
+}
+
+char* agk::GetSpeechVoiceName( int index )
+//****
+{
+    JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetSpeechVoiceName","(Landroid/app/Activity;I)Ljava/lang/String;" );
+	
+	jstring str = (jstring) lJNIEnv->CallStaticObjectMethod( AGKHelper, method, lNativeActivity, index );
+	jboolean bCopy;
+	const char* str2 = lJNIEnv->GetStringUTFChars( str, &bCopy );
+
+	char *retstr = new char[ strlen(str2) + 1 ];
+	strcpy( retstr, str2 );
+		
+	lJNIEnv->ReleaseStringUTFChars( str, str2 );
+	lJNIEnv->DeleteLocalRef( str );
+
+	vm->DetachCurrentThread();
+	return retstr;
+}
+
 void agk::SetSpeechLanguage( const char* lang )
 //****
 {
@@ -6202,32 +6288,47 @@ bool AGK::cFile::OpenToRead( const char *szFilename )
 	if ( !szFilename || !*szFilename ) return false;
 	if ( pFile ) Close();
 	mode = 0;
-	
-	// attempt read from my documents folder first, then exe directory, otherwise fail
+
 	uString sPath( szFilename );
-	if ( cFile::ExistsRaw( szFilename ) ) sPath.SetStr( szFilename+4 );
-	else if ( cFile::ExistsWrite( szFilename ) ) agk::PlatformGetFullPathWrite(sPath);
+	if ( strncmp(szFilename, "expansion:", strlen("expansion:")) == 0 )
+	{
+		sPath.SetStr( szFilename + strlen("expansion") );
+		sPath.Replace( ':', '/' );
+		
+		if ( cFile::ExistsWrite( sPath ) ) agk::PlatformGetFullPathWrite( sPath );
+		else
+		{
+			agk::PlatformGetFullPathWrite( sPath );
+			if ( !agk::ExtractExpansionFile( sPath, szFilename ) ) return false;
+		}
+	}
 	else
 	{
-		if ( g_pActivity )
+		// attempt read from my documents folder first, then exe directory, otherwise fail
+		if ( cFile::ExistsRaw( szFilename ) ) sPath.SetStr( szFilename+4 );
+		else if ( cFile::ExistsWrite( szFilename ) ) agk::PlatformGetFullPathWrite(sPath);
+		else
 		{
-			// try asset folder
-			agk::PlatformGetFullPathRead(sPath);
+			if ( g_pActivity )
+			{
+				// try asset folder
+				agk::PlatformGetFullPathRead(sPath);
 
-			AAssetManager* assetManager = g_pActivity->assetManager;
-			AAsset* asset = AAssetManager_open(assetManager, sPath.GetStr(), AASSET_MODE_UNKNOWN);
-			if (asset)
-			{
-				pFile = (FILE*) asset;
-				pFilePtr = (void*)1;
-				return true;
-			}
-			else
-			{
-				uString err = "Failed to open file for reading ";
-				err += szFilename;
-				agk::Error( err );
-				return false;
+				AAssetManager* assetManager = g_pActivity->assetManager;
+				AAsset* asset = AAssetManager_open(assetManager, sPath.GetStr(), AASSET_MODE_UNKNOWN);
+				if (asset)
+				{
+					pFile = (FILE*) asset;
+					pFilePtr = (void*)1;
+					return true;
+				}
+				else
+				{
+					uString err = "Failed to open file for reading ";
+					err += szFilename;
+					agk::Error( err );
+					return false;
+				}
 			}
 		}
 	}
@@ -8322,6 +8423,25 @@ void agk::OverrideConsentAdMob( int consent )
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
 
 	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "OverrideAdMobConsent","(Landroid/app/Activity;I)V" );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, consent );
+	
+	vm->DetachCurrentThread();
+}
+
+void agk::OverrideConsentChartboost( int consent )
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "OverrideChartboostConsent","(Landroid/app/Activity;I)V" );
 	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, consent );
 	
 	vm->DetachCurrentThread();

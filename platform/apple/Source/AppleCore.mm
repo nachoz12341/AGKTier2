@@ -1662,6 +1662,11 @@ float agk::GetExpansionFileProgress()
 	return 0;
 }
 
+bool agk::ExtractExpansionFile( const char* localFile, const char* expansionFile )
+{
+	return false;
+}
+
 void agk::SetWindowTitle( const char *szTitle )
 {
 	// do nothing
@@ -4436,6 +4441,46 @@ void agk::SetSpeechRate( float rate )
 {
     if ( !g_pTextToSpeech ) return;
     g_fSpeechRate = rate * AVSpeechUtteranceDefaultSpeechRate;
+}
+
+int agk::GetSpeechNumVoices()
+//****
+{
+    return (int) [[AVSpeechSynthesisVoice speechVoices] count];
+}
+
+char* agk::GetSpeechVoiceLanguage( int index )
+//****
+{
+    if ( index < 0 || index >= [[AVSpeechSynthesisVoice speechVoices] count] )
+    {
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
+
+    AVSpeechSynthesisVoice* voice = [[AVSpeechSynthesisVoice speechVoices] objectAtIndex:index];
+    
+    const char* lang = [[voice language] UTF8String];
+    char* str = new char[ strlen(lang)+1 ];
+    strcpy( str, lang );
+    return str;
+}
+
+char* agk::GetSpeechVoiceName( int index )
+//****
+{
+    if ( index < 0 || index >= [[AVSpeechSynthesisVoice speechVoices] count] )
+    {
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
+    
+    AVSpeechSynthesisVoice* voice = [[AVSpeechSynthesisVoice speechVoices] objectAtIndex:index];
+    
+    const char* name = [[voice name] UTF8String];
+    char* str = new char[ strlen(name)+1 ];
+    strcpy( str, name );
+    return str;
 }
 
 void agk::SetSpeechLanguage( const char* lang )

@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.view.Surface;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
@@ -1606,8 +1607,37 @@ public class AGKHelper {
 		g_pTextToSpeech.speak( text, queueMode, hashMap );
 	}
 
+	public static int GetSpeechNumVoices( Activity act )
+	{
+		if ( g_pTextToSpeech == null ) return 0;
+		if ( Build.VERSION.SDK_INT < 21 ) return 0;
+
+		return g_pTextToSpeech.getVoices().size();
+	}
+
+	public static String GetSpeechVoiceLanguage( Activity act, int index )
+	{
+		if ( g_pTextToSpeech == null ) return "";
+		if ( Build.VERSION.SDK_INT < 21 ) return "";
+		if ( index < 0 || index >= g_pTextToSpeech.getVoices().size() ) return "";
+
+		Voice voice = (Voice) g_pTextToSpeech.getVoices().toArray()[ index ];
+		return voice.getLocale().toString();
+	}
+
+	public static String GetSpeechVoiceName( Activity act, int index )
+	{
+		if ( g_pTextToSpeech == null ) return "";
+		if ( Build.VERSION.SDK_INT < 21 ) return "";
+		if ( index < 0 || index >= g_pTextToSpeech.getVoices().size() ) return "";
+
+		Voice voice = (Voice) g_pTextToSpeech.getVoices().toArray()[ index ];
+		return voice.getName();
+	}
+
 	public static void SetSpeechLanguage( Activity act, String lang )
 	{
+		if ( g_pTextToSpeech == null ) return;
 		String[] parts = lang.split("_");
 		if ( parts.length <= 1 ) g_pTextToSpeech.setLanguage( new Locale(lang) );
 		else g_pTextToSpeech.setLanguage( new Locale(parts[0],parts[1]) );
@@ -1615,6 +1645,7 @@ public class AGKHelper {
 
 	public static void SetSpeechRate( Activity act, float rate )
 	{
+		if ( g_pTextToSpeech == null ) return;
 		g_pTextToSpeech.setSpeechRate( rate );
 	}
 

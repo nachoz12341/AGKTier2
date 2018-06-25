@@ -960,6 +960,7 @@ namespace AGK
 			static int GetExpansionFileState();
 			static void DownloadExpansionFile();
 			static float GetExpansionFileProgress();
+			static bool ExtractExpansionFile( const char* localFile, const char* expansionFile );
 
 			static char* GetDeviceID();
 			static void GetDeviceID( uString &out );
@@ -2424,6 +2425,7 @@ namespace AGK
 			static int GetConsentStatusAdMob();
 			static void RequestConsentAdMob();
 			static void OverrideConsentAdMob( int consent );
+			static void OverrideConsentChartboost( int consent );
         
             static void SetAmazonAdTesting( int mode );
 			static void SetAdMobTesting( int mode );
@@ -2504,6 +2506,9 @@ namespace AGK
 			static void Speak( const char *text, int delay );
 			static void SetSpeechRate( float rate );
 			static void SetSpeechLanguage( const char* lang );
+            static int GetSpeechNumVoices();
+            static char* GetSpeechVoiceLanguage( int index );
+            static char* GetSpeechVoiceName( int index );
 			static int IsSpeaking();
 			static void StopSpeaking();
         

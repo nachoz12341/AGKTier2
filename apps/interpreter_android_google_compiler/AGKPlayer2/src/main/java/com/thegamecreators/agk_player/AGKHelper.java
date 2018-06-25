@@ -110,6 +110,7 @@ import android.os.StatFs;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
@@ -322,6 +323,7 @@ class RunnableChartboost implements Runnable
 	public static int rewardCaching = 0;
     public static String AppID;
 	public static String AppSig;
+	public static boolean consent = false;
     
     private ChartboostDelegate chartBoostDelegate = new ChartboostDelegate() {
         @Override
@@ -457,6 +459,7 @@ class RunnableChartboost implements Runnable
 				cached = 0;
 				caching = 1;
 				Chartboost.startWithAppId(this.act, AppID, AppSig);
+				Chartboost.restrictDataCollection(this.act, !consent);
 				Chartboost.onCreate(this.act);
                 Chartboost.setShouldRequestInterstitialsInFirstSession(true);
 				Chartboost.setDelegate(this.chartBoostDelegate);
@@ -2918,8 +2921,37 @@ public class AGKHelper {
 		g_pTextToSpeech.speak( text, queueMode, hashMap );
 	}
 
+	public static int GetSpeechNumVoices( Activity act )
+	{
+		if ( g_pTextToSpeech == null ) return 0;
+		if ( Build.VERSION.SDK_INT < 21 ) return 0;
+
+		return g_pTextToSpeech.getVoices().size();
+	}
+
+	public static String GetSpeechVoiceLanguage( Activity act, int index )
+	{
+		if ( g_pTextToSpeech == null ) return "";
+		if ( Build.VERSION.SDK_INT < 21 ) return "";
+		if ( index < 0 || index >= g_pTextToSpeech.getVoices().size() ) return "";
+
+		Voice voice = (Voice) g_pTextToSpeech.getVoices().toArray()[ index ];
+		return voice.getLocale().toString();
+	}
+
+	public static String GetSpeechVoiceName( Activity act, int index )
+	{
+		if ( g_pTextToSpeech == null ) return "";
+		if ( Build.VERSION.SDK_INT < 21 ) return "";
+		if ( index < 0 || index >= g_pTextToSpeech.getVoices().size() ) return "";
+
+		Voice voice = (Voice) g_pTextToSpeech.getVoices().toArray()[ index ];
+		return voice.getName();
+	}
+
 	public static void SetSpeechLanguage( Activity act, String lang )
 	{
+		if ( g_pTextToSpeech == null ) return;
 		String[] parts = lang.split("_");
 		if ( parts.length <= 1 ) g_pTextToSpeech.setLanguage( new Locale(lang) );
 		else g_pTextToSpeech.setLanguage( new Locale(parts[0],parts[1]) );
@@ -2927,6 +2959,7 @@ public class AGKHelper {
 
 	public static void SetSpeechRate( Activity act, float rate )
 	{
+		if ( g_pTextToSpeech == null ) return;
 		g_pTextToSpeech.setSpeechRate( rate );
 	}
 
@@ -3065,6 +3098,14 @@ public class AGKHelper {
 	{
 		m_iAdMobConsentStatus = 1;
 		if ( mode == 2 ) m_iAdMobConsentStatus = 2;
+	}
+
+	public static void OverrideChartboostConsent( Activity act, int mode )
+	{
+		RunnableChartboost.consent = false;
+		if ( mode == 2 ) RunnableChartboost.consent = true;
+
+		Chartboost.restrictDataCollection(act, !RunnableChartboost.consent);
 	}
 
 	public static void CreateAd(Activity act, String publisherID, int horz, int vert, int offsetX, int offsetY, int type)

@@ -415,6 +415,11 @@ float agk::GetExpansionFileProgress()
 	return 0;
 }
 
+bool agk::ExtractExpansionFile( const char* localFile, const char* expansionFile )
+{
+	return false;
+}
+
 void agk::SetWindowTitle( const char *szTitle )
 {
 	glfwSetWindowTitle( g_pWindow, szTitle );
@@ -2580,6 +2585,26 @@ void agk::SetSpeechRate( float rate )
 
 }
 
+int agk::GetSpeechNumVoices()
+//****
+{
+    return 0;
+}
+
+char* agk::GetSpeechVoiceLanguage( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
+char* agk::GetSpeechVoiceName( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
 void agk::SetSpeechLanguage( const char* lang )
 //****
 {
@@ -4223,6 +4248,12 @@ void agk::RequestConsentAdMob()
 }
 
 void agk::OverrideConsentAdMob( int consent )
+//****
+{
+	
+}
+
+void agk::OverrideConsentChartboost( int consent )
 //****
 {
 	

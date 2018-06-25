@@ -1688,6 +1688,11 @@ float agk::GetExpansionFileProgress()
 	return 0;
 }
 
+bool agk::ExtractExpansionFile( const char* localFile, const char* expansionFile )
+{
+	return false;
+}
+
 //****f* Core/Misc/SetWindowTitle
 // FUNCTION
 //   Sets the window title for those platforms that run in a window (e.g. Windows, Mac).
@@ -7242,6 +7247,53 @@ void agk::SetSpeechRate( float rate )
 
 }
 
+//****f* Sound/TextToSpeech/GetSpeechNumVoices
+// FUNCTION
+//   Returns the number of voices that can be selected with the <i>SetSpeechLanguage</i> command. You can use
+//   the <i>GetSpeechVoiceName</i> and <i>GetSpeechVoiceLanguage</i> commands to get details about the different
+//   voices.
+//   </br></br>
+//   Currently only works on iOS and Android.
+// SOURCE
+int agk::GetSpeechNumVoices()
+//****
+{
+    return 0;
+}
+
+//****f* Sound/TextToSpeech/GetSpeechVoiceLanguage
+// FUNCTION
+//   Returns the language string of the given voice. This can be used directly with the <i>SetSpeechLanguage</i> 
+//   command to use this voice for any future speech.
+//   </br></br>
+//   Currently only works on iOS and Android.
+// INPUTS
+//   index -- The index of the voice to check, starts at 0 for the first voice
+// SOURCE
+char* agk::GetSpeechVoiceLanguage( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
+//****f* Sound/TextToSpeech/GetSpeechVoiceName
+// FUNCTION
+//   Returns the name of the given voice. On iOS this is a human readable first name, but does not give any details 
+//   about the accent or language of that voice. On Android the name gives the langauge and accent information but 
+//   is not as easy to read.
+//   </br></br>
+//   Currently only works on iOS and Android.
+// INPUTS
+//   index -- The index of the voice to check, starts at 0 for the first voice
+// SOURCE
+char* agk::GetSpeechVoiceName( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
 //****f* Sound/TextToSpeech/SetSpeechLanguage
 // FUNCTION
 //   Sets the language to use when speaking text, for example "en_GB" for British English, "en_US" for
@@ -9106,25 +9158,77 @@ char* agk::GetCurrentTime()
 }
 
 // advert commands
+
+//****f* Advert/AdMob/LoadConsentStatusAdMob
+// FUNCTION
+//   Loads the current user consent status from the AdMob server, this must be done before calling 
+//   <i>RequestConsentAdMob</i>. You should wait for <i>GetConsentStatusAdMob</i> to return
+//   a non-negative value before using the other AdMob consent commands.
+// INPUTS
+//   szPubID -- The publisher ID for you AdMob account
+//   privacyPolicy -- A URL to your privacy policy, this will be shown to the user as a link on the consent dialog
+// SOURCE
 void agk::LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy )
 //****
 {
 
 }
 
+//****f* Advert/AdMob/GetConsentStatusAdMob
+// FUNCTION
+//   Returns the current user consent status, it returns one of the following values:<br/>
+//   -2 = LoadConsentStatusAdMob has not yet been called, you must call it before proceeding further<br/>
+//   -1 = LoadConsentStatusAdMob is in the process of loading the user consent status, please wait<br/>
+//   0 = User has not yet been asked, AdMob ads will default to not using personal information, call <i>RequestConsentAdMob</i> to prompt the user for consent<br/>
+//   1 = User has refused consent, any AdMob ads displayed will not use personal information<br/>
+//   2 = User has given consent, any AdMob ads displayed will use personal information<br/>
+// SOURCE
 int agk::GetConsentStatusAdMob()
 //****
 {
 	return 0;
 }
 
+//****f* Advert/AdMob/RequestConsentAdMob
+// FUNCTION
+//   Displays a popup dialog asking the user for consent to show personalised ads. The user's response will automatically 
+//   be used to modify the AdMob settings so that ads are displayed in accordance with the user's preferences. The consent
+//   status will also be saved on the AdMob server so that a future call to <i>LoadConsentStatusAdMob</i> can retrieve the 
+//   value. You can call this command at any time during your app so that the user can change their preference, the user 
+//   must be able to do this somewhere within your app.<br/>
+//   <br/>
+//   This consent does not apply to Chartboost or Amazon, it only asks for consent to show personalised ads from AdMob. You 
+//   will need your own method of requesting consent for Chartboost and Amazon.
+// SOURCE
 void agk::RequestConsentAdMob()
 //****
 {
 
 }
 
+//****f* Advert/AdMob/OverrideConsentAdMob
+// FUNCTION
+//   Forces AdMob to use the given consent value when showing ads, this is not saved to the AdMob server and overrides 
+//   the normal consent process. This is used if you have you own method of aquiring user consent to show personalised ads.
+//   Note that the GDPR requires you by law to have the consent from EU users before showing them personalised ads.
+// INPUTS
+//   consent -- The consent value to use, 1=non-personalised, 2=personalised
+// SOURCE
 void agk::OverrideConsentAdMob( int consent )
+//****
+{
+	
+}
+
+//****f* Advert/Chartboost/OverrideConsentChartboost
+// FUNCTION
+//   Forces Chartboost to use the given consent value when showing ads, by default AGK shows non-personalised ads from Chartboost. 
+//   This command can be used if you have you own method of aquiring user consent to show personalised ads.
+//   Note that the GDPR requires you by law to have the consent from EU users before showing them personalised ads.
+// INPUTS
+//   consent -- The consent value to use, 1=non-personalised, 2=personalised
+// SOURCE
+void agk::OverrideConsentChartboost( int consent )
 //****
 {
 	

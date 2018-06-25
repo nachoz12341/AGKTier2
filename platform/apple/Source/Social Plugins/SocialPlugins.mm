@@ -72,6 +72,7 @@ uString m_sFBName;
 
 int g_iAdMobTesting = 0;
 int g_iAdMobConsentStatus = -2; //-2=initial value, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
+int g_iChartboostConsentStatus = -2; //-2=initial value, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
 uString g_sAdMobPrivacyPolicy;
 
 @implementation InterstitialListener
@@ -975,7 +976,18 @@ void agk::RequestConsentAdMob()
 void agk::OverrideConsentAdMob( int consent )
 {
     g_iAdMobConsentStatus = 1;
-    if ( consent == 1 ) g_iAdMobConsentStatus = 2;
+    if ( consent == 2 ) g_iAdMobConsentStatus = 2;
+}
+
+void agk::OverrideConsentChartboost( int consent )
+//****
+{
+#ifndef LITEVERSION
+	g_iChartboostConsentStatus = 1;
+    if ( consent == 2 ) g_iChartboostConsentStatus = 2;
+    
+    [Chartboost restrictDataCollection:g_iChartboostConsentStatus!=2];
+#endif
 }
 
 void agk::PlatformAdMobSetupRelative ( const char* szID, int iHorz, int iVert, float fOffsetX, float fOffsetY, int type )
@@ -1033,7 +1045,14 @@ void agk::PlatformAdMobSetupRelative ( const char* szID, int iHorz, int iVert, f
     float realHeight = adSize.size.height;
     if ( realWidth == 0 ) realWidth = 320;
     if ( realHeight == 0 ) realHeight = 50;
-    
+
+    if ( type == 5 )
+    {
+        realWidth = viewWidth;
+        if ( agk::GetDeviceWidth() > agk::GetDeviceHeight() ) realHeight = 32;
+        else realHeight = 50;
+    }
+	
     int iWidth = realWidth * agk::GetDeviceWidth() / viewWidth;
     int iHeight = realHeight * agk::GetDeviceHeight() / viewHeight;
     
@@ -1309,6 +1328,7 @@ void  agk::PlatformChartboostSetup ()
     [Chartboost startWithAppId:[ NSString stringWithUTF8String:m_sChartboostCode1.GetStr() ]
                   appSignature:[ NSString stringWithUTF8String:m_sChartboostCode2.GetStr() ]
                   delegate:g_pChartboostListener];
+    [Chartboost restrictDataCollection:g_iChartboostConsentStatus!=2];
     
     [g_pChartboostListener reset];
     [g_pChartboostListener load];

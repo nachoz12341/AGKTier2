@@ -185,6 +185,7 @@ using namespace AGK;
 @implementation GADRequest : NSObject @end
 @implementation GADInterstitial : NSObject @end
 @implementation GADAdSize : NSObject @end
+@implementation GADExtras : NSObject @end
 GADAdSize const *kGADAdSizeBanner;
 GADAdSize const *kGADAdSizeLargeBanner;
 GADAdSize const *kGADAdSizeMediumRectangle;
@@ -194,6 +195,8 @@ GADAdSize const *kGADAdSizeSmartBannerPortrait;
 GADAdSize const *kGADAdSizeSmartBannerLandscape;
 GADAdSize const *kGADAdSizeFluid;
 @implementation GADRewardBasedVideoAd : NSObject @end
+@implementation PACConsentForm : NSObject @end
+@implementation PACConsentInformation : NSObject @end
 
 // use this if you want to remove the Chartboost framework (also remove AdSupport.framework)
 @implementation Chartboost : NSObject @end

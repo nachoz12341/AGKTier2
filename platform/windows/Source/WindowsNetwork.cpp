@@ -1719,6 +1719,7 @@ cHTTPConnection::cHTTPConnection()
 
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_szContentType[0] = '\0';
 
 	m_bSaveToFile = false;
@@ -1729,6 +1730,14 @@ cHTTPConnection::~cHTTPConnection()
 	Close();
 	if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		delete pHeader;
+		pHeader = m_cHeaders.GetNext();
+	}
+	m_cHeaders.ClearAll();
 }
 
 UINT cHTTPConnection::Run()
@@ -1755,6 +1764,37 @@ void cHTTPConnection::SetTimeout( int milliseconds )
 void cHTTPConnection::SetVerifyCertificate( int mode )
 {
 	m_iVerifyMode = mode;
+}
+
+void cHTTPConnection::AddHeader( const char* headerName, const char* headerValue )
+{
+	if ( IsRunning() )
+	{
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		return;
+	}
+
+	cHTTPHeader *pHeader = m_cHeaders.GetItem( headerName );
+	if ( !pHeader )
+	{
+		pHeader = new cHTTPHeader();
+		pHeader->sName.SetStr( headerName );
+		m_cHeaders.AddItem( pHeader, headerName );
+	}
+
+	pHeader->sValue.SetStr( headerValue );
+}
+
+void cHTTPConnection::RemoveHeader( const char* headerName )
+{
+	if ( IsRunning() )
+	{
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		return;
+	}
+
+	cHTTPHeader *pHeader = m_cHeaders.RemoveItem( headerName );
+	if ( pHeader ) delete pHeader;
 }
 
 bool cHTTPConnection::SetHost( const char *szHost, int iSecure, const char *szUser, const char *szPass )
@@ -1827,6 +1867,7 @@ char* cHTTPConnection::SendFileInternal()
 {
 	cFile oFile;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	if ( m_szServerFile.GetLength() == 0 ) return 0;
 	
 	if ( !m_bConnected )
@@ -1932,7 +1973,7 @@ char* cHTTPConnection::SendFileInternal()
 	uString sHeader; 
 	sHeader.Format( "Content-Length: %d", iTotalLength );
 	HttpAddRequestHeaders( hHttpRequest, sHeader.GetStr(), -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
-	
+
 	// add Authorization header
 	if ( m_sUsername.GetLength() > 0 || m_sPassword.GetLength() > 0 )
 	{
@@ -1941,6 +1982,14 @@ char* cHTTPConnection::SendFileInternal()
 		sHeader.Format( "Authorization: Basic %s", base64 );
 		delete [] base64;
 		HttpAddRequestHeaders( hHttpRequest, sHeader.GetStr(), -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+	}
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		sHeader.Format( "%s: %s", pHeader->sName.GetStr(), pHeader->sValue.GetStr() );
+		HttpAddRequestHeaders( hHttpRequest, sHeader.GetStr(), -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+		pHeader = m_cHeaders.GetNext();
 	}
 	
 	// add Content-Type header
@@ -2038,10 +2087,14 @@ char* cHTTPConnection::SendFileInternal()
 
 	if ( !m_bConnected ) return 0;
 
-	DWORD dwContentLength = 0;
-	DWORD dwBufferSize = sizeof(DWORD);
+	DWORD dwBufferSize = sizeof(int);
 	DWORD dwHeaderIndex = 0;
-	BOOL bReturnHeader = HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, &dwBufferSize, &dwHeaderIndex );
+	BOOL bReturnHeader = HttpQueryInfo( hHttpRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, (void*)&m_iStatusCode, &dwBufferSize, &dwHeaderIndex );
+
+	DWORD dwContentLength = 0;
+	dwBufferSize = sizeof(DWORD);
+	dwHeaderIndex = 0;
+	bReturnHeader = HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, &dwBufferSize, &dwHeaderIndex );
 
 	dwHeaderIndex = 0;
 	DWORD ContentTypeLength = 150;
@@ -2139,6 +2192,7 @@ char* cHTTPConnection::SendRequestInternal()
 {
 	cFile oFile;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	if ( m_szServerFile.GetLength() == 0 ) return 0;
 	
 	if ( !m_bConnected )
@@ -2202,6 +2256,14 @@ char* cHTTPConnection::SendRequestInternal()
 		HttpAddRequestHeaders( hHttpRequest, "Content-Type: application/x-www-form-urlencoded", -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
 	}
 
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		sHeader.Format( "%s: %s", pHeader->sName.GetStr(), pHeader->sValue.GetStr() );
+		HttpAddRequestHeaders( hHttpRequest, sHeader.GetStr(), -1, HTTP_ADDREQ_FLAG_ADD | HTTP_ADDREQ_FLAG_REPLACE );
+		pHeader = m_cHeaders.GetNext();
+	}
+
 	// post data length
 	UINT iPostLength = m_szPostData.GetLength();
 
@@ -2229,10 +2291,13 @@ char* cHTTPConnection::SendRequestInternal()
 
 	if ( !m_bConnected ) return 0;
 
-	DWORD dwContentLength = 0;
-	DWORD dwBufferSize = sizeof(DWORD);
+	DWORD dwBufferSize = sizeof(int);
 	DWORD dwHeaderIndex = 0;
-	BOOL bReturnHeader = HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, &dwBufferSize, &dwHeaderIndex );
+	BOOL bReturnHeader = HttpQueryInfo( hHttpRequest, HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER, (void*)&m_iStatusCode, &dwBufferSize, &dwHeaderIndex );
+
+	dwHeaderIndex = 0;
+	DWORD dwContentLength = 0;
+	bReturnHeader = HttpQueryInfo( hHttpRequest, HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER, (void*)&dwContentLength, &dwBufferSize, &dwHeaderIndex );
 
 	dwHeaderIndex = 0;
 	DWORD ContentTypeLength = 150;
@@ -2367,6 +2432,7 @@ bool cHTTPConnection::SendRequestASync( const char *szServerFile, const char *sz
 	if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_szServerFile.SetStr( szServerFile );
 	m_szPostData.SetStr( szPostData );
 	m_szUploadFile.SetStr( "" );
@@ -2398,6 +2464,7 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
 	if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_szServerFile.SetStr( szServerFile );
 	m_szLocalFile.SetStr( "" );
 	m_szPostData.SetStr( szPostData );
@@ -2447,6 +2514,7 @@ bool cHTTPConnection::DownloadFile( const char *szServerFile, const char *szLoca
 	if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_szServerFile.SetStr( szServerFile );
 	m_szLocalFile.SetStr( szLocalFile );
 	m_szPostData.SetStr( szPostData );

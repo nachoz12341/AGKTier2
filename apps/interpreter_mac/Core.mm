@@ -147,11 +147,12 @@ static int GLFWCALL close_callback()
     return 1;
 }
 
-
 void Output ( char const* debugtext )
 {
 	// report this text to the internal debug reporting system for MAC
 }
+
+int g_iWindowActivePrev = 1;
 
 int main (int argc, char **argv)
 {
@@ -270,6 +271,12 @@ int main (int argc, char **argv)
 		// call app each frame
 		try
 		{
+            // detect window lost/gained focus
+            int active = glfwGetWindowParam(GLFW_ACTIVE);
+            if ( active && !g_iWindowActivePrev ) agk::Resumed();
+            if ( !active && g_iWindowActivePrev ) agk::Paused();
+            g_iWindowActivePrev = active;
+            
             App.Loop();
 		}
 		catch( ... )
@@ -296,3 +303,5 @@ int main (int argc, char **argv)
 	// success    
     return 0;
 }
+
+

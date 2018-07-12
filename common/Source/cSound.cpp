@@ -301,11 +301,13 @@ AGKMusicOGG::~AGKMusicOGG()
 		else g_pAllMusic = m_pNext;
 		if ( m_pNext ) m_pNext->m_pPrev = m_pPrev;
 	
+		/* no need to keep deleting and creating the thread, and may be causing a freeze on Android. Could be caused if the thread is deleted whilst it is still waiting on g_alllock
 		if ( !g_pAllMusic && g_pUpdateThread ) 
 		{
 			delete g_pUpdateThread;
 			g_pUpdateThread = 0;
 		}
+		*/
 	}
 
 	Stop();
@@ -667,11 +669,13 @@ void AGKMusicOGG::DeleteAll()
 		g_bDeletingAll = false;
 	}
 	
+	/* 
 	if ( g_pUpdateThread ) 
 	{
 		delete g_pUpdateThread;
 		g_pUpdateThread = 0;
 	}
+	*/
 }
 
 void AGKMusicOGG::SetMasterVolume( int vol )

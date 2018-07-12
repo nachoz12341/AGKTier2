@@ -2300,9 +2300,6 @@ void agk::ResumedOpenGL( int mode )
 //   immediately. So, for example, if you need the device to be in landscape and you call this
 //   command with only landscape allowed, you should then wait for <i>GetDeviceWidth</i> to return 
 //   greater than <i>GetDeviceHeight</i> which will signal that the device is now in landscape.<br>
-//   This auto rotation does not work on iOS, so if you need the device to change orientation you 
-//   will have to set your allowed orientations and then ask the user to rotate the device into
-//   one of the allowed orientations, which will then lock it to your allowed orientations.
 // INPUTS
 //   portrait -- The default device orientation.
 //   portrait2 -- The upside down portrait orientation.
@@ -6825,13 +6822,14 @@ void agk::SetImageSavePixels( int mode )
 
 //****f* 3D/Shaders/GetSupportedShaderVaryings
 // FUNCTION
-//   Returns the number of vec4 varyings that can be used in shaders on the current device. Varyings are
+//   Returns the number of varying values that can be used in shaders on the current device. Varyings are
 //   the variables that pass data between the vertex and pixel shaders. This value is guaranteed to be at 
-//   least 8, but most devices support more. Note that a single vec4 varying can hold multiple variables,
-//   for example two vec2 variables passed between the vertex and pixel shader would count as a single vec4 
-//   varying, since they can be packed together. Similarly a vec3 and a float can be packed together.
-//   However this only works if the variables remain whole, for example 4 vec3 variables cannot be packed
-//   into 3 vec4 varyings as it would require splitting up one of the vec3 variables.
+//   least 32, but most devices support more. A single vec4 varying holds 4 varying values, so 32 varyings 
+//   values means you can have a maximum of 8 vec4 varyings. Note that a vec3 varying may take up 4 value 
+//   spaces if it cannot be packed with any other varying. Varyings will automatically be packed together
+//   if they can fill a vec4 without being split, for example a vec3 and a float can be packed together,
+//   as can two vec2 varyings. However two vec3 varyings cannot be packed together without being split up
+//   so they will each use up 4 values with the extra space being wasted.
 // SOURCE
 int agk::GetSupportedShaderVaryings()
 //****
@@ -9351,7 +9349,7 @@ void agk::SetSpriteScissor( UINT iSpriteIndex, float x, float y, float x2, float
 	pSprite->SetScissor( x,y, x2,y2 );
 }
 
-//****f* 3D/Objects/SetSpriteShader
+//****f* Sprite/Properties/SetSpriteShader
 // FUNCTION
 //   Sets the shader used to draw this sprite, loaded with <i>LoadSpriteShader</i> or <i>Loadshader</i>.
 //   By default sprites are assigned an internal shader that can handle 1 texture and a color.
@@ -29620,6 +29618,63 @@ void agk::SetHTTPVerifyCertificate( UINT iHTTP, int mode )
 	pHttp->SetVerifyCertificate( mode );
 }
 
+//****f* HTTP/General/AddHTTPHeader
+// FUNCTION
+//   Adds the specified header to all future requests. If the header already exists then its value will be overwritten
+//   by the new value. If the header is a standard header that is normally present then its value will be overwritten
+//   by the value you give. If the header is a standard header that is normally present and the value you give is the 
+//   empty string then the standard header will be removed. Do not add the colon to either field, it will be added 
+//   automatically between them. Note that this command does not work in the HTML5 version.
+// INPUTS
+//   iHTTP -- The ID of the connection to change.
+//   headerName -- The name of the header to set, e.g. "Content-Type"
+//   headerValue -- The new value for the header
+// SOURCE
+void agk::AddHTTPHeader( UINT iHTTP, const char* headerName, const char* headerValue )
+//****
+{
+	cHTTPConnection *pHttp = m_cHTTPList.GetItem( iHTTP );
+	if ( !pHttp )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to set HTTP header, HTTP ID %d does not exist", iHTTP );
+		agk::Error( err );
+#endif
+		return;
+	}
+
+	pHttp->AddHeader( headerName, headerValue );
+}
+
+//****f* HTTP/General/RemoveHTTPHeader
+// FUNCTION
+//   Removes a header that you have previously added, if you have not used <i>AddHTTPHeader</i> to add
+//   a header with the given name then this command does nothing. If the header name is a standard header
+//   that is normally included then this command does not remove it, use <i>AddHTTPHeader</i> with an 
+//   empty string instead to overwrite it. If the header name is a standard header that you have overwritten
+//   then this command returns it to its normal value. Note that this command does not work in the HTML5 version.
+// INPUTS
+//   iHTTP -- The ID of the connection to change.
+//   headerName -- The name of the header to remove
+// SOURCE
+void agk::RemoveHTTPHeader( UINT iHTTP, const char* headerName )
+//****
+{
+	cHTTPConnection *pHttp = m_cHTTPList.GetItem( iHTTP );
+	if ( !pHttp )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to set HTTP header, HTTP ID %d does not exist", iHTTP );
+		agk::Error( err );
+#endif
+		return;
+	}
+
+	pHttp->RemoveHeader( headerName );
+}
+
 //****f* HTTP/General/SendHTTPRequest
 // FUNCTION
 //   Send a request to the server specified in SetHTTPHost(), for example if requesting http://www.thegamecreators.com/index.php szServerFile 
@@ -29908,6 +29963,31 @@ float agk::GetHTTPFileProgress( UINT iHTTP )
 	}
 
 	return pHttp->GetProgress();
+}
+
+//****f* HTTP/General/GetHTTPStatusCode
+// FUNCTION
+//   Returns the status code that was returned from the server in the response. You must wait for 
+//   <i>GetHTTPResponseReady</i> to return a non-zero value before checking this command, otherwise 
+//   it will return 0. Usually the status code is equal to 200 when the request was successful
+// INPUTS
+//   iHTTP -- The ID of the connection to check.
+// SOURCE
+int agk::GetHTTPStatusCode( UINT iHTTP )
+//****
+{
+	cHTTPConnection *pHttp = m_cHTTPList.GetItem( iHTTP );
+	if ( !pHttp )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to get HTTP status code, HTTP ID %d does not exist", iHTTP );
+		agk::Error( err );
+#endif
+		return 0;
+	}
+
+	return pHttp->GetStatusCode();
 }
 
 
@@ -37478,7 +37558,7 @@ int agk::GetMemblockByteSigned( UINT memID, UINT offset )
 //   that are not aligned to 2 byte boundaries incurs a hardware performance penalty.
 //   Short values are stored in little endian format so writing a short of 23 at offset 0 and then reading it back in bytes
 //   would return the byte at offset 0 as 23 and the byte at offset 1 as 0.
-//   The returned value will be a signed byte between -32768 and 32767.
+//   The returned value will be a signed short between -32768 and 32767.
 // INPUTS
 //   memID -- The ID of the memblock to check.
 //   offset -- The offset from the start of the memblock of the value to return, between 0 and size.
@@ -37518,7 +37598,7 @@ int agk::GetMemblockShort( UINT memID, UINT offset )
 //   that are not aligned to 4 byte boundaries incurs a hardware performance penalty.
 //   Int values are stored in little endian format so writing an int of 23 at offset 0 and then reading it back in bytes
 //   would return the byte at offset 0 as 23, the byte at offset 1 as 0, the byte at offset 2 as 0, and the byte at offset 3 as 0.
-//   The returned value will be a signed byte between -2,147,483,648 and 2,147,483,647.
+//   The returned value will be a signed integer between -2,147,483,648 and 2,147,483,647.
 // INPUTS
 //   memID -- The ID of the memblock to check.
 //   offset -- The offset from the start of the memblock of the value to return, between 0 and size.
@@ -40565,7 +40645,30 @@ UINT agk::CreateObjectQuad()
 
 //****f* 3D/Objects/CreateObjectFromHeightMap
 // FUNCTION
-//   See other command
+//   Creates an object from a specified height map, useful for making terrain.
+//   The image should be PNG 8-bit greyscale or RGB, if it is RGB then only the red channel is read. 16-bit greyscale 
+//   support may be added in future.
+//   The object will have a single UV channel with the range 0 to 1 mapped to the entire terrain. If you wish to 
+//   modify this then you can use <i>SetObjectUVOffset</i> and <i>SetObjectUVScale</i>, or use a shader that 
+//   multiplies the UV coordinates by a specified amount. A shader can also be used to create multiple UV channels
+//   from this single channel by applying different scale factors to each.
+//   A smoothing value of 1 is recommended to remove stepping artifacts, adjust as necessary.
+//   The split value lets you create multiple meshes which can improve performance, as unseen meshes will not be drawn.
+//   The split value specifies how many meshes to create along each edge, for example a split value of 5 will create
+//   5x5 = 25 meshes in total. 
+//   Unlike other objects collision data is not generated by default on this object as it can consume a lot of memory,
+//   use <i>SetObjectCollisionMode</i> if you want to turn it on. For terrains greater than 1024x1024 this is not 
+//   recommended on mobile devices, and you should use <i>GetObjectHeightMapHeight</i> instead if possible.
+//   Turning on physics for this object will use even more memory and is not recommended on terrains greater than
+//   1024x1024 on any platform.
+// INPUTS
+//   objID -- The ID of the object to create
+//   szImageFile -- The filename of the image to use as a height map, PNG preferred, also supports JPEG
+//   width -- The desired width of the new object in the X direction
+//   height -- The desired height of the new object in the Y direction
+//   length -- The desired length of the new object in the Z direction
+//   smoothing -- The amount of smoothing to apply to the height values, 0=none, 1=one pass, 2=two passes, etc
+//   split -- 1=single mesh, 2=four meshes, 3=nine meshes, 4=sixteen meshes, etc
 // SOURCE
 UINT agk::CreateObjectFromHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split )
 //****
@@ -48377,9 +48480,9 @@ void agk::SetCameraOrthoWidth( UINT cameraID, float width )
 // INPUTS
 //   cameraID -- The ID of the camera to modify, the main camera is ID 1.
 //   left -- The left component of the projection matrix.
-//   right -- The left component of the projection matrix.
-//   top -- The left component of the projection matrix.
-//   bottom -- The left component of the projection matrix.
+//   right -- The right component of the projection matrix.
+//   top -- The top component of the projection matrix.
+//   bottom -- The bottom component of the projection matrix.
 // SOURCE
 void agk::SetCameraBounds( UINT cameraID, float left, float right, float top, float bottom )
 //****
@@ -48914,7 +49017,7 @@ void agk::SetShadowLightStepSize( float step )
 //   increase the shadow quality, it will reduce the area which that cascade covers, so shadow quality will drop to the next 
 //   level sooner as the distance from the camera increases. <br/>
 //   <br/>
-//   Cascade levels must be in the range 0.0 to 1.0, and each level must be greater than the previous level, i.e. casecade2 
+//   Cascade levels must be in the range 0.0 to 1.0, and each level must be greater than the previous level, i.e. cascade2 
 //   must be greater than cascade1, and so on. If these rules are broken then this command will do nothing.
 // INPUTS
 //   cascade1 -- The smallest cascade level, must be less than cascade2, must be greater than 0.0
@@ -53063,7 +53166,7 @@ void agk::GetVector3Cross( UINT resultVec, UINT vectorU, UINT vectorV )
 
 //****f* Maths/Vectors/GetVector3Multiply
 // FUNCTION
-//   Returns the Vector ID  which is the cross product of 2 vectors passed in.
+//   Returns the Vector ID which is the multiplication of 2 vectors passed in.
 // INPUTS
 //  resultVec -- ID of the vector to multiply.
 //  multiplier -- float value to multiply by.
@@ -53079,7 +53182,7 @@ void agk::GetVector3Multiply( UINT resultVec, float multiplier )
 
 //****f* Maths/Vectors/GetVector3Add
 // FUNCTION
-//   Returns the Vector ID  which is the cross product of 2 vectors passed in.
+//   Returns the Vector ID which is the sum of 2 vectors passed in.
 // INPUTS
 //  resultVec -- ID of the vector to add and hold results.
 //  addVec -- Id of vector to add.

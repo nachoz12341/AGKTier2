@@ -1184,6 +1184,7 @@ cHTTPConnection::cHTTPConnection()
 	m_iVerifyMode = 1;
 	
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_bFailed = false;
 	
 	m_szContentType[0] = '\0';
@@ -1192,6 +1193,14 @@ cHTTPConnection::cHTTPConnection()
 cHTTPConnection::~cHTTPConnection()
 {
 	Close();
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		delete pHeader;
+		pHeader = m_cHeaders.GetNext();
+	}
+	m_cHeaders.ClearAll();
 }
 
 UINT cHTTPConnection::Run()
@@ -1213,6 +1222,16 @@ void cHTTPConnection::SetTimeout( int milliseconds )
 void cHTTPConnection::SetVerifyCertificate( int mode )
 {
 	m_iVerifyMode = mode;
+}
+
+void cHTTPConnection::AddHeader( const char* headerName, const char* headerValue )
+{
+	agk::Error( "The HTML5 version does not support custom headers" );
+}
+
+void cHTTPConnection::RemoveHeader( const char* headerName )
+{
+	agk::Error( "The HTML5 version does not support custom headers" );
 }
 
 bool cHTTPConnection::SetHost( const char *szHost, int iSecure, const char *szUser, const char *szPass )
@@ -1315,6 +1334,7 @@ bool cHTTPConnection::SendRequestASync( const char *szServerFile, const char *sz
 	m_bFailed = false;
 	m_sResponse.SetStr("");
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	
 	uString sURL( m_sHost );
 	sURL.Append( "/" );
@@ -1359,6 +1379,7 @@ bool cHTTPConnection::DownloadFile( const char *szServerFile, const char *szLoca
 	m_bFailed = false;
 	m_sResponse.SetStr("");
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	
 	uString sURL( m_sHost );
 	sURL.Append( "/" );

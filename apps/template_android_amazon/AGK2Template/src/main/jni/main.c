@@ -452,7 +452,7 @@ static void engine_draw_frame(struct engine* engine) {
 	int width = ANativeWindow_getWidth( engine->app->window );
 	int height = ANativeWindow_getHeight( engine->app->window );
 
-	if ( width != windowWidth || height != windowHeight )
+	if ( (width != windowWidth || height != windowHeight) && width > 0 && height > 0 )
 	{
 		LOGI( "Detected window size change: %dx%d -> %dx%d", windowWidth, windowHeight, width, height );
 		windowWidth = width;

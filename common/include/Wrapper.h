@@ -2304,6 +2304,9 @@ namespace AGK
 			static void CloseHTTPConnection( UINT iHTTP );
 			static void SetHTTPTimeout( UINT iHTTP, int milliseconds );
 			static void SetHTTPVerifyCertificate( UINT iHTTP, int mode );
+
+			static void AddHTTPHeader( UINT iHTTP, const char* headerName, const char* headerValue );
+			static void RemoveHTTPHeader( UINT iHTTP, const char* headerName );
 			
 			static char* SendHTTPRequest( UINT iHTTP, const char *szServerFile ); //blocks
 			static char* SendHTTPRequest( UINT iHTTP, const char *szServerFile, const char *szPostData ); //blocks
@@ -2317,6 +2320,7 @@ namespace AGK
 			static int GetHTTPFile( UINT iHTTP, const char *szServerFile, const char *szLocalFile, const char *szPostData ); //does not block
 			static int GetHTTPFileComplete( UINT iHTTP );
 			static float GetHTTPFileProgress( UINT iHTTP );
+			static int GetHTTPStatusCode( UINT iHTTP );
         
             static void OpenBrowser( const char* url );
 

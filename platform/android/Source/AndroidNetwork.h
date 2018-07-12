@@ -387,6 +387,16 @@ namespace AGK
 			// start with Start() and stop with Stop()
 			void SetData( int ipv6, UINT port, const AGKPacket *packet, UINT interval, int max=0 );
 	};
+
+	class cHTTPHeader
+	{
+		public:
+			uString sName;
+			uString sValue;
+
+			cHTTPHeader() {}
+			~cHTTPHeader() {}
+	};
 	
 	class cHTTPConnection : public AGKThread
 	{
@@ -401,6 +411,7 @@ namespace AGK
 			
 			bool volatile m_bConnected;
 			float volatile m_fProgress;
+			int volatile m_iStatusCode;
 
 			bool m_bSaveToFile;
 			uString m_szServerFile;
@@ -417,6 +428,8 @@ namespace AGK
 			int m_iSendLength;
 			cFile *m_pUploadFile;
 			bool m_bFailed;
+
+			cHashedList<cHTTPHeader> m_cHeaders;
 			
 			void SendRequestInternal();
 			void SendFileInternal();
@@ -436,7 +449,11 @@ namespace AGK
 			void SetTimeout( int milliseconds );
 			void SetVerifyCertificate( int mode );
 
+			void AddHeader( const char* headerName, const char* headerValue );
+			void RemoveHeader( const char* headerName );
+
 			float GetProgress() { return m_fProgress; }
+			int GetStatusCode() { return m_iStatusCode; }
 			
 			// caller must delete returned pointer
 			char* SendRequest( const char *szServerFile, const char *szPostData=0 ); //blocks

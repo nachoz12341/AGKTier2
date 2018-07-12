@@ -1414,10 +1414,15 @@ void Broadcaster::SetData( int ipv6, UINT port, const AGKPacket* packet, UINT in
     {
         [ m_response setLength:0 ];
     }
-    m_length = (int)[response expectedContentLength];
+    NSHTTPURLResponse *responseHTTP = (NSHTTPURLResponse*) response;
+    
+    m_length = (int)[responseHTTP expectedContentLength];
     m_received = 0;
     
     strcpy( m_pHTTP->m_szContentType, [[response MIMEType] cStringUsingEncoding:NSUTF8StringEncoding] );
+    
+    
+    m_pHTTP->m_iStatusCode = (int)[responseHTTP statusCode];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
@@ -1511,6 +1516,7 @@ cHTTPConnection::cHTTPConnection()
     
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
     
 	m_bSaveToFile = false;
     
@@ -1525,6 +1531,14 @@ cHTTPConnection::~cHTTPConnection()
     if ( m_szResponse ) delete [] m_szResponse;
     
     m_listener = 0;
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		delete pHeader;
+		pHeader = m_cHeaders.GetNext();
+	}
+	m_cHeaders.ClearAll();
 }
 
 UINT cHTTPConnection::Run()
@@ -1546,6 +1560,37 @@ void cHTTPConnection::SetTimeout( int milliseconds )
 void cHTTPConnection::SetVerifyCertificate( int mode )
 {
 	m_iVerifyMode = mode;
+}
+
+void cHTTPConnection::AddHeader( const char* headerName, const char* headerValue )
+{
+	if ( IsRunning() )
+	{
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		return;
+	}
+
+	cHTTPHeader *pHeader = m_cHeaders.GetItem( headerName );
+	if ( !pHeader )
+	{
+		pHeader = new cHTTPHeader();
+		pHeader->sName.SetStr( headerName );
+		m_cHeaders.AddItem( pHeader, headerName );
+	}
+
+	pHeader->sValue.SetStr( headerValue );
+}
+
+void cHTTPConnection::RemoveHeader( const char* headerName )
+{
+	if ( IsRunning() )
+	{
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		return;
+	}
+
+	cHTTPHeader *pHeader = m_cHeaders.RemoveItem( headerName );
+	if ( pHeader ) delete pHeader;
 }
 
 void cHTTPConnection::FinishedInternal( int value )
@@ -1608,6 +1653,7 @@ char* cHTTPConnection::SendRequest( const char *szServerFile, const char *szPost
     if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
     m_bFinished = true;
     
     NSString *sURL = [ m_sHost stringByAppendingString:@"/" ];
@@ -1616,24 +1662,30 @@ char* cHTTPConnection::SendRequest( const char *szServerFile, const char *szPost
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:sURL] cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:m_iTimeout/1000.0 ];
     
-    [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     if ( szPostData && *szPostData )
     {
+        [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[NSData dataWithBytes:szPostData length:strlen(szPostData)] ];
     }
-    
-    if ( m_sUsername.GetLength() > 0 || m_sPassword.GetLength() > 0 )
+
+	uString sHeader;
+	if ( m_sUsername.GetLength() > 0 || m_sPassword.GetLength() > 0 )
     {
-        uString sHeader;
         sHeader.Format( "%s:%s", m_sUsername.GetStr(), m_sPassword.GetStr() );
         char* base64 = agk::StringToBase64( sHeader.GetStr() );
         sHeader.Format( "Basic %s", base64 );
         delete [] base64;
         [request addValue:[NSString stringWithUTF8String:sHeader.GetStr()] forHTTPHeaderField:@"Authorization"];
     }
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		[request setValue:[NSString stringWithUTF8String:pHeader->sValue.GetStr()] forHTTPHeaderField:[NSString stringWithUTF8String:pHeader->sName.GetStr()]];
+		pHeader = m_cHeaders.GetNext();
+	}
     
-    //NSLog( @"S Connection started to: %s", [[[request URL] path] UTF8String] );
     
     NSURLResponse *response = 0;
     NSData *responseData = [ NSURLConnection sendSynchronousRequest:request returningResponse:&response error:NULL ];
@@ -1644,6 +1696,9 @@ char* cHTTPConnection::SendRequest( const char *szServerFile, const char *szPost
         agk::Warning( err );
         return 0;        
     }
+    
+    NSHTTPURLResponse *responseHTTP = (NSHTTPURLResponse*) response;
+    m_iStatusCode = (int)[responseHTTP statusCode];
     
     int resLength = (int) [responseData length];
     char * str = new char[ resLength + 1 ];
@@ -1663,6 +1718,7 @@ bool cHTTPConnection::SendRequestASync( const char *szServerFile, const char *sz
     if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
     m_bFinished = false;
     m_sRndFilename.SetStr("");
     
@@ -1672,23 +1728,32 @@ bool cHTTPConnection::SendRequestASync( const char *szServerFile, const char *sz
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:sURL] cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:m_iTimeout/1000.0 ];
     
-    [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     if ( szPostData && *szPostData )
     {
+        [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[NSData dataWithBytes:szPostData length:strlen(szPostData)] ];
     }
+
+	uString sHeader;
     if ( m_sUsername.GetLength() > 0 || m_sPassword.GetLength() > 0 )
     {
-        uString sHeader;
         sHeader.Format( "%s:%s", m_sUsername.GetStr(), m_sPassword.GetStr() );
         char* base64 = agk::StringToBase64( sHeader.GetStr() );
         sHeader.Format( "Basic %s", base64 );
         delete [] base64;
         [request addValue:[NSString stringWithUTF8String:sHeader.GetStr()] forHTTPHeaderField:@"Authorization"];
     }
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		[request setValue:[NSString stringWithUTF8String:pHeader->sValue.GetStr()] forHTTPHeaderField:[NSString stringWithUTF8String:pHeader->sName.GetStr()]];
+		pHeader = m_cHeaders.GetNext();
+	}
     
-    //NSLog( @"A Connection started to: %s", [[[request URL] path] UTF8String] );
+    // fix Content-Length not being visible to didReceiveData callback
+    [request setValue:@"identity" forHTTPHeaderField:@"Accept-Encoding"];
     
     [ m_listener reset ];
     m_listener->m_pHTTP = this;
@@ -1735,6 +1800,7 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
     if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
     m_bFinished = false;
     
     NSString *sURL = [ m_sHost stringByAppendingString:@"/" ];
@@ -1825,17 +1891,26 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
     NSString *sLength = [NSString stringWithFormat:@"%d",length ];
     [request addValue:sLength forHTTPHeaderField:@"Content-Length"];
     [request addValue:@"multipart/form-data; boundary=------------------AaB03x" forHTTPHeaderField:@"Content-Type"];
+
+	uString sHeader;
     if ( m_sUsername.GetLength() > 0 || m_sPassword.GetLength() > 0 )
     {
-        uString sHeader;
         sHeader.Format( "%s:%s", m_sUsername.GetStr(), m_sPassword.GetStr() );
         char* base64 = agk::StringToBase64( sHeader.GetStr() );
         sHeader.Format( "Basic %s", base64 );
         delete [] base64;
         [request addValue:[NSString stringWithUTF8String:sHeader.GetStr()] forHTTPHeaderField:@"Authorization"];
     }
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		[request setValue:[NSString stringWithUTF8String:pHeader->sValue.GetStr()] forHTTPHeaderField:[NSString stringWithUTF8String:pHeader->sName.GetStr()]];
+		pHeader = m_cHeaders.GetNext();
+	}
     
-    //NSLog( @"F Connection started to: %s", [[[request URL] path] UTF8String] );
+    // fix Content-Length not being visible to didReceiveData callback
+    [request setValue:@"identity" forHTTPHeaderField:@"Accept-Encoding"];
     
     [ m_listener reset ];
     m_listener->m_pHTTP = this;
@@ -1883,6 +1958,7 @@ bool cHTTPConnection::DownloadFile( const char *szServerFile, const char *szLoca
     if ( m_szResponse ) delete [] m_szResponse;
 	m_szResponse = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
     m_bFinished = false;
     m_sRndFilename.SetStr("");
     
@@ -1892,23 +1968,32 @@ bool cHTTPConnection::DownloadFile( const char *szServerFile, const char *szLoca
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:sURL] cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:m_iTimeout/1000.0 ];
     
-    [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     if ( szPostData && *szPostData )
     {
+        [request addValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[NSData dataWithBytes:szPostData length:strlen(szPostData)] ];
     }
+
+	uString sHeader;
     if ( m_sUsername.GetLength() > 0 || m_sPassword.GetLength() > 0 )
     {
-        uString sHeader;
         sHeader.Format( "%s:%s", m_sUsername.GetStr(), m_sPassword.GetStr() );
         char* base64 = agk::StringToBase64( sHeader.GetStr() );
         sHeader.Format( "Basic %s", base64 );
         delete [] base64;
         [request addValue:[NSString stringWithUTF8String:sHeader.GetStr()] forHTTPHeaderField:@"Authorization"];
     }
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+        [request setValue:[NSString stringWithUTF8String:pHeader->sValue.GetStr()] forHTTPHeaderField:[NSString stringWithUTF8String:pHeader->sName.GetStr()]];
+		pHeader = m_cHeaders.GetNext();
+	}
     
-    //NSLog( @"D Connection started to: %s", [[[request URL] path] cStringUsingEncoding:NSUTF8StringEncoding] );
+    // fix Content-Length not being visible to didReceiveData callback
+    [request setValue:@"identity" forHTTPHeaderField:@"Accept-Encoding"];
     
     [ m_listener reset ];
     m_listener->m_pHTTP = this;

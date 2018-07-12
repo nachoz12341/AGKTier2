@@ -9521,9 +9521,7 @@ int agk::GetInternetState()
 
 //****f* Extras/PushNotifications/SetPushNotificationKeys
 // FUNCTION
-//   Sets some extra key information for using push notifications. For Android this will be your 
-//   project number, e.g. "210280671980", for iOS this is not used.
-//   If used, this must be called before PushNotificationSetup().
+//   This command is no longer needed on any platform and now does nothing
 // INPUTS
 //   data1 -- your key data
 //   reserved -- not currently used, must be an empty string
@@ -9549,7 +9547,10 @@ int agk::PushNotificationSetup()
 //   Returns the push notification token for this device, this must be sent to your server that sends out the 
 //   notifications so that it can send notifications to this device.
 //   If PushNotificationSetup returned 1 then you should keep calling this command until it returns a non-empty
-//   string. If PushNotificationSetup returned 0 then this command will always return an empty string.
+//   string. If PushNotificationSetup returned 0 then this command will always return an empty string.<br/>
+//   <br/>
+//   Please see the guide on Android Push Notifications for more details on how to use the device token to send 
+//   push notifications to this device.
 // SOURCE
 char* agk::GetPushNotificationToken()
 //****

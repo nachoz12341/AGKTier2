@@ -1436,6 +1436,7 @@ cHTTPConnection::cHTTPConnection()
 	m_iVerifyMode = 1;
 	
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 
 	m_bSaveToFile = false;
 	m_iSent = 0;
@@ -1452,6 +1453,14 @@ cHTTPConnection::~cHTTPConnection()
 {
 	Close();
 	curl_easy_cleanup( request );
+
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		delete pHeader;
+		pHeader = m_cHeaders.GetNext();
+	}
+	m_cHeaders.ClearAll();
 }
 
 UINT cHTTPConnection::Run()
@@ -1477,6 +1486,37 @@ void cHTTPConnection::SetTimeout( int milliseconds )
 void cHTTPConnection::SetVerifyCertificate( int mode )
 {
 	m_iVerifyMode = mode;
+}
+
+void cHTTPConnection::AddHeader( const char* headerName, const char* headerValue )
+{
+	if ( IsRunning() )
+	{
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		return;
+	}
+
+	cHTTPHeader *pHeader = m_cHeaders.GetItem( headerName );
+	if ( !pHeader )
+	{
+		pHeader = new cHTTPHeader();
+		pHeader->sName.SetStr( headerName );
+		m_cHeaders.AddItem( pHeader, headerName );
+	}
+
+	pHeader->sValue.SetStr( headerValue );
+}
+
+void cHTTPConnection::RemoveHeader( const char* headerName )
+{
+	if ( IsRunning() )
+	{
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		return;
+	}
+
+	cHTTPHeader *pHeader = m_cHeaders.RemoveItem( headerName );
+	if ( pHeader ) delete pHeader;
 }
 
 bool cHTTPConnection::SetHost( const char *szHost, int iSecure, const char *szUser, const char *szPass )
@@ -1588,6 +1628,7 @@ void cHTTPConnection::SendRequestInternal()
 	m_iReceived = 0;
 	m_iSent = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	
 	if ( m_szServerFile.GetLength() == 0 ) 
 	{
@@ -1623,8 +1664,19 @@ void cHTTPConnection::SendRequestInternal()
 	uString sURL( m_sHost );
 	sURL.Append( "/" );
 	sURL.Append( m_szServerFile );
+
+	curl_slist *slist = NULL;
+	uString sHeader;
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		sHeader.Format( "%s: %s", pHeader->sName.GetStr(), pHeader->sValue.GetStr() );
+		slist = curl_slist_append( slist, sHeader.GetStr() );
+		pHeader = m_cHeaders.GetNext();
+	}
 	
 	curl_easy_reset( request );
+	curl_easy_setopt( request, CURLOPT_HTTPHEADER, slist );
 	curl_easy_setopt( request, CURLOPT_URL, sURL.GetStr() );
 	curl_easy_setopt( request, CURLOPT_FOLLOWLOCATION, 1 );
 	curl_easy_setopt( request, CURLOPT_WRITEFUNCTION, httprecvfunc );
@@ -1659,8 +1711,13 @@ void cHTTPConnection::SendRequestInternal()
 			m_pFile = 0;
 		}
 		m_bFailed = true;
+		curl_slist_free_all(slist);
 		return;
 	}
+
+	long status = 0;
+	curl_easy_getinfo( request, CURLINFO_RESPONSE_CODE, &status );
+	m_iStatusCode = status;
 	
 	char *szType = 0;
 	curl_easy_getinfo( request, CURLINFO_CONTENT_TYPE, &szType );
@@ -1668,6 +1725,8 @@ void cHTTPConnection::SendRequestInternal()
 	{
 		strcpy( m_szContentType, szType );
 	}
+
+	if ( slist ) curl_slist_free_all(slist);
 	
 	if ( m_pFile ) 
 	{
@@ -1683,6 +1742,7 @@ void cHTTPConnection::SendFileInternal()
 	m_iReceived = 0;
 	m_iSent = 0;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_iSendLength = 0;
 	
 	if ( m_szUploadFile.GetLength() == 0 )
@@ -1779,6 +1839,14 @@ void cHTTPConnection::SendFileInternal()
 	
 	int length = cFile::GetFileSize(m_sRndFilename);
 	curl_slist *slist = NULL;
+	uString sHeader;
+	cHTTPHeader *pHeader = m_cHeaders.GetFirst();
+	while( pHeader )
+	{
+		sHeader.Format( "%s: %s", pHeader->sName.GetStr(), pHeader->sValue.GetStr() );
+		slist = curl_slist_append( slist, sHeader.GetStr() );
+		pHeader = m_cHeaders.GetNext();
+	}
 	slist = curl_slist_append(slist, "Content-Type: multipart/form-data; boundary=------------------AaB03x");
 	m_iSendLength = length;
 	
@@ -1823,8 +1891,13 @@ void cHTTPConnection::SendFileInternal()
 			m_pUploadFile = 0;
 		}
 		m_bFailed = true;
+		curl_slist_free_all(slist);
 		return;
 	}
+
+	long status = 0;
+	curl_easy_getinfo( request, CURLINFO_RESPONSE_CODE, &status );
+	m_iStatusCode = status;
 	
 	char *szType = 0;
 	curl_easy_getinfo( request, CURLINFO_CONTENT_TYPE, &szType );
@@ -1883,6 +1956,7 @@ bool cHTTPConnection::SendRequestASync( const char *szServerFile, const char *sz
 	m_sResponse.SetStr( "" );
 	m_bFailed = false;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_szServerFile.SetStr( szServerFile );
 	m_szPostData.SetStr( szPostData );
 	m_szUploadFile.SetStr( "" );
@@ -1906,6 +1980,7 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
 	m_sResponse.SetStr( "" );
 	m_bFailed = false;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_szServerFile.SetStr( szServerFile );
 	m_szLocalFile.SetStr( "" );
 	m_szPostData.SetStr( szPostData );
@@ -1947,6 +2022,7 @@ bool cHTTPConnection::DownloadFile( const char *szServerFile, const char *szLoca
 	m_sResponse.SetStr( "" );
 	m_bFailed = false;
 	m_fProgress = 0;
+	m_iStatusCode = 0;
 	m_szServerFile.SetStr( szServerFile );
 	m_szLocalFile.SetStr( szLocalFile );
 	m_szPostData.SetStr( szPostData );

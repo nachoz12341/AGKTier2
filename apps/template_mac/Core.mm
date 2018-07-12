@@ -135,6 +135,7 @@ static void GLFWCALL window_size_callback(int width, int height)
 	agk::UpdateDeviceSize();
 }
 
+int g_iWindowActivePrev = 1;
 
 int main (int argc, char **argv)
 {
@@ -233,6 +234,12 @@ int main (int argc, char **argv)
 		// call app each frame
 		try
 		{
+            // detect window lost/gained focus
+            int active = glfwGetWindowParam(GLFW_ACTIVE);
+            if ( active && !g_iWindowActivePrev ) agk::Resumed();
+            if ( !active && g_iWindowActivePrev ) agk::Paused();
+            g_iWindowActivePrev = active;
+            
             if ( App.Loop() == 1 ) done = 1;
 		}
 		catch( ... )

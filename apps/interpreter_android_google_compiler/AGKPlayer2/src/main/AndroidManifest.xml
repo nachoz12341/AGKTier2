@@ -18,10 +18,7 @@
     <uses-permission android:name="com.android.vending.CHECK_LICENSE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    
-    <permission android:name="com.thegamecreators.agk_pocket.permission.C2D_MESSAGE" android:protectionLevel="signature" />
-	<uses-permission android:name="com.thegamecreators.agk_pocket.permission.C2D_MESSAGE" />
-	
+
 	<uses-feature android:name="android.hardware.location" android:required="false" />
 	<uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
@@ -43,6 +40,9 @@
         <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="false"/>
 
         <meta-data android:name="com.google.ar.core" android:value="optional" />
+
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/icon_white" />
         
         <activity android:name="com.thegamecreators.agk_player.AGKActivity"
                   android:label="@string/app_name"
@@ -76,16 +76,8 @@
               	  android:theme="@android:style/Theme.Translucent"/>
 
         <activity android:name="com.amazon.device.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
-        
-        <receiver android:name="com.thegamecreators.agk_player.GCMReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
-		  <intent-filter>
-		    <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-		    <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-		    <category android:name="com.thegamecreators.agk_player" />
-		  </intent-filter>
-		</receiver>
-		
-        <service android:name="com.thegamecreators.agk_player.GCMIntentService" /> 
+
+        <service android:name="com.thegamecreators.agk_player.FCMService" />
         
         <activity android:name="com.facebook.LoginActivity"
                   android:label="@string/app_name"
@@ -101,7 +93,14 @@
 
         <receiver android:name="com.thegamecreators.agk_player.NotificationAlarmReceiver" />
 
-        <service android:name="com.thegamecreators.agk_player.MyDownloadService" />
-        <receiver android:name="com.thegamecreators.agk_player.MyAlarmReceiver" />
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
     </application>
 </manifest> 

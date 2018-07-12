@@ -16,8 +16,6 @@
 
 package com.google.android.vending.expansion.downloader;
 
-import android.os.Messenger;
-
 /**
  * This interface should be implemented by the client activity for the
  * downloader. It is used to pass status from the service to the client.
@@ -74,25 +72,6 @@ public interface IDownloaderClient {
     static final int STATE_FAILED = 19;
 
     /**
-     * Called internally by the stub when the service is bound to the client.
-     * <p>
-     * Critical implementation detail. In onServiceConnected we create the
-     * remote service and marshaler. This is how we pass the client information
-     * back to the service so the client can be properly notified of changes. We
-     * must do this every time we reconnect to the service.
-     * <p>
-     * That is, when you receive this callback, you should call
-     * {@link DownloaderServiceMarshaller#CreateProxy} to instantiate a member
-     * instance of {@link IDownloaderService}, then call
-     * {@link IDownloaderService#onClientUpdated} with the Messenger retrieved
-     * from your {@link IStub} proxy object.
-     * 
-     * @param m the service Messenger. This Messenger is used to call the
-     *            service API from the client.
-     */
-    void onServiceConnected(Messenger m);
-
-    /**
      * Called when the download state changes. Depending on the state, there may
      * be user requests. The service is free to change the download state in the
      * middle of a user request, so the client should be able to handle this.
@@ -109,7 +88,7 @@ public interface IDownloaderClient {
      * cellular connections with appropriate warnings. If the application
      * suddenly starts downloading, the application should revert to showing the
      * progress again, rather than leaving up the download over cellular UI up.
-     * 
+     *
      * @param newState one of the STATE_* values defined in IDownloaderClient
      */
     void onDownloadStateChanged(int newState);
@@ -118,7 +97,7 @@ public interface IDownloaderClient {
      * Shows the download progress. This is intended to be used to fill out a
      * client UI. This progress should only be shown in a few states such as
      * STATE_DOWNLOADING.
-     * 
+     *
      * @param progress the DownloadProgressInfo object containing the current
      *            progress of all downloads.
      */

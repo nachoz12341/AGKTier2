@@ -13345,5 +13345,26 @@ case AGKI_OVERRIDECONSENTCHARTBOOST_0_L:
     agk::OverrideConsentChartboost( param0 );
     break;
 }
+case AGKI_ADDHTTPHEADER_0_L_S_S:
+{
+    const char* param2 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::AddHTTPHeader( param0, param1, param2 );
+    break;
+}
+case AGKI_REMOVEHTTPHEADER_0_L_S:
+{
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::RemoveHTTPHeader( param0, param1 );
+    break;
+}
+case AGKI_GETHTTPSTATUSCODE_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetHTTPStatusCode( param0 );
+    break;
+}
 
 

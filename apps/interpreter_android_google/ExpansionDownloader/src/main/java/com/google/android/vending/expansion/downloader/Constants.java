@@ -16,6 +16,8 @@
 
 package com.google.android.vending.expansion.downloader;
 
+import com.android.vending.expansion.downloader.BuildConfig;
+
 import java.io.File;
 
 
@@ -23,7 +25,7 @@ import java.io.File;
  * Contains the internal constants that are used in the download manager.
  * As a general rule, modifying these constants should be done with care.
  */
-public class Constants {    
+public class Constants {
     /** Tag used for debugging/logging */
     public static final String TAG = "LVLDL";
 
@@ -32,7 +34,7 @@ public class Constants {
      */
     public static final String EXP_PATH = File.separator + "Android"
             + File.separator + "obb" + File.separator;
-    
+
     /** The intent that gets sent when the service must wake up for a retry */
     public static final String ACTION_RETRY = "android.intent.action.DOWNLOAD_WAKEUP";
 
@@ -100,12 +102,12 @@ public class Constants {
     public static final boolean LOGX = true;
 
     /** Enable verbose logging */
-    public static final boolean LOGV = false;
-    
+    public static final boolean LOGV = BuildConfig.DEBUG;
+
     /** Enable super-verbose logging */
-    private static final boolean LOCAL_LOGVV = false;
+    private static final boolean LOCAL_LOGVV = true;
     public static final boolean LOGVV = LOCAL_LOGVV && LOGV;
-    
+
     /**
      * This download has successfully completed.
      * Warning: there might be other status values that indicate success
@@ -226,11 +228,11 @@ public class Constants {
     /**
      * The wake duration to check to see if a download is possible.
      */
-    public static final long WATCHDOG_WAKE_TIMER = 60*1000;    
+    public static final long WATCHDOG_WAKE_TIMER = 60*1000;
 
     /**
      * The wake duration to check to see if the process was killed.
      */
-    public static final long ACTIVE_THREAD_WATCHDOG = 5*1000;    
+    public static final long ACTIVE_THREAD_WATCHDOG = 5*1000;
 
 }

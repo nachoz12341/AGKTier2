@@ -113,6 +113,7 @@ import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.Formatter;
@@ -129,6 +130,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.thegamecreators.agk_player.iap.*;
 
 import com.facebook.*;
@@ -136,7 +138,6 @@ import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
 import com.facebook.android.Facebook.DialogListener;
 import com.facebook.android.FacebookError;
-import com.google.android.gcm.GCMRegistrar;
 
 import android.view.Surface;
 import android.webkit.MimeTypeMap;
@@ -948,6 +949,7 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
 						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
+						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
 						public void onRewardedVideoAdClosed()
 						{
 							Log.i("AdMob", "Reward ad closed");
@@ -1016,6 +1018,7 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
 						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
+						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
 						public void onRewardedVideoAdClosed() {
 							Log.i("AdMob", "Reward ad closed");
 
@@ -3671,46 +3674,26 @@ public class AGKHelper {
 	// ******************
 	// Push Notifications
 	// ******************
-	
-	public static String GCM_product_number = "210280521980"; // TGC
-	//public static String GCM_product_number = "1083864810983"; // Focus
-	public static String GCM_PACKAGE_NAME = "";
+
 	public static String GCM_PNRegID = "";
-	
+
 	public static void setPushNotificationKeys( String key1, String key2 )
 	{
-		GCM_product_number = key1;
+
 	}
-	
+
 	public static int registerPushNotification( Activity nativeactivityptr )
 	{
-		GCM_PACKAGE_NAME = nativeactivityptr.getApplicationContext().getPackageName();
-		
-		try
-		{
-			GCMRegistrar.checkDevice(nativeactivityptr);
-			GCMRegistrar.checkManifest(nativeactivityptr);
-			String regId = GCMRegistrar.getRegistrationId(nativeactivityptr);
-			if (regId.equals("")) {
-			  GCMRegistrar.register(nativeactivityptr, GCM_product_number);
-			}
-			else 
-			{
-				GCM_PNRegID = regId;
-			}
-		}
-		catch( Exception e )
-		{
-			Log.e("Push Notification", e.toString());
-			return 0;
-		}
-				
+		GCM_PNRegID = FirebaseInstanceId.getInstance().getToken();
+		Log.e( "Push Token", ": " + GCM_PNRegID );
+
 		return 1;
 	}
-	
+
 	public static String getPNRegID()
 	{
-		return GCM_PNRegID;
+		if ( GCM_PNRegID == null ) return "";
+		else return GCM_PNRegID;
 	}
 	
 	public static String GetAppName(Activity act)
@@ -4804,33 +4787,14 @@ public class AGKHelper {
 		String sExt = "";
 		if ( pos >= 0 ) sExt = sPath.substring(pos+1);
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
 
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_VIEW );
-		target.setDataAndType( Uri.fromFile(dst),sMIME );
-		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+		target.setDataAndType( uri, sMIME );
+		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {
 			act.startActivity(target);
@@ -4860,32 +4824,15 @@ public class AGKHelper {
 		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
 		else sFileName = sPath;
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
 
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
 		target.putExtra( Intent.EXTRA_TITLE, "Share Image" );
-		target.putExtra( Intent.EXTRA_STREAM, Uri.fromFile(dst) );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
+		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
 			act.startActivity(target);
@@ -4901,33 +4848,15 @@ public class AGKHelper {
 		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
 		else sFileName = sPath;
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
-
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
 		target.putExtra(Intent.EXTRA_TITLE, "Share Image And Text");
-		target.putExtra( Intent.EXTRA_STREAM, Uri.fromFile(dst) );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
 		target.putExtra( Intent.EXTRA_TEXT, sText );
+		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
 			act.startActivity(target);

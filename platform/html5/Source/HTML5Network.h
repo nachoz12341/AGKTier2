@@ -284,50 +284,15 @@ namespace AGK
 			void SetData( int ipv6, UINT port, const AGKPacket *packet, UINT interval, int max=0 );
 	};
 	
-	/*
-	class cHTTPConnection : public AGKThread
+	class cHTTPHeader
 	{
-		protected:
-			static int m_hInet;
-			
-			char *m_sURL;
-			int m_hInetConnect;
-			int m_iSecure;
-			volatile bool m_bConnected;
-			
-			char* volatile m_szResponse;
-			float volatile m_fProgress;
-
-			bool m_bSaveToFile;
-			const char *m_szServerFile;
-			const char *m_szLocalFile;
-			const char *m_szPostData;
-			
-			char* SendRequestInternal();
-			UINT Run();
-			
 		public:
-			cHTTPConnection();
-			~cHTTPConnection();
-			
-			void Stop();
-			
-			bool SetHost( const char *szHost, int iSecure, const char *szUser=0, const char *szPass=0 );
-			void Close();
-			
-			float GetProgress() { return m_fProgress; }
+			uString sName;
+			uString sValue;
 
-			// caller must delete returned pointer
-			char* SendRequest( const char *szServerFile, const char *szPostData=0 ); //blocks
-			
-			bool SendRequestASync( const char *szServerFile, const char *szPostData=0 ); //does not block
-			int GetResponseReady();
-			char* GetResponse(); // caller must delete returned pointer
-
-			bool DownloadFile( const char *szServerFile, const char *szLocalFile, const char *szPostData=0 ); //does not block
-			bool DownloadComplete();
+			cHTTPHeader() {}
+			~cHTTPHeader() {}
 	};
-	*/
 
 	class cHTTPConnection : public AGKThread
 	{
@@ -341,6 +306,9 @@ namespace AGK
 		int m_iVerifyMode;
 		bool m_bFailed;
 		float volatile m_fProgress;
+		int volatile m_iStatusCode;
+
+		cHashedList<cHTTPHeader> m_cHeaders;
 
 		char m_szContentType[150];
 
@@ -366,7 +334,11 @@ namespace AGK
 			void SetTimeout( int milliseconds );
 			void SetVerifyCertificate( int mode );
 
+			void AddHeader( const char* headerName, const char* headerValue );
+			void RemoveHeader( const char* headerName );
+
 			float GetProgress() { return m_fProgress; }
+			int GetStatusCode() { return m_iStatusCode; }
 
 			// caller must delete returned pointer
 			char* SendRequest( const char *szServerFile, const char *szPostData=0 ); //blocks

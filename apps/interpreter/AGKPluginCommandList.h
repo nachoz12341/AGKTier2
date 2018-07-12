@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1949;
+int g_iNumAGKFunctions = 1952;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -21,6 +21,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ADD3DPHYSICSRAGDOLLBONE_L_L_L_F_L_L", (AGKVoidFunc) (int(*)(UINT,UINT,float,int,int)) (agk::Add3DPhysicsRagDollBone) },
 	{"ADD3DPHYSICSRAGDOLLHINGEJOINT_0_L_L_L_L_F_F", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,int,float,float)) (agk::Add3DPhysicsRagDollHingeJoint) },
 	{"ADD3DPHYSICSRAGDOLLTWISTJOINT_0_L_L_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,int,int)) (agk::Add3DPhysicsRagDollTwistJoint) },
+	{"ADDHTTPHEADER_0_L_S_S", (AGKVoidFunc) (void(*)(UINT,const char*,const char*)) (agk::AddHTTPHeader) },
 	{"ADDNETWORKMESSAGEFLOAT_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::AddNetworkMessageFloat) },
 	{"ADDNETWORKMESSAGEINTEGER_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::AddNetworkMessageInteger) },
 	{"ADDNETWORKMESSAGESTRING_0_L_S", (AGKVoidFunc) (void(*)(UINT,const char *)) (agk::AddNetworkMessageString) },
@@ -511,6 +512,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETHTTPFILE_L_L_S_S_S", (AGKVoidFunc) (int(*)(UINT,const char *,const char *,const char *)) (agk::GetHTTPFile) },
 	{"GETHTTPRESPONSEREADY_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetHTTPResponseReady) },
 	{"GETHTTPRESPONSE_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::GetHTTPResponse) },
+	{"GETHTTPSTATUSCODE_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetHTTPStatusCode) },
 	{"GETIMAGEEXISTS_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetImageExists) },
 	{"GETIMAGEFILENAME_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::GetImageFilename) },
 	{"GETIMAGEHEIGHT_F_L", (AGKVoidFunc) (float(*)(unsigned int)) (agk::GetImageHeight) },
@@ -1228,6 +1230,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"READSTRING_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::ReadString) },
 	{"RECEIVESMARTWATCHDATA_S_0", (AGKVoidFunc) (char*(*)()) (agk::ReceiveSmartWatchData) },
 	{"RECORDSOUND_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::RecordSound) },
+	{"REMOVEHTTPHEADER_0_L_S", (AGKVoidFunc) (void(*)(UINT,const char*)) (agk::RemoveHTTPHeader) },
 	{"RENDER2DBACK_0_0", (AGKVoidFunc) (void(*)()) (agk::Render2DBack) },
 	{"RENDER2DFRONT_0_0", (AGKVoidFunc) (void(*)()) (agk::Render2DFront) },
 	{"RENDER3D_0_0", (AGKVoidFunc) (void(*)()) (agk::Render3D) },

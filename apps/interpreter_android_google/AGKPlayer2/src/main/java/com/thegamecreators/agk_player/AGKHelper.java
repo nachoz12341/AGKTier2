@@ -49,6 +49,8 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.SearchableInfo;
 import android.content.ActivityNotFoundException;
 import android.content.SharedPreferences;
@@ -113,6 +115,7 @@ import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.Formatter;
@@ -129,6 +132,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+
+import com.google.android.vending.expansion.downloader.impl.DownloaderService;
+import com.google.android.vending.expansion.downloader.impl.BroadcastDownloaderClient;
+
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.thegamecreators.agk_player.iap.*;
 
 import com.facebook.*;
@@ -136,7 +144,6 @@ import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
 import com.facebook.android.Facebook.DialogListener;
 import com.facebook.android.FacebookError;
-import com.google.android.gcm.GCMRegistrar;
 
 import android.view.Surface;
 import android.webkit.MimeTypeMap;
@@ -950,6 +957,7 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
 						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
+						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
 						public void onRewardedVideoAdClosed()
 						{
 							Log.i("AdMob", "Reward ad closed");
@@ -1018,6 +1026,7 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
 						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
+						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
 						public void onRewardedVideoAdClosed() {
 							Log.i("AdMob", "Reward ad closed");
 
@@ -2147,6 +2156,27 @@ public class AGKHelper {
 		{
 			g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000);
 		}
+
+		if ( mExpansionClient != null )
+		{
+			mExpansionClient.register(act);
+			Intent intent2 = new Intent(act, AGKActivity.class);
+			PendingIntent pIntent = PendingIntent.getActivity(act, 0, intent2, 0);
+			try {
+				int result = DownloaderService.startDownloadServiceIfRequired(act, "default", pIntent, g_sExpansionSalt, g_sExpansionKey);
+				if (DownloaderService.NO_DOWNLOAD_REQUIRED == result) {
+					g_iExpansionState = 3;
+					mExpansionClient.unregister( act );
+					mExpansionClient = null;
+					Intent downloadIntent = new Intent(act, DownloaderService.class);
+					act.stopService(downloadIntent);
+				}
+			}
+			catch( Exception e )
+			{
+				Log.e( "Expansion Download", "Failed to restart download" );
+			}
+		}
 	}
 	
 	public static void OnStop( Activity act )
@@ -2179,6 +2209,8 @@ public class AGKHelper {
 		StopSpeaking();
 
 		if (  g_CloudRefreshTimer != null ) g_CloudRefreshTimer.cancel();
+
+		if ( mExpansionClient != null ) mExpansionClient.unregister( act );
 	}
 
 	public static int HasFirebase() { return 1; }
@@ -2921,13 +2953,17 @@ public class AGKHelper {
 		HashMap<String,String> hashMap = new HashMap();
 		hashMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(g_iSpeechIDLast) );
 
-		g_pTextToSpeech.speak( text, queueMode, hashMap );
+		if ( g_pTextToSpeech.speak( text, queueMode, hashMap ) < 0 )
+		{
+			Log.e( "TextToSpeech", "Failed to queue speech" );
+		}
 	}
 
 	public static int GetSpeechNumVoices( Activity act )
 	{
 		if ( g_pTextToSpeech == null ) return 0;
 		if ( Build.VERSION.SDK_INT < 21 ) return 0;
+		if ( g_pTextToSpeech.getVoices() == null ) return 0;
 
 		return g_pTextToSpeech.getVoices().size();
 	}
@@ -3675,45 +3711,24 @@ public class AGKHelper {
 	// Push Notifications
 	// ******************
 	
-	public static String GCM_product_number = "210280521980"; // TGC
-	//public static String GCM_product_number = "1083864810983"; // Focus
-	public static String GCM_PACKAGE_NAME = "";
 	public static String GCM_PNRegID = "";
 	
 	public static void setPushNotificationKeys( String key1, String key2 )
 	{
-		GCM_product_number = key1;
+
 	}
 	
 	public static int registerPushNotification( Activity nativeactivityptr )
 	{
-		GCM_PACKAGE_NAME = nativeactivityptr.getApplicationContext().getPackageName();
-		
-		try
-		{
-			GCMRegistrar.checkDevice(nativeactivityptr);
-			GCMRegistrar.checkManifest(nativeactivityptr);
-			String regId = GCMRegistrar.getRegistrationId(nativeactivityptr);
-			if (regId.equals("")) {
-			  GCMRegistrar.register(nativeactivityptr, GCM_product_number);
-			}
-			else 
-			{
-				GCM_PNRegID = regId;
-			}
-		}
-		catch( Exception e )
-		{
-			Log.e("Push Notification", e.toString());
-			return 0;
-		}
-				
+		GCM_PNRegID = FirebaseInstanceId.getInstance().getToken();
+		Log.e( "Push Token", ": " + GCM_PNRegID );
 		return 1;
 	}
 	
 	public static String getPNRegID()
 	{
-		return GCM_PNRegID;
+		if ( GCM_PNRegID == null ) return "";
+		else return GCM_PNRegID;
 	}
 	
 	public static String GetAppName(Activity act)
@@ -3961,12 +3976,50 @@ public class AGKHelper {
 	static int g_iExpansionState = 1; // 1=not found, 2=downloading, 3=found
 	static int g_iExpansionVersion = 0;
 	static float g_fExpansionProgress = 0;
-	static MyDownloadClient g_pDownloaderClient = null;
-	static IStub g_pDownloaderStub = null;
-	
+	static String g_sExpansionKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqV2cB4Ih8C8mPqzCDrAxe4gatHx6JNx/lC9H3hIhEmnDljeWkQBLqiRFTG4ocOv1YjSMLrxvK3LYaSlGuEzTk+KxHAu3tTJzgtQ1ZcajbeqT8f1Xc+3p6+qMccPrl0DbWAIrRku2f5q0f5XoAkJHGMXmRFjZ56puwW1MYEjy40i7HulWFhj3HmfedopXE06jwjhzZxUda9qCAl0aRUq/TJ6mX6BBVAloBrPNNWitCIj/x18P5ItWpwAVGb3MbZnSFR7BKzmGIUnGYG1ULISWC8evf/zDD0N3lWMUChzd1kPr6/Ok8mfjuMVYd4L+mx5KC/sBazJb7v4h8DNLNgy7qQIDAQAB";
+	static byte[] g_sExpansionSalt = new byte[] { 1, 42, -12, -1, 54, 98, -100, -12, 43, 2, -8, -4, 9, 5, -106, -107, -33, 45, -1, 84 };
+	static DownloaderClient mExpansionClient = null;
+
+	static class DownloaderClient extends BroadcastDownloaderClient {
+
+		public static Activity act;
+
+		@Override
+		public void onDownloadStateChanged(int newState) {
+			if (newState == STATE_COMPLETED) {
+				AGKHelper.g_iExpansionState = 3;
+				mExpansionClient.unregister( act );
+				mExpansionClient = null;
+				Intent downloadIntent = new Intent(act, DownloaderService.class);
+				act.stopService(downloadIntent);
+			}
+			else
+			{
+				if ( newState >= 15 )
+				{
+					AGKHelper.g_iExpansionState = -1;
+					mExpansionClient = null;
+					Intent downloadIntent = new Intent(act, DownloaderService.class);
+					act.stopService(downloadIntent);
+				}
+				String message = Helpers.getDownloaderStringResourceIDFromState(newState);
+				Log.e( "Expansion Download", message );
+			}
+		}
+
+		@Override
+		public void onDownloadProgress(DownloadProgressInfo progress) {
+			if (progress.mOverallTotal > 0) {
+				// receive the download progress
+				// you can then display the progress in your activity
+				AGKHelper.g_fExpansionProgress = (progress.mOverallProgress / (float) progress.mOverallTotal) * 100;
+			}
+		}
+	}
+
 	public static void setExpansionKey( String key )
 	{
-		MyDownloadService.BASE64_PUBLIC_KEY = key;
+		g_sExpansionKey = key;
 	}
 	
 	public static void SetExpansionVersion(int version)
@@ -3985,14 +4038,7 @@ public class AGKHelper {
 		
 		Log.i("Get Expansion State", "State: " + Integer.toString(g_iExpansionState));
 		
-		return g_iExpansionState; 
-		
-		/*
-		String filename = Helpers.getExpansionAPKFileName( act, true, g_iExpansionVersion );
-		File fileForNewFile = new File(Helpers.generateSaveFileName(act, filename));
-        if (fileForNewFile.exists()) return 3;
-        else return 1;
-        */
+		return g_iExpansionState;
 	}
 	
 	public static void DownloadExpansion(Activity act)
@@ -4001,26 +4047,51 @@ public class AGKHelper {
 		if ( g_iExpansionState == 2 ) return;
 		g_iExpansionState = 2;
 		g_fExpansionProgress = 0;
-		
-		Looper.prepare();
-		
+
+		/*
+		// check if we already have a file
+		String filename = Helpers.getExpansionAPKFileName( act, true, g_iExpansionVersion );
+		File fileForNewFile = new File(Helpers.generateSaveFileName(act, filename));
+		if (fileForNewFile.exists())
+		{
+			g_iExpansionState = 3;
+			return;
+		}
+		*/
+
 		Intent intent2 = new Intent(act, AGKActivity.class);
     	PendingIntent pIntent = PendingIntent.getActivity(act, 0, intent2, 0);
     	
     	try
     	{
-    		int result = DownloaderClientMarshaller.startDownloadServiceIfRequired(act, pIntent, MyDownloadService.class);
-    		if ( DownloaderClientMarshaller.NO_DOWNLOAD_REQUIRED == result )
+    		if ( mExpansionClient == null )
+			{
+				mExpansionClient = new DownloaderClient();
+				mExpansionClient.act = act;
+				mExpansionClient.register( act );
+			}
+
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+			{
+				NotificationManager mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
+				NotificationChannel channel = new NotificationChannel("default","DTS Downloader", NotificationManager.IMPORTANCE_DEFAULT );
+				channel.setDescription("DTS File Downloader Status");
+				mNotificationManager.createNotificationChannel(channel);
+			}
+
+    		int result = DownloaderService.startDownloadServiceIfRequired(act, "default", pIntent, g_sExpansionSalt, g_sExpansionKey );
+    		if ( DownloaderService.NO_DOWNLOAD_REQUIRED == result )
     		{
     			g_iExpansionState = 3;
+    			mExpansionClient.unregister( act );
+				mExpansionClient = null;
+				Intent downloadIntent = new Intent(act, DownloaderService.class);
+				act.stopService(downloadIntent);
     			return;
     		}
     		else
     		{
     			Log.d("Expansion File","Check Result: " + result);
-    			if ( g_pDownloaderClient == null ) g_pDownloaderClient = new MyDownloadClient();
-    			g_pDownloaderStub = DownloaderClientMarshaller.CreateStub(g_pDownloaderClient, MyDownloadService.class);
-    			g_pDownloaderStub.connect(act);
     		}
     	}
     	catch( Exception e )
@@ -4807,33 +4878,14 @@ public class AGKHelper {
 		String sExt = "";
 		if ( pos >= 0 ) sExt = sPath.substring(pos+1);
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
 
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_VIEW );
-		target.setDataAndType( Uri.fromFile(dst),sMIME );
-		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+		target.setDataAndType( uri, sMIME );
+		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {
 			act.startActivity(target);
@@ -4863,32 +4915,15 @@ public class AGKHelper {
 		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
 		else sFileName = sPath;
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
 
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
 		target.putExtra( Intent.EXTRA_TITLE, "Share Image" );
-		target.putExtra( Intent.EXTRA_STREAM, Uri.fromFile(dst) );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
+		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
 			act.startActivity(target);
@@ -4904,33 +4939,15 @@ public class AGKHelper {
 		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
 		else sFileName = sPath;
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
-
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
 		target.putExtra(Intent.EXTRA_TITLE, "Share Image And Text");
-		target.putExtra( Intent.EXTRA_STREAM, Uri.fromFile(dst) );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
 		target.putExtra( Intent.EXTRA_TEXT, sText );
+		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
 			act.startActivity(target);

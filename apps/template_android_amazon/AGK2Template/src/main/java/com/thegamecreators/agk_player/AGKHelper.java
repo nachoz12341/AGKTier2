@@ -904,6 +904,7 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
 						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
+						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
 						public void onRewardedVideoAdClosed()
 						{
 							Log.i("AdMob", "Reward ad closed");
@@ -972,6 +973,7 @@ class RunnableAd implements Runnable
 						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
 						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
 						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
+						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
 						public void onRewardedVideoAdClosed() {
 							Log.i("AdMob", "Reward ad closed");
 
@@ -1959,7 +1961,7 @@ public class AGKHelper {
 		StopScreenRecording();
 	}
 
-	public static int HasFirebase() { return 1; }
+	public static int HasFirebase() { return 0; }
 
 	public static void SetImmersiveMode( Activity act, int mode )
 	{

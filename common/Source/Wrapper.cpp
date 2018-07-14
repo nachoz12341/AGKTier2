@@ -8390,6 +8390,50 @@ int agk::GetSpriteTransparency( UINT iSpriteIndex )
 	return pSprite->GetTransparencyMode();
 }
 
+//****f* Sprite/Properties/GetSpriteFlippedHorizontally
+// FUNCTION
+//   Returns 1 if the sprite has been flipped horizontally with SetSpriteFlip, otherwise returns 0.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite to check.
+// SOURCE
+int agk::GetSpriteFlippedHorizontally( UINT iSpriteIndex )
+//****
+{
+	cSprite *pSprite = (cSprite*)m_cSpriteList.GetItem( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Sprite ", 50 );  errStr.AppendUInt( iSpriteIndex );  errStr.Append( " does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pSprite->GetFlippedHorizontally();
+}
+
+//****f* Sprite/Properties/GetSpriteFlippedVertically
+// FUNCTION
+//   Returns 1 if the sprite has been flipped vertically with SetSpriteFlip, otherwise returns 0.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite to check.
+// SOURCE
+int agk::GetSpriteFlippedVertically( UINT iSpriteIndex )
+//****
+{
+	cSprite *pSprite = (cSprite*)m_cSpriteList.GetItem( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Sprite ", 50 );  errStr.AppendUInt( iSpriteIndex );  errStr.Append( " does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pSprite->GetFlippedVertically();
+}
+
 //****f* Sprite/Properties/GetSpriteXFromPixel
 // FUNCTION
 //   Converts a pixel point on the sprite's image to the point on the sprite's surface that represents where that pixel is.

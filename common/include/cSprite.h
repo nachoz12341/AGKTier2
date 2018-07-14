@@ -261,6 +261,8 @@ namespace AGK
 			int GetGroup				( void );
 			int HasAdditionalImages		( void );
 			bool IsManaged() { return m_bManaged; }
+			bool GetFlippedHorizontally	( void );
+			bool GetFlippedVertically	( void );
 
 			AGKShader* GetShader() { return m_pShader; }
 			void SetShader( AGKShader* shader ); 

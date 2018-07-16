@@ -8390,13 +8390,13 @@ int agk::GetSpriteTransparency( UINT iSpriteIndex )
 	return pSprite->GetTransparencyMode();
 }
 
-//****f* Sprite/Properties/GetSpriteFlippedHorizontally
+//****f* Sprite/Properties/GetSpriteFlippedH
 // FUNCTION
 //   Returns 1 if the sprite has been flipped horizontally with SetSpriteFlip, otherwise returns 0.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to check.
 // SOURCE
-int agk::GetSpriteFlippedHorizontally( UINT iSpriteIndex )
+int agk::GetSpriteFlippedH( UINT iSpriteIndex )
 //****
 {
 	cSprite *pSprite = (cSprite*)m_cSpriteList.GetItem( iSpriteIndex );
@@ -8412,13 +8412,13 @@ int agk::GetSpriteFlippedHorizontally( UINT iSpriteIndex )
 	return pSprite->GetFlippedHorizontally();
 }
 
-//****f* Sprite/Properties/GetSpriteFlippedVertically
+//****f* Sprite/Properties/GetSpriteFlippedV
 // FUNCTION
 //   Returns 1 if the sprite has been flipped vertically with SetSpriteFlip, otherwise returns 0.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to check.
 // SOURCE
-int agk::GetSpriteFlippedVertically( UINT iSpriteIndex )
+int agk::GetSpriteFlippedV( UINT iSpriteIndex )
 //****
 {
 	cSprite *pSprite = (cSprite*)m_cSpriteList.GetItem( iSpriteIndex );

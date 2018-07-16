@@ -2978,6 +2978,16 @@ int cSprite::HasAdditionalImages()
 	return 0;
 }
 
+bool cSprite::GetFlippedHorizontally()
+{
+	return 0 != (m_bFlags & AGK_SPRITE_FLIPH);
+}
+
+bool cSprite::GetFlippedVertically()
+{
+	return 0 != (m_bFlags & AGK_SPRITE_FLIPV);
+}
+
 void cSprite::SetUV( float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4 )
 {
 	m_bUVOverride = true;

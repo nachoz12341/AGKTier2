@@ -1184,6 +1184,8 @@ namespace AGK
 			static int GetSpriteActive( UINT iSpriteIndex );
 			static int GetSpriteGroup( UINT iSpriteIndex );
 			static int GetSpriteTransparency( UINT iSpriteIndex );
+			static int GetSpriteFlippedH(UINT iSpriteIndex);
+			static int GetSpriteFlippedV(UINT iSpriteIndex);
 
 			static float GetSpriteXFromPixel( UINT iSpriteIndex, int x );
 			static float GetSpriteYFromPixel( UINT iSpriteIndex, int y );

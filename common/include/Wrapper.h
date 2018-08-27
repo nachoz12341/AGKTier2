@@ -1601,9 +1601,10 @@ namespace AGK
 			static void FixSkeleton2DToScreen( UINT iSkeleton, int mode );
 			static void SetSkeleton2DVisible( UINT iSkeleton, int mode );
 
-			static float GetSkeleton2DX( UINT skeleton );
-			static float GetSkeleton2DY( UINT skeleton );
-			static float GetSkeleton2DAngle( UINT skeleton );
+			static float GetSkeleton2DX( UINT iskeleton );
+			static float GetSkeleton2DY( UINT iskeleton );
+			static float GetSkeleton2DAngle( UINT iskeleton );
+			static int GetSkeleton2DDepth(UINT iskeleton);
 
 			//static UINT AddSkeleton2DBone( UINT iSkeleton, UINT parent, const char* name );
 			static int GetSkeleton2DBone( UINT iSkeleton, const char* name );
@@ -2049,6 +2050,7 @@ namespace AGK
 			static float GetEditBoxHeight( UINT index );
 			static int GetEditBoxChanged( UINT index );
 			static int GetEditBoxActive( UINT index );
+			static int GetEditBoxDepth(UINT index);
 			static int GetEditBoxVisible( UINT index );
 			static int GetEditBoxLines( UINT index );
 			static int GetEditBoxCursorPosition( UINT index );

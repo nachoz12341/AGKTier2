@@ -18601,6 +18601,27 @@ float agk::GetSkeleton2DAngle( UINT iSkeleton )
 	return pSkeleton->GetAngle();
 }
 
+//****f* Skeleton/2D/GetSkeleton2DDepth
+// FUNCTION
+//   Gets the current depth of the skeleton. This is in the range 0-10000. 0 is on top, 10000 is at the back
+// INPUTS
+//   iSkeleton -- ID of the skeleton to check
+// SOURCE
+int agk::GetSkeleton2DDepth(UINT iSkeleton)
+//****
+{
+	Skeleton2D *pSkeleton = m_cSkeleton2DList.GetItem(iSkeleton);
+	if (!pSkeleton)
+	{
+		uString errStr;
+		errStr.Format("Failed to get depth for skeleton %d - ID does not exist", iSkeleton);
+		agk::Error(errStr);
+		return 0;
+	}
+
+	return pSkeleton->GetDepth();
+}
+
 //****f* Skeleton/2D/GetSkeleton2DBone
 // FUNCTION
 //   Returns the ID of the specified bone for this skeleton. If no bone with the given name exists it 
@@ -34153,6 +34174,27 @@ int agk::GetEditBoxActive( UINT index )
 	}
 
 	return pEditBox->GetActive();
+}
+
+//****f* Input/Edit Box/GetEditBoxDepth
+// FUNCTION
+//   Returns the current depth of the edit box with 0 being the front of the screen and 10000 being the back.
+// INPUTS
+//   index -- The ID to check.
+// SOURCE
+int agk::GetEditBoxDepth(UINT index)
+{
+	cEditBox *pEditBox = m_cEditBoxList.GetItem(index);
+	if (!pEditBox)
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Edit box ", 50);  errStr.AppendInt(index);  errStr.Append(" does not exist");
+		Error(errStr);
+#endif
+		return 0;
+	}
+
+	return pEditBox->GetDepth();
 }
 
 //****f* Input/Edit Box/GetEditBoxVisible

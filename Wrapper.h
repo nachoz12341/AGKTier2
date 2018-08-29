@@ -1568,7 +1568,8 @@ namespace AGK
 			static void SetTextCharColorBlue( UINT iTextIndex, UINT iCharIndex, UINT blue );
 			static void SetTextCharColorAlpha( UINT iTextIndex, UINT iCharIndex, UINT alpha );
 			static void SetTextCharBold( UINT iTextIndex, UINT iCharIndex, UINT bold );
-			
+			static void SetTextShader(UINT iTextIndex, UINT shaderID);
+
 			static float GetTextCharX( UINT iTextIndex, UINT iCharIndex );
 			static float GetTextCharY( UINT iTextIndex, UINT iCharIndex );
 			static float GetTextCharAngle( UINT iTextIndex, UINT iCharIndex );
@@ -1603,10 +1604,9 @@ namespace AGK
 			static void FixSkeleton2DToScreen( UINT iSkeleton, int mode );
 			static void SetSkeleton2DVisible( UINT iSkeleton, int mode );
 
-			static float GetSkeleton2DX( UINT iskeleton );
-			static float GetSkeleton2DY( UINT iskeleton );
-			static float GetSkeleton2DAngle( UINT iskeleton );
-			static int GetSkeleton2DDepth(UINT iskeleton);
+			static float GetSkeleton2DX( UINT skeleton );
+			static float GetSkeleton2DY( UINT skeleton );
+			static float GetSkeleton2DAngle( UINT skeleton );
 
 			//static UINT AddSkeleton2DBone( UINT iSkeleton, UINT parent, const char* name );
 			static int GetSkeleton2DBone( UINT iSkeleton, const char* name );
@@ -2052,7 +2052,6 @@ namespace AGK
 			static float GetEditBoxHeight( UINT index );
 			static int GetEditBoxChanged( UINT index );
 			static int GetEditBoxActive( UINT index );
-			static int GetEditBoxDepth(UINT index);
 			static int GetEditBoxVisible( UINT index );
 			static int GetEditBoxLines( UINT index );
 			static int GetEditBoxCursorPosition( UINT index );
@@ -2514,11 +2513,9 @@ namespace AGK
 			static void Speak( const char *text, int delay );
 			static void SetSpeechRate( float rate );
 			static void SetSpeechLanguage( const char* lang );
-			static void SetSpeechLanguageByID( const char* sID );
             static int GetSpeechNumVoices();
             static char* GetSpeechVoiceLanguage( int index );
             static char* GetSpeechVoiceName( int index );
-			static char* GetSpeechVoiceID( int index );
 			static int IsSpeaking();
 			static void StopSpeaking();
         

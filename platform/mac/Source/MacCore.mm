@@ -3156,7 +3156,10 @@ float agk::GetVideoHeight()
 void agk::SetVideoPosition( float seconds )
 //****
 {
-	
+    if ( !g_videoPlayer ) return;
+    
+    int32_t timeScale = g_videoPlayer.currentItem.asset.duration.timescale;
+    [g_videoPlayer seekToTime:CMTimeMakeWithSeconds(seconds, timeScale) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
 }
 
 // Screen recording
@@ -3258,7 +3261,20 @@ char* agk::GetSpeechVoiceName( int index )
     return str;
 }
 
+char* agk::GetSpeechVoiceID( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
 void agk::SetSpeechLanguage( const char* lang )
+//****
+{
+
+}
+
+void agk::SetSpeechLanguageByID( const char* sID )
 //****
 {
 

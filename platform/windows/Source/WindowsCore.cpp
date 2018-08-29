@@ -7294,6 +7294,20 @@ char* agk::GetSpeechVoiceName( int index )
     return str;
 }
 
+//****f* Sound/TextToSpeech/GetSpeechVoiceID
+// FUNCTION
+//   Returns the ID of the given voice on iOS only, this is not used on other platforms.
+//   The ID can be used with <i>SetSpeechLanguageByID</i> to select a specific voice.
+// INPUTS
+//   index -- The index of the voice to check, starts at 0 for the first voice
+// SOURCE
+char* agk::GetSpeechVoiceID( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
 //****f* Sound/TextToSpeech/SetSpeechLanguage
 // FUNCTION
 //   Sets the language to use when speaking text, for example "en_GB" for British English, "en_US" for
@@ -7307,6 +7321,20 @@ char* agk::GetSpeechVoiceName( int index )
 //   lang -- The language to use for speaking text, default is the device's current language.
 // SOURCE
 void agk::SetSpeechLanguage( const char* lang )
+//****
+{
+
+}
+
+//****f* Sound/TextToSpeech/SetSpeechLanguageByID
+// FUNCTION
+//   Sets the language to use when speaking text by voice ID on iOS only. This is not used on other platforms.
+//   The ID can be found with <i>GetSpeechVoiceID</i>, an is necessary when multiple voices have the same language
+//   but with different accents.
+// INPUTS
+//   sID -- The language to use for speaking text, default is the device's current language.
+// SOURCE
+void agk::SetSpeechLanguageByID( const char* sID )
 //****
 {
 

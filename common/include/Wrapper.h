@@ -2512,9 +2512,11 @@ namespace AGK
 			static void Speak( const char *text, int delay );
 			static void SetSpeechRate( float rate );
 			static void SetSpeechLanguage( const char* lang );
+			static void SetSpeechLanguageByID( const char* sID );
             static int GetSpeechNumVoices();
             static char* GetSpeechVoiceLanguage( int index );
             static char* GetSpeechVoiceName( int index );
+			static char* GetSpeechVoiceID( int index );
 			static int IsSpeaking();
 			static void StopSpeaking();
         

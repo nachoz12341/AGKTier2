@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1952;
+int g_iNumAGKFunctions = 1954;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -897,6 +897,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETSOUNDMINRATE_F_0", (AGKVoidFunc) (float(*)()) (agk::GetSoundMinRate) },
 	{"GETSOUNDSPLAYING_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetSoundsPlaying) },
 	{"GETSPEECHNUMVOICES_L_0", (AGKVoidFunc) (int(*)()) (agk::GetSpeechNumVoices) },
+	{"GETSPEECHVOICEID_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetSpeechVoiceID) },
 	{"GETSPEECHVOICELANGUAGE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetSpeechVoiceLanguage) },
 	{"GETSPEECHVOICENAME_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetSpeechVoiceName) },
 	{"GETSPRITEACTIVE_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetSpriteActive) },
@@ -1641,6 +1642,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SETSOUNDINSTANCERATE_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::SetSoundInstanceRate) },
 	{"SETSOUNDINSTANCEVOLUME_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::SetSoundInstanceVolume) },
 	{"SETSOUNDSYSTEMVOLUME_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetSoundSystemVolume) },
+	{"SETSPEECHLANGUAGEBYID_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::SetSpeechLanguageByID) },
 	{"SETSPEECHLANGUAGE_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::SetSpeechLanguage) },
 	{"SETSPEECHRATE_0_F", (AGKVoidFunc) (void(*)(float)) (agk::SetSpeechRate) },
 	{"SETSPRITEACTIVE_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::SetSpriteActive) },

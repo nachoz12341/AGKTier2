@@ -2868,7 +2868,20 @@ char* agk::GetSpeechVoiceName( int index )
     return str;
 }
 
+char* agk::GetSpeechVoiceID( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
 void agk::SetSpeechLanguage( const char* lang )
+//****
+{
+
+}
+
+void agk::SetSpeechLanguageByID( const char* sID )
 //****
 {
 

@@ -9821,3 +9821,17 @@ case AGKI_GETHTTPSTATUSCODE_L_L:
     m_pStack[ m_iStackPtr++ ].i = agk::GetHTTPStatusCode( param0 );
     break;
 }
+case AGKI_GETSPEECHVOICEID_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetSpeechVoiceID( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_SETSPEECHLANGUAGEBYID_0_S:
+{
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::SetSpeechLanguageByID( param0 );
+    break;
+}

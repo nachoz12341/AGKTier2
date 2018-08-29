@@ -5604,6 +5604,13 @@ char* agk::GetSpeechVoiceName( int index )
 	return retstr;
 }
 
+char* agk::GetSpeechVoiceID( int index )
+//****
+{
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
 void agk::SetSpeechLanguage( const char* lang )
 //****
 {
@@ -5623,6 +5630,12 @@ void agk::SetSpeechLanguage( const char* lang )
 	lJNIEnv->DeleteLocalRef( sLang );
 
 	vm->DetachCurrentThread();
+}
+
+void agk::SetSpeechLanguageByID( const char* sID )
+//****
+{
+
 }
 
 int agk::IsSpeaking()

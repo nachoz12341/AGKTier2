@@ -4307,7 +4307,10 @@ float agk::GetVideoHeight()
 void agk::SetVideoPosition( float seconds )
 //****
 {
-	
+	if ( !videoplayer ) return;
+    
+    int32_t timeScale = videoplayer.currentItem.asset.duration.timescale;
+    [videoplayer seekToTime:CMTimeMakeWithSeconds(seconds, timeScale) toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
 }
 
 // Screen recording
@@ -4483,6 +4486,23 @@ char* agk::GetSpeechVoiceName( int index )
     return str;
 }
 
+char* agk::GetSpeechVoiceID( int index )
+//****
+{
+    if ( index < 0 || index >= [[AVSpeechSynthesisVoice speechVoices] count] )
+    {
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
+    
+    AVSpeechSynthesisVoice* voice = [[AVSpeechSynthesisVoice speechVoices] objectAtIndex:index];
+    
+    const char* sID = [[voice identifier] UTF8String];
+    char* str = new char[ strlen(sID)+1 ];
+    strcpy( str, sID );
+    return str;
+}
+
 void agk::SetSpeechLanguage( const char* lang )
 //****
 {
@@ -4491,6 +4511,15 @@ void agk::SetSpeechLanguage( const char* lang )
     uString sLang(lang);
     sLang.Replace('_','-');
     g_pSpeechVoice = [AVSpeechSynthesisVoice voiceWithLanguage:[NSString stringWithUTF8String:sLang.GetStr()]];
+    [g_pSpeechVoice retain];
+}
+
+void agk::SetSpeechLanguageByID( const char* sID )
+//****
+{
+	if ( !g_pTextToSpeech ) return;
+    if ( g_pSpeechVoice ) [g_pSpeechVoice release];
+    g_pSpeechVoice = [AVSpeechSynthesisVoice voiceWithIdentifier:[NSString stringWithUTF8String:sID]];
     [g_pSpeechVoice retain];
 }
 

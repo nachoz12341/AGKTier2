@@ -53,7 +53,10 @@ void CheckRendererExtensions()
 	if ( IsExtensionSupported( "GL_OES_depth24" ) ) g_bDepth24Supported = true;
 	if ( IsExtensionSupported( "GL_NV_depth_nonlinear" ) ) g_bDepthNonLinear = true;
 	if ( IsExtensionSupported( "GL_EXT_shadow_samplers" ) ) g_bShadowSamplers = true;
+    // something is wrong on iOS with OpenGL ES 2.0 and the UINT index extension, objects become corrupted
+#ifndef AGK_IOS
 	if ( IsExtensionSupported( "GL_OES_element_index_uint" ) ) g_iCapabilityFlags |= AGK_CAP_UINT_INDICES;
+#endif
     
     if ( g_bOpenGL3 )
     {

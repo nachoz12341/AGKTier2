@@ -2448,7 +2448,7 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
 	if ( !m_bConnected )
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Warning( "Cannot send HTTP file as Connect() has not been called or failed to complete successfully" );
+		agk::Error( "Cannot send HTTP file as Connect() has not been called or failed to complete successfully" );
 #endif
 		return false;
 	}
@@ -2458,6 +2458,12 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
 #ifdef _AGK_ERROR_CHECK
 		agk::Warning( "Cannot send HTTP file whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
 #endif
+		return false;
+	}
+
+	if ( !szLocalFile || !*szLocalFile )
+	{
+		agk::Error( "Cannot send HTTP file, filename is empty" );
 		return false;
 	}
 

@@ -8392,7 +8392,7 @@ int agk::GetSpriteTransparency( UINT iSpriteIndex )
 
 //****f* Sprite/Properties/GetSpriteFlippedH
 // FUNCTION
-//   Returns 1 if the sprite has been flipped horizontally with SetSpriteFlip, otherwise returns 0.
+//   Returns 1 if the sprite has been flipped horizontally with <i>SetSpriteFlip</i>, otherwise returns 0.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to check.
 // SOURCE
@@ -8412,9 +8412,35 @@ int agk::GetSpriteFlippedH( UINT iSpriteIndex )
 	return pSprite->GetFlippedHorizontally();
 }
 
+//****f* Sprite/Properties/GetSpriteInScreen
+// FUNCTION
+//   Returns 1 if the sprite is currently within the visible area of the screen, 0 if it is outside the visible area.
+//   Note that if the sprite is very close to the edge where it may be difficult to determine if all the pixels in the 
+//   sprite are outside the visible area then this command will return 1 and assume it is visible. In other words if 
+//   this command returns 0 then the sprite is definitely off screen, if it returns 1 then the sprite is most likely
+//   on screen but could actually be off screen and very close to an edge.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite to check.
+// SOURCE
+int agk::GetSpriteInScreen( UINT iSpriteIndex )
+//****
+{
+	cSprite *pSprite = (cSprite*)m_cSpriteList.GetItem( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Sprite ", 50 );  errStr.AppendUInt( iSpriteIndex );  errStr.Append( " does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pSprite->GetInScreen();
+}
+
 //****f* Sprite/Properties/GetSpriteFlippedV
 // FUNCTION
-//   Returns 1 if the sprite has been flipped vertically with SetSpriteFlip, otherwise returns 0.
+//   Returns 1 if the sprite has been flipped vertically with <i>SetSpriteFlip</i>, otherwise returns 0.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to check.
 // SOURCE
@@ -10174,8 +10200,9 @@ void agk::SetSpriteShapePolygon( UINT iSpriteIndex, UINT numPoints, UINT index, 
 
 //****f* Sprite/Physics/SetSpriteShapeChain
 // FUNCTION
-//   Overrides the current auto generated shape for use in collision detection, hit testing, and physics. A shape can be set 
-//   without turning physics on, and by default all sprites are set to use the box shape, which is the fastest to setup. 
+//   Overrides the current auto generated shape for use in physics. Normal sprite collision and hit testing does not work with 
+//   the chain shape, it is only for physics. 
+//   A shape can be set without turning physics on, and by default all sprites are set to use the box shape, which is the fastest to setup. 
 //   The chain is defined by a set of points (at least 2) relative to the current sprite's offset. For example,
 //   a point of 0,0 would be centered on the sprite's offset point, any other value will be offset from this point.
 //   Chains are rigid and can be used to create hollow concave polygons, or 2D terrains. Set the loop parameter to 1 to join 
@@ -15983,6 +16010,32 @@ void agk::OffsetParticles( UINT ID, float x, float y )
 	}
 
 	pEmitter->Offset( x,y );
+}
+
+//****f* Particles/Properties/DrawParticles
+// FUNCTION
+//   Immediately draws the particle emitter to the backbuffer at its current position, size, and rotation. This is 
+//   useful if you want to setup a scene for <i>GetImage</i> to capture. Remember to use <i>ClearScreen</i> to clear
+//   any of your own drawing before calling <i>Sync</i> or <i>Render</i> for the actual frame otherwise your drawing
+//   may appear twice in the final render.
+// INPUTS
+//   ID -- The ID of the emitter to draw.
+// SOURCE
+void agk::DrawParticles( UINT ID )
+//****
+{
+	cParticleEmitter *pEmitter = m_cParticleEmitterList.GetItem( ID );
+	if ( pEmitter == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "", 100 );
+		errStr.Format( "Failed to draw particle emitter %d, emitter does not exist", ID );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	pEmitter->DrawAll();
 }
 
 //
@@ -33989,6 +34042,30 @@ void agk::SetEditBoxWrapMode( UINT index, int mode )
     pEditBox->SetWrapMode( mode );
 }
 
+//****f* Input/Edit Box/SetEditBoxInputType
+// FUNCTION
+//   Sets the type of keyboard that will appear on mobile devices when editing this edit box. Where possible a keyboard 
+//   of that type will be displayed, for example a keyboard with numbers only.
+// INPUTS
+//   index -- The ID to modify.
+//   mode -- 0 for normal text, 1 for numbers only.
+// SOURCE
+void agk::SetEditBoxInputType( UINT index, int inputType )
+//****
+{
+    cEditBox *pEditBox = m_cEditBoxList.GetItem( index );
+    if ( !pEditBox )
+    {
+#ifdef _AGK_ERROR_CHECK
+        uString errStr( "Edit box ", 50 );  errStr.AppendInt( index );  errStr.Append( " does not exist" );
+        Error( errStr );
+#endif
+        return;
+    }
+    
+    pEditBox->SetInputType( inputType );
+}
+
 //****f* Input/Edit Box/FixEditBoxToScreen
 // FUNCTION
 //   By default sprites and edit boxes are created in world coordinates and <i>SetViewOffset</i> can be used to 
@@ -34183,6 +34260,7 @@ int agk::GetEditBoxActive( UINT index )
 //   index -- The ID to check.
 // SOURCE
 int agk::GetEditBoxDepth(UINT index)
+//****
 {
 	cEditBox *pEditBox = m_cEditBoxList.GetItem(index);
 	if (!pEditBox)
@@ -50231,6 +50309,32 @@ void agk::Offset3DParticles( UINT ID, float x, float y, float z )
 	}
 
 	pEmitter->Offset( x, y, z );
+}
+
+//****f* 3DParticles/Properties/Draw3DParticles
+// FUNCTION
+//   Immediately draws the particles to the backbuffer at its current position, size, and rotation. This is 
+//   useful if you want to setup a scene for <i>GetImage</i> to capture. Remember to use <i>ClearScreen</i> to clear
+//   any of your own drawing before calling <i>Sync</i> or <i>Render</i> for the actual frame otherwise your drawing
+//   may appear twice in the final render.
+// INPUTS
+//   ID -- The ID of the emitter to draw.
+// SOURCE
+void agk::Draw3DParticles( UINT ID )
+//****
+{
+	AGK3DParticleEmitter *pEmitter = m_3DParticleEmitterList.GetItem( ID );
+	if ( pEmitter == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "", 100 );
+		errStr.Format( "Failed to draw 3D particle emitter %d, emitter does not exist", ID );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	pEmitter->DrawAll();
 }
 
 //************************************ Bullet Physics Milestone 1 ************************************************************** 

@@ -758,6 +758,11 @@ int agk::GetExpansionFileState()
 	return 0;
 }
 
+int agk::GetExpansionFileError()
+{
+	return 0;
+}
+
 void agk::DownloadExpansionFile()
 {
 	// do nothing on mac
@@ -2124,6 +2129,37 @@ void agk::VibrateDevice( float seconds )
 //****
 {
 	// do nothing
+}
+
+void agk::SetClipboardText( const char* szText )
+//****
+{
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    [pasteboard clearContents];
+    [pasteboard setString:[NSString stringWithUTF8String:szText] forType:NSStringPboardType];
+}
+
+char* agk::GetClipboardText()
+//****
+{
+    NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
+    if ( pasteboard )
+    {
+        NSString *string = [pasteboard stringForType:NSStringPboardType];
+        if ( string )
+        {
+            const char *text = [string UTF8String];
+            if ( text && *text )
+            {
+                char *str = new char[ strlen(text) + 1 ];
+                strcpy( str, text );
+                return str;
+            }
+        }
+    }
+    
+    char *str = new char[1]; *str = 0;
+    return str;
 }
 
 // Music
@@ -5264,7 +5300,7 @@ int agk::PlatformGetIPv6( uString &sIP, int *iInterface )
 
 int agk::CheckPermission( const char* szPermission )
 {
-	return 1;
+	return 2;
 }
 
 void agk::RequestPermission( const char* szPermission )

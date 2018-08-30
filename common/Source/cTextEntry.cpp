@@ -28,6 +28,7 @@ cEditBox::cEditBox()
     m_bSupportsExtendedAscii = false;
     m_bSupportWarned = false;
 	m_iWrapMode = 0;
+	m_iInputType = 0;
 	m_iTextChanged = 0;
     m_iLastLength = 0;
 	m_bFlags = 0;
@@ -357,6 +358,11 @@ void cEditBox::SetWrapMode( int mode )
 	m_iWrapMode = mode; 
 	if ( m_bMultiLine || m_iWrapMode==1 ) m_pInputText->SetMaxWidth( m_fWidth - m_fTextSize/5 );
 	else m_pInputText->SetMaxWidth( 0 );
+}
+
+void cEditBox::SetInputType( int mode ) 
+{ 
+	m_iInputType = mode; 
 }
 
 void cEditBox::SetMaxLines( UINT lines )

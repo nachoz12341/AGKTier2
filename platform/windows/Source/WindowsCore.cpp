@@ -1663,6 +1663,22 @@ int agk::GetExpansionFileState()
 	return 0;
 }
 
+//****f* Core/Misc/GetExpansionError
+// FUNCTION
+//   Returns the error code of the most recent error that occurred when downloading the expansion file. Possible errors
+//   include:<br/>
+//      15 = Unlicensed<br/>
+//      16 = Failed fetching URL<br/>
+//      17 = SDcard full<br/>
+//      18 = Cancelled<br/>
+//      19 = Unknown error
+// SOURCE
+int agk::GetExpansionFileError()
+//****
+{
+	return 0;
+}
+
 //****f* Core/Misc/DownloadExpansionFile
 // FUNCTION
 //   Starts the download of any expansion file that this platform and app needs, currently only pplicable
@@ -2588,12 +2604,14 @@ void agk::SetVSync( int mode )
 		}
 	}
 
+	/* some monitors can go up to 240Hz with vsync enabled
 	if ( mode > 0 )
 	{
 		// assuming a vsync rate of 60fps we should set the sync rate to slightly higher to catch any 
 		// devices that ignore the vsync command
 		m_fSyncTime = 1 / 200.0f;
 	}
+	*/
 }
 
 //****f* Core/Display/GetMaxDeviceWidth
@@ -4536,6 +4554,54 @@ void agk::VibrateDevice( float seconds )
 //****
 {
 	// do nothing
+}
+
+void agk::SetClipboardText( const char* szText )
+//****
+{
+	if ( !OpenClipboard( 0 ) ) return;
+	EmptyClipboard();
+	int length = strlen(szText) + 1;
+	HGLOBAL hg = GlobalAlloc( GMEM_MOVEABLE, length );
+	if ( !hg ) 
+	{
+		CloseClipboard();
+		return;
+	}
+	memcpy( GlobalLock(hg), szText, length );
+	GlobalUnlock( hg );
+	SetClipboardData( CF_TEXT, hg );
+	CloseClipboard();
+	GlobalFree(hg);
+}
+
+char* agk::GetClipboardText()
+//****
+{
+	if ( !OpenClipboard( 0 ) ) goto error;
+	HANDLE hData = GetClipboardData( CF_TEXT );
+	if ( !hData ) 
+	{
+		CloseClipboard();
+		goto error;
+	}
+
+	char* szData = (char*)GlobalLock( hData );
+	if ( !szData ) goto error;
+
+	int length = strlen( szData ) + 1;
+
+	char *str = new char[ length ]; 
+	strcpy( str, szData );
+
+	GlobalUnlock( hData );
+	CloseClipboard();
+
+	return str;
+
+error:
+	char *str2 = new char[1]; *str2 = 0;
+	return str2;
 }
 
 // Music
@@ -6913,7 +6979,7 @@ float agk::GetVideoDuration()
 
 //****f* Video/General/SetVideoVolume
 // FUNCTION
-//   Currently not functional.
+//   Sets the volume of the video from 0 (muted) to 100 (full volume)
 // INPUTS
 //   volume -- The volume of the video in the range 0-100.
 // SOURCE
@@ -7051,10 +7117,12 @@ void agk::SetVideoPosition( float seconds )
 //   recording. Unfortunately Android does not support recording audio directly from the app, so using 
 //   a value of 0 will produce a silent video. The audio output from the app may be audible through the 
 //   microphone recording though. Recording through the microphone requires that you enable the 
-//   "Record Audio" permission when exporting your APK. On iOS a microphone value of 1 will record both
+//   "RecordAudio" permission when exporting your APK. On iOS a microphone value of 1 will record both
 //   the app audio output and the microphone, a value of 0 will only record the app audio.<br/><br/>
-//   On Android the recording may stop at any time, for example if the app is sent to the background, or
-//   if another activity is activated such as an In App Purchase, or using the <i>FacebookLogin</i> command.
+//   On Android 6 and below the recording may stop at any time, for example if the app is sent to the 
+//   background, or if another activity is activated such as an In App Purchase, or using the 
+//   <i>FacebookLogin</i> command. On Android 7 and above the recording will pause when the app is in the
+//   background and resume when the app resumes.
 //   On iOS the recording will continue after such interuptions, until <i>StopScreenRecording</i> is called.
 // INPUTS
 //   szFilename -- The path to save the video, should end in .mp4, can be a "raw:" file path
@@ -7296,8 +7364,8 @@ char* agk::GetSpeechVoiceName( int index )
 
 //****f* Sound/TextToSpeech/GetSpeechVoiceID
 // FUNCTION
-//   Returns the ID of the given voice on iOS only, this is not used on other platforms.
-//   The ID can be used with <i>SetSpeechLanguageByID</i> to select a specific voice.
+//   Returns the ID of the given voice. The ID can be used with <i>SetSpeechLanguageByID</i> to select a 
+//   specific voice.
 // INPUTS
 //   index -- The index of the voice to check, starts at 0 for the first voice
 // SOURCE
@@ -7328,9 +7396,8 @@ void agk::SetSpeechLanguage( const char* lang )
 
 //****f* Sound/TextToSpeech/SetSpeechLanguageByID
 // FUNCTION
-//   Sets the language to use when speaking text by voice ID on iOS only. This is not used on other platforms.
-//   The ID can be found with <i>GetSpeechVoiceID</i>, an is necessary when multiple voices have the same language
-//   but with different accents.
+//   Sets the language to use when speaking text by voice ID. The ID can be found with <i>GetSpeechVoiceID</i>, 
+//   and is necessary when multiple voices have the same language but with different accents.
 // INPUTS
 //   sID -- The language to use for speaking text, default is the device's current language.
 // SOURCE
@@ -8725,7 +8792,7 @@ int agk::SetCurrentDir( const char* szPath )
 	if ( strcmp( szPath, ".." ) == 0 ) 
 	{
 		int pos = m_sCurrentDir.Find( '/' );
-		if ( pos >= 0 && pos < m_sCurrentDir.GetLength()-1 )
+		if ( pos >= 0 && pos < ((int)m_sCurrentDir.GetLength())-1 )
 		{
 			m_sCurrentDir.Trunc( '/' );
 			m_sCurrentDir.Trunc( '/' );
@@ -10164,7 +10231,7 @@ void agk::GameCenterAchievementsReset ( )
 int agk::CheckPermission( const char* szPermission )
 //****
 {
-	return 1;
+	return 2;
 }
 
 //****f* Extras/Permissions/RequestPermission

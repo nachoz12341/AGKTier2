@@ -26,7 +26,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../common/include \
     $(LOCAL_PATH)/../../../zxing \
     $(LOCAL_PATH)/../../../curl \
     $(LOCAL_PATH)/../../../curl/include \
-    $(LOCAL_PATH)/../../../curl/axTLS \
     $(LOCAL_PATH)/../../../giflib \
     $(LOCAL_PATH)/../../../json \
     $(LOCAL_PATH)/../../../assimp \
@@ -145,27 +144,85 @@ LOCAL_SRC_FILES := ../../../curl/amigaos.c \
     ../../../curl/pop3.c \
     ../../../curl/smtp.c \
     ../../../curl/version.c \
-    ../../../curl/axTLS/aes.c \
-    ../../../curl/axTLS/asn1.c \
-    ../../../curl/axTLS/bigint.c \
-    ../../../curl/axTLS/crypto_misc.c \
-    ../../../curl/axTLS/gen_cert.c \
-    ../../../curl/axTLS/hmac.c \
-    ../../../curl/axTLS/loader.c \
-    ../../../curl/axTLS/md5.c \
-    ../../../curl/axTLS/openssl.c \
-    ../../../curl/axTLS/os_port.c \
-    ../../../curl/axTLS/p12.c \
-    ../../../curl/axTLS/rc4.c \
-    ../../../curl/axTLS/rsa.c \
-    ../../../curl/axTLS/sha1.c \
-    ../../../curl/axTLS/sha256.c \
-    ../../../curl/axTLS/sha384.c \
-    ../../../curl/axTLS/sha512.c \
-    ../../../curl/axTLS/tls1.c \
-    ../../../curl/axTLS/tls1_clnt.c \
-    ../../../curl/axTLS/tls1_svr.c \
-    ../../../curl/axTLS/x509.c \
+    ../../../curl/mbedTLS/xtea.c \
+    ../../../curl/mbedTLS/aes.c \
+    ../../../curl/mbedTLS/aesni.c \
+    ../../../curl/mbedTLS/arc4.c \
+    ../../../curl/mbedTLS/aria.c \
+    ../../../curl/mbedTLS/asn1parse.c \
+    ../../../curl/mbedTLS/asn1write.c \
+    ../../../curl/mbedTLS/base64.c \
+    ../../../curl/mbedTLS/bignum.c \
+    ../../../curl/mbedTLS/blowfish.c \
+    ../../../curl/mbedTLS/camellia.c \
+    ../../../curl/mbedTLS/ccm.c \
+    ../../../curl/mbedTLS/certs.c \
+    ../../../curl/mbedTLS/chacha20.c \
+    ../../../curl/mbedTLS/chachapoly.c \
+    ../../../curl/mbedTLS/cipher.c \
+    ../../../curl/mbedTLS/cipher_wrap.c \
+    ../../../curl/mbedTLS/cmac.c \
+    ../../../curl/mbedTLS/ctr_drbg.c \
+    ../../../curl/mbedTLS/debug.c \
+    ../../../curl/mbedTLS/des.c \
+    ../../../curl/mbedTLS/dhm.c \
+    ../../../curl/mbedTLS/ecdh.c \
+    ../../../curl/mbedTLS/ecdsa.c \
+    ../../../curl/mbedTLS/ecjpake.c \
+    ../../../curl/mbedTLS/ecp.c \
+    ../../../curl/mbedTLS/ecp_curves.c \
+    ../../../curl/mbedTLS/entropy.c \
+    ../../../curl/mbedTLS/entropy_poll.c \
+    ../../../curl/mbedTLS/error.c \
+    ../../../curl/mbedTLS/gcm.c \
+    ../../../curl/mbedTLS/havege.c \
+    ../../../curl/mbedTLS/hkdf.c \
+    ../../../curl/mbedTLS/hmac_drbg.c \
+    ../../../curl/mbedTLS/md.c \
+    ../../../curl/mbedTLS/md_wrap.c \
+    ../../../curl/mbedTLS/md2.c \
+    ../../../curl/mbedTLS/md4.c \
+    ../../../curl/mbedTLS/md5.c \
+    ../../../curl/mbedTLS/memory_buffer_alloc.c \
+    ../../../curl/mbedTLS/net_sockets.c \
+    ../../../curl/mbedTLS/nist_kw.c \
+    ../../../curl/mbedTLS/oid.c \
+    ../../../curl/mbedTLS/padlock.c \
+    ../../../curl/mbedTLS/pem.c \
+    ../../../curl/mbedTLS/pk.c \
+    ../../../curl/mbedTLS/pk_wrap.c \
+    ../../../curl/mbedTLS/pkcs5.c \
+    ../../../curl/mbedTLS/pkcs11.c \
+    ../../../curl/mbedTLS/pkcs12.c \
+    ../../../curl/mbedTLS/pkparse.c \
+    ../../../curl/mbedTLS/pkwrite.c \
+    ../../../curl/mbedTLS/platform.c \
+    ../../../curl/mbedTLS/platform_util.c \
+    ../../../curl/mbedTLS/poly1305.c \
+    ../../../curl/mbedTLS/ripemd160.c \
+    ../../../curl/mbedTLS/rsa.c \
+    ../../../curl/mbedTLS/rsa_internal.c \
+    ../../../curl/mbedTLS/sha1.c \
+    ../../../curl/mbedTLS/sha256.c \
+    ../../../curl/mbedTLS/sha512.c \
+    ../../../curl/mbedTLS/ssl_cache.c \
+    ../../../curl/mbedTLS/ssl_ciphersuites.c \
+    ../../../curl/mbedTLS/ssl_cli.c \
+    ../../../curl/mbedTLS/ssl_cookie.c \
+    ../../../curl/mbedTLS/ssl_srv.c \
+    ../../../curl/mbedTLS/ssl_ticket.c \
+    ../../../curl/mbedTLS/ssl_tls.c \
+    ../../../curl/mbedTLS/threading.c \
+    ../../../curl/mbedTLS/timing.c \
+    ../../../curl/mbedTLS/version.c \
+    ../../../curl/mbedTLS/version_features.c \
+    ../../../curl/mbedTLS/x509.c \
+    ../../../curl/mbedTLS/x509_create.c \
+    ../../../curl/mbedTLS/x509_crl.c \
+    ../../../curl/mbedTLS/x509_crt.c \
+    ../../../curl/mbedTLS/x509_csr.c \
+    ../../../curl/mbedTLS/x509write_crt.c \
+    ../../../curl/mbedTLS/x509write_csr.c \
     ../../../curl/vauth/cleartext.c \
     ../../../curl/vauth/cram.c \
     ../../../curl/vauth/digest.c \
@@ -180,7 +237,7 @@ LOCAL_SRC_FILES := ../../../curl/amigaos.c \
     ../../../curl/vauth/vauth.c
 
 LOCAL_EXPORT_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES 
-LOCAL_CFLAGS += -DIDE_ANDROID -O3 -DUSE_AXTLS -DBUILDING_LIBCURL -fsigned-char
+LOCAL_CFLAGS += -DIDE_ANDROID -O3 -DUSE_MBEDTLS -DBUILDING_LIBCURL -fsigned-char
 LOCAL_CPPFLAGS += -fexceptions -std=c++11
 LOCAL_ARM_MODE := arm
 LOCAL_SHORT_COMMANDS := false

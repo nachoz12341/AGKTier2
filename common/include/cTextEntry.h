@@ -39,6 +39,7 @@ namespace AGK
             bool m_bSupportsExtendedAscii;
             bool m_bSupportWarned;
 			int m_iWrapMode;
+			int m_iInputType;
 			char m_iTextChanged;
             int m_iLastLength;
 			UINT m_bFlags;
@@ -112,6 +113,7 @@ namespace AGK
 			void SetPasswordMode( int mode ) { m_bIsPassword = (mode==1); }
             void SetUseAlternateInput( int mode ) { m_bUseAlternateInput = (mode==1); }
 			void SetWrapMode( int mode );
+			void SetInputType( int inputType );
 
 			UINT GetID() { return m_iID; }
 			float GetX() { return m_fX; }
@@ -133,6 +135,7 @@ namespace AGK
 			bool HasFocus() { return m_bActive; }
 			int GetLines() { return m_pInputText->GetLines(); }
             bool GetMultiLine() { return m_bMultiLine; }
+			int GetInputType() { return m_iInputType; }
 			int GetCursorPosition() { return m_iCursorPos; }
 
 			void Update();

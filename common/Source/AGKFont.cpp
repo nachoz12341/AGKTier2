@@ -24,6 +24,7 @@ AGKFontImage::AGKFontImage()
 	m_iAdvanceY = 0; 
 	m_iUnicodeValue = 0;
 	m_iCharIndex = 0;
+	m_iCreatedOrder = 0;
 }
 
 AGKFontImage::~AGKFontImage()
@@ -78,6 +79,7 @@ AGKSizedFont::AGKSizedFont( AGKFont *parent ) : m_CharImages(512)
 	m_iCurrY = 0;
 	m_iMaxRowY = 0;
 	m_iUnusedCount = 0;
+	m_iCreatedCount = 0;
 
 	m_iImageWidth = 0;
 	m_iNumMainImages = 1;
@@ -279,9 +281,31 @@ int AGKSizedFont::AddToMainImage( AGKFontImage* pNewFontImage )
 			int posY = 0;
 			int rowY = 0;
 
+			// images must be added in the order they were created, otherwise a row of tall chars could get split across multiple rows and accidentally overflow the image height
+			int imageCount = m_CharImages.GetCount();
+			AGKSortValue *ppFontImages = new AGKSortValue[ imageCount ];
 			AGKFontImage *pFontImage = m_CharImages.GetFirst();
+			int count = 0;
 			while ( pFontImage )
 			{
+				ppFontImages[ count ].iValue = pFontImage->m_iCreatedOrder;
+				ppFontImages[ count ].ptr = pFontImage;
+				count++;
+				if ( count > imageCount ) 
+				{
+					agk::Error( "Number of font images is greater than expected" );
+					break;
+				}
+
+				pFontImage = m_CharImages.GetNext();
+			}
+
+			agk::SortArray( ppFontImages, imageCount );
+
+			for( int i = 0; i < imageCount; i++ )
+			{
+				pFontImage = (AGKFontImage*) ppFontImages[ i ].ptr;
+
 				if ( pFontImage->m_pImage->GetParent() == m_pCurrImage )
 				{
 					if ( pFontImage->m_iRefCount == 0 && pFontImage->m_iUnicodeValue > 127 )
@@ -323,9 +347,9 @@ int AGKSizedFont::AddToMainImage( AGKFontImage* pNewFontImage )
 						if ( pFontImage->m_iDataHeight+border > rowY ) rowY = pFontImage->m_iDataHeight + border;
 					}
 				}
-
-				pFontImage = m_CharImages.GetNext();
 			}
+
+			delete [] ppFontImages;
 
 			m_pCurrImage->LoadFromData( m_iImageWidth, newHeight, (unsigned int*)data, 2 );
 			delete [] data;
@@ -418,6 +442,7 @@ AGKFontImage* AGKSizedFont::GetCharImage( unsigned int unicodeChar, unsigned int
 	}
 
 	pFontImage = new AGKFontImage();
+	pFontImage->m_iCreatedOrder = m_iCreatedCount++;
 	pFontImage->m_pImage = 0;
 	pFontImage->m_pData = data;
 	pFontImage->m_iDataWidth = imgWidth;

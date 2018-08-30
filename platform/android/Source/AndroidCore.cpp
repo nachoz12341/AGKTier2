@@ -252,6 +252,7 @@ namespace AGK
 	float g_fTextStartX = 0;
 	float g_fTextStartY = 0;
 	bool g_bPasswordMode = false;
+	float g_fChangeTimer = 0;
 	
 	cSprite *pTextBackground = 0;
 	bool g_bEditBoxHack = false;
@@ -717,6 +718,29 @@ int agk::GetExpansionFileState()
 	return state;
 }
 
+int agk::GetExpansionFileError()
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetExpansionError", "(Landroid/app/Activity;)I" );
+
+	// call our java class method
+	int error = lJNIEnv->CallStaticIntMethod( AGKHelper, method, lNativeActivity );
+
+	vm->DetachCurrentThread();
+
+	return error;
+}
+
 void agk::DownloadExpansionFile()
 {
 	JNIEnv* lJNIEnv = g_pActivity->env;
@@ -1046,7 +1070,7 @@ void agk::PlatformInitFilePaths()
 		strcat( szWriteDir, "/" );
 	}
 
-	// make sure this value is set here incase restore is called without changing path
+	// make sure this value is set here in case restore is called without changing path
 	strcpy( szOriginalWriteDir, szWriteDir );
 
 	chdir( szWriteDir );
@@ -1230,8 +1254,8 @@ void agk::PlatformInitGL( void* ptr )
 	// text input setup
 	float DevToVirX = 1.0f;
 	float DevToVirY = 1.0f;
-	if ( agk::m_fTargetViewportWidth > 0 ) DevToVirX = agk::GetVirtualWidth() / agk::m_fTargetViewportWidth;
-	if ( agk::m_fTargetViewportHeight > 0 )  DevToVirY = agk::GetVirtualHeight() / agk::m_fTargetViewportHeight;
+	if ( agk::m_fTargetViewportWidth > 0 ) DevToVirX = (agk::GetDeviceDPI() / 150.0f) * agk::GetVirtualWidth() / agk::m_fTargetViewportWidth;
+	if ( agk::m_fTargetViewportHeight > 0 )  DevToVirY = (agk::GetDeviceDPI() / 150.0f) * agk::GetVirtualHeight() / agk::m_fTargetViewportHeight;
 	
 	float width = 250 * DevToVirX;
 	float height = 22 * DevToVirY;
@@ -1744,7 +1768,7 @@ void agk::PlatformCompleteInputInit()
 	
 }
 
-void showKeyboard( bool show, int multiline )
+void showKeyboard( bool show, int multiline, int inputType )
 {
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
@@ -1757,10 +1781,10 @@ void showKeyboard( bool show, int multiline )
 
 	if ( show )
 	{
-		jmethodID ShowKeyboard = lJNIEnv->GetStaticMethodID( AGKHelper, "ShowKeyboard","(Landroid/app/Activity;I)V" );
+		jmethodID ShowKeyboard = lJNIEnv->GetStaticMethodID( AGKHelper, "ShowKeyboard","(Landroid/app/Activity;II)V" );
 		if ( !ShowKeyboard ) agk::Warning( "Failed to show the keyboard, is this app using the latest AGKHelper.java file?" );
 
-		lJNIEnv->CallStaticVoidMethod( AGKHelper, ShowKeyboard, lNativeActivity, multiline );
+		lJNIEnv->CallStaticVoidMethod( AGKHelper, ShowKeyboard, lNativeActivity, multiline, inputType );
 	}
 	else
 	{
@@ -1781,25 +1805,25 @@ void agk::KeyboardMode( int mode )
 		{
 			if ( m_bInputStarted )
 			{
-				showKeyboard( true, 0 );
+				showKeyboard( true, 0, 0 );
 				agk::PlatformChangeTextInput( m_sCurrInput );
 			}
 			else if ( cEditBox::GetCurrentFocus() ) 
 			{
-				showKeyboard( true, cEditBox::GetCurrentFocus()->GetMultiLine() ? 1 : 0 );
+				showKeyboard( true, cEditBox::GetCurrentFocus()->GetMultiLine() ? 1 : 0, cEditBox::GetCurrentFocus()->GetInputType() );
 				uString currText;
 				cEditBox::GetCurrentFocus()->GetText( currText );
 				agk::PlatformChangeTextInput( currText );
 			}		
 		}
-		else showKeyboard( false, 0 );
+		else showKeyboard( false, 0, 0 );
 	}
 	m_iKeyboardMode = mode;
 }
 
 int agk::PlatformInputPointerPressed(float x, float y)
 {
-	//showKeyboard(true,0);
+	//showKeyboard(true,0,0);
 
 	if ( g_bEditBoxHack )
 	{
@@ -1843,7 +1867,7 @@ int agk::PlatformInputPointerPressed(float x, float y)
 			}
 			else
 			{
-				showKeyboard(false,0);
+				showKeyboard(false,0,0);
 				m_bInputStarted = false;
 				m_bInputCancelled = true;
 				int editbox = agk::GetCurrentEditBox();
@@ -1854,13 +1878,13 @@ int agk::PlatformInputPointerPressed(float x, float y)
 	}
 	else
 	{
-		showKeyboard(true,0);
+		showKeyboard(true,0,0);
 		agk::PlatformChangeTextInput( m_sCurrInput );
 	}
 	/*
 	else
 	{
-		showKeyboard(false,0);
+		showKeyboard(false,0,0);
 		m_bInputStarted = false;
 		m_bInputCancelled = true;
 		int editbox = agk::GetCurrentEditBox();
@@ -1875,7 +1899,7 @@ void agk::PlatformStartTextInput( const char *sInitial )
 {
 	if ( m_bInputStarted ) return;
 
-	showKeyboard( true,0 );
+	showKeyboard( true,0,0 );
 
 	// doesn't work
 	//ANativeActivity_showSoftInput( g_pActivity, ANATIVEACTIVITY_SHOW_SOFT_INPUT_FORCED );
@@ -1905,6 +1929,8 @@ void agk::PlatformStartTextInput( const char *sInitial )
 		lJNIEnv->DeleteLocalRef( text );
 
 		vm->DetachCurrentThread();
+
+		g_fChangeTimer = 0.25;
 	}
 }
 
@@ -1912,7 +1938,7 @@ void agk::PlatformStopTextInput()
 {
 	if ( !m_bInputStarted ) return;
 
-	showKeyboard( false,0 );
+	showKeyboard( false,0,0 );
 }
 
 void agk::PlatformChangeTextInput( const char* str )
@@ -1937,12 +1963,20 @@ void agk::PlatformChangeTextInput( const char* str )
 		lJNIEnv->DeleteLocalRef( text );
 
 		vm->DetachCurrentThread();
+
+		g_fChangeTimer = 0.25;
 	}
 }
 
 void agk::PlatformUpdateTextInput()
 {
 	if ( !m_bInputStarted ) return;
+
+	if ( g_fChangeTimer > 0 )
+	{
+		g_fChangeTimer -= agk::GetFrameTime();
+		return;
+	}
 
 	// if virtual keyboard then grab text from Android edit box instead
 	if ( m_iKeyboardMode == 2 )
@@ -1980,7 +2014,7 @@ void agk::PlatformUpdateTextInput()
 		{
 			m_bInputCancelled = false;
 			m_bInputStarted = false;
-			showKeyboard( false,0 );
+			showKeyboard( false,0,0 );
 			int editbox = agk::GetCurrentEditBox();
 			if ( editbox > 0 ) agk::SetEditBoxFocus( editbox, 0 );
 		}
@@ -2017,7 +2051,7 @@ void agk::PlatformUpdateTextInput()
 	
 	if ( agk::GetPointerPressed() && m_bInputStarted )
 	{
-		showKeyboard(false,0);
+		showKeyboard(false,0,0);
 		m_bInputStarted = false;
 		m_bInputCancelled = true;
 		int editbox = agk::GetCurrentEditBox();
@@ -2029,7 +2063,7 @@ void agk::PlatformUpdateTextInput()
 	{
 		m_bInputStarted = false;
 		m_bInputCancelled = false;
-		showKeyboard( false,0 );
+		showKeyboard( false,0,0 );
 		int editbox = agk::GetCurrentEditBox();
 		if ( editbox > 0 ) agk::SetEditBoxFocus( editbox, 0 );
 	}
@@ -2039,7 +2073,7 @@ void agk::PlatformUpdateTextInput()
 	{
 		m_bInputCancelled = false;
 		m_bInputStarted = false;
-		showKeyboard( false,0 );
+		showKeyboard( false,0,0 );
 		int editbox = agk::GetCurrentEditBox();
 		if ( editbox > 0 ) agk::SetEditBoxFocus( editbox, 0 );
 	}
@@ -2203,8 +2237,8 @@ void agk::PlatformDrawTextInput()
 	float virtualWidth = m_iDisplayWidth;
 	float virtualHeight = m_iDisplayHeight;
 	
-	float DevToVirX = virtualWidth / agk::m_fTargetViewportWidth;
-	float DevToVirY = virtualHeight / agk::m_fTargetViewportHeight;
+	float DevToVirX = (agk::GetDeviceDPI() / 150.0f) * virtualWidth / agk::m_fTargetViewportWidth;
+	float DevToVirY = (agk::GetDeviceDPI() / 150.0f) * virtualHeight / agk::m_fTargetViewportHeight;
 	
 	float width = 300 * DevToVirX;
 	float height = 30 * DevToVirY;
@@ -3096,6 +3130,12 @@ int agk::GetNumDeviceCameras()
 
 int agk::SetDeviceCameraToImage( UINT cameraID, UINT imageID )
 {
+	if ( CheckPermission("Camera") != 2 )
+	{
+		agk::Error("Failed to set device camera to image, app does not have permission to access the camera, use RequestPermission first");
+		return 0;
+	}
+
 	cImage *pImage = m_cImageList.GetItem( imageID );
 	if ( pImage )
 	{
@@ -3459,8 +3499,9 @@ bool cImage::PlatformGetDataFromFile( const char* szFile, unsigned char **pData,
 		sPath.SetStr( szFile + strlen("expansion") );
 		sPath.Replace( ':', '/' );
 
-		if ( cFile::ExistsWrite( sPath ) ) agk::PlatformGetFullPathWrite( sPath );
-		else
+		// always load from expansion file in case it has changed
+		//if ( cFile::ExistsWrite( sPath ) ) agk::PlatformGetFullPathWrite( sPath );
+		//else
 		{
 			agk::PlatformGetFullPathWrite( sPath );
 			if ( !agk::ExtractExpansionFile( sPath, szFile ) ) return false;
@@ -3572,6 +3613,54 @@ void agk::VibrateDevice( float seconds )
 	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, seconds );
 
 	vm->DetachCurrentThread();
+}
+
+void agk::SetClipboardText( const char* szText )
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "SetClipboardText","(Landroid/app/Activity;Ljava/lang/String;)V" );
+	jstring sText = lJNIEnv->NewStringUTF( szText );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, sText );
+	lJNIEnv->DeleteLocalRef( sText );
+
+	vm->DetachCurrentThread();
+}
+
+char* agk::GetClipboardText()
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetClipboardText","(Landroid/app/Activity;)Ljava/lang/String;" );
+	jstring str = (jstring) lJNIEnv->CallStaticObjectMethod( AGKHelper, method, lNativeActivity );
+	jboolean bCopy;
+	const char* str2 = lJNIEnv->GetStringUTFChars( str, &bCopy );
+
+	char *retstr = new char[ strlen(str2) + 1 ];
+	strcpy( retstr, str2 );
+		
+	lJNIEnv->ReleaseStringUTFChars( str, str2 );
+	lJNIEnv->DeleteLocalRef( str );
+
+	vm->DetachCurrentThread();
+
+	return retstr;
 }
 
 // Music
@@ -5607,7 +5696,8 @@ char* agk::GetSpeechVoiceName( int index )
 char* agk::GetSpeechVoiceID( int index )
 //****
 {
-    char *str = new char[1]; *str = 0;
+    char *str = new char[20];
+	sprintf( str, "%d", index );
     return str;
 }
 
@@ -5632,10 +5722,25 @@ void agk::SetSpeechLanguage( const char* lang )
 	vm->DetachCurrentThread();
 }
 
-void agk::SetSpeechLanguageByID( const char* sID )
+void agk::SetSpeechLanguageByID( const char* szID )
 //****
 {
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
 
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "SetSpeechLanguageByID","(Landroid/app/Activity;Ljava/lang/String;)V" );
+
+	jstring sID = lJNIEnv->NewStringUTF(szID);
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, sID );
+	lJNIEnv->DeleteLocalRef( sID );
+
+	vm->DetachCurrentThread();
 }
 
 int agk::IsSpeaking()
@@ -6090,12 +6195,12 @@ bool AGK::cFile::ExistsWrite( const char *szFilename )
 	uString sPath( szFilename );
 	agk::PlatformGetFullPathWrite( sPath );
 	
-	struct stat buf;
-	if ( stat( sPath.GetStr(), &buf ) != 0 ) return false;
+	//struct stat buf;
+	//if ( stat( sPath.GetStr(), &buf ) != 0 ) return false;
 	
-	//FILE *pFile = AGKfopen( sPath.GetStr(), "rb" );
-	//if ( !pFile ) return false;
-	//fclose( pFile );
+	FILE *pFile = AGKfopen( sPath.GetStr(), "rb" );
+	if ( !pFile ) return false;
+	fclose( pFile );
 
 	return true;
 }
@@ -6140,8 +6245,13 @@ bool cFile::ExistsRaw( const char *szFilename )
 	if ( !agk::IsAbsolutePath( szFilename ) ) return false;
 	
 	// absolute path to anywhere allowed
-	struct stat buf;
-	if ( stat( szFilename+4, &buf ) != 0 ) return false;
+	//struct stat buf;
+	//if ( stat( szFilename+4, &buf ) != 0 ) return false;
+
+	FILE *pFile = AGKfopen( szFilename+4, "rb" );
+	if ( !pFile ) return false;
+	fclose( pFile );
+
 	return true;
 }
 
@@ -6151,6 +6261,11 @@ bool AGK::cFile::Exists( const char *szFilename )
 
 	if ( strncmp(szFilename, "expansion:", strlen("expansion:")) == 0 )
 	{
+		uString sPath;
+		sPath.SetStr( szFilename + strlen("expansion") );
+		sPath.Replace( ':', '/' );
+		if ( ExistsWrite( sPath ) ) return true;
+
 		JNIEnv* lJNIEnv = g_pActivity->env;
 		JavaVM* vm = g_pActivity->vm;
 		vm->AttachCurrentThread(&lJNIEnv, NULL);
@@ -6308,8 +6423,9 @@ bool AGK::cFile::OpenToRead( const char *szFilename )
 		sPath.SetStr( szFilename + strlen("expansion") );
 		sPath.Replace( ':', '/' );
 		
-		if ( cFile::ExistsWrite( sPath ) ) agk::PlatformGetFullPathWrite( sPath );
-		else
+		// always load from expansion file in case it has changed
+		//if ( cFile::ExistsWrite( sPath ) ) agk::PlatformGetFullPathWrite( sPath );
+		//else
 		{
 			agk::PlatformGetFullPathWrite( sPath );
 			if ( !agk::ExtractExpansionFile( sPath, szFilename ) ) return false;
@@ -7417,13 +7533,15 @@ int agk::PlatformGetAdPortal()
 
 void cEditBox::PlatformStartText()
 {
-	if ( !m_bUseAlternateInput || m_fY+m_fHeight < agk::GetVirtualHeight()/2.1f || agk::m_iKeyboardMode != 2 ) 
+	float topY = m_fY+m_fHeight;
+	if ( !m_bFixed ) topY = agk::WorldToScreenY( topY );
+	if ( !m_bUseAlternateInput || topY < agk::GetVirtualHeight()/2.1f || agk::m_iKeyboardMode != 2 ) 
 	{
 		g_bEditBoxHack = true;
 		
 		if ( agk::m_iKeyboardMode == 2 )
 		{
-			showKeyboard( true, m_bMultiLine ? 1 : 0 );
+			showKeyboard( true, m_bMultiLine ? 1 : 0, m_iInputType );
 
 			JNIEnv* lJNIEnv = g_pActivity->env;
 			JavaVM* vm = g_pActivity->vm;
@@ -7441,6 +7559,8 @@ void cEditBox::PlatformStartText()
 			lJNIEnv->DeleteLocalRef( text );
 
 			vm->DetachCurrentThread();
+
+			g_fChangeTimer = 0.25;
 		}
 	}
 	else
@@ -7454,7 +7574,7 @@ void cEditBox::PlatformEndText()
 {
 	if ( g_bEditBoxHack ) 
 	{
-		showKeyboard( false,0 );
+		showKeyboard( false,0,0 );
 	}
 	else
 	{
@@ -7474,6 +7594,12 @@ bool cEditBox::PlatformUpdateText()
 	if ( g_bEditBoxHack ) 
 	{
 		if ( agk::m_iKeyboardMode != 2 ) return false;
+
+		if ( g_fChangeTimer > 0 )
+		{
+			g_fChangeTimer -= agk::GetFrameTime();
+			return false;
+		}
 
 		JNIEnv* lJNIEnv = g_pActivity->env;
 		JavaVM* vm = g_pActivity->vm;
@@ -7645,6 +7771,7 @@ void cEditBox::PlatformUpdateTextEnd()
 		vm->DetachCurrentThread();
 
 		m_iOldLength = m_sCurrInput.GetNumChars();
+		g_fChangeTimer = 0.25;
 	}
 }
 
@@ -7740,6 +7867,15 @@ void agk::TerminateApp( UINT appID )
 
 void agk::ViewFile( const char* szFilename )
 {
+	if ( strncmp( szFilename, "raw:", 4 ) == 0 )
+	{
+		if ( CheckPermission( "WriteExternal" ) != 2 )
+		{
+			agk::Error( "You must request the WriteExternal permission before you can access raw file locations" );
+			return;
+		}
+	}
+
 	uString sPath( szFilename );
 	if ( !GetRealPath( sPath ) )
 	{
@@ -9733,6 +9869,12 @@ char* agk::GetRawNFCData(UINT iIndex)
 
 void agk::StartGPSTracking()
 {
+	if ( CheckPermission("Location") != 2 )
+	{
+		agk::Error( "The app does not have permission to get the GPS location, use RequestPermission first" );
+		return;
+	}
+
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);
@@ -9756,6 +9898,11 @@ void agk::StartGPSTracking()
 
 void agk::StopGPSTracking()
 {
+	if ( CheckPermission("Location") != 2 )
+	{
+		return;
+	}
+
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);

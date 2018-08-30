@@ -53,6 +53,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.SearchableInfo;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -117,6 +119,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.text.format.Formatter;
 import android.util.DisplayMetrics;
@@ -188,6 +191,8 @@ import com.google.ads.consent.*;
 
 import com.thegamecreators.agk_player2.R;
 
+import static android.content.ClipDescription.MIMETYPE_TEXT_PLAIN;
+
 // Used for agk::Message()
 class RunnableMessage implements Runnable
 {
@@ -242,6 +247,7 @@ class RunnableKeyboard implements Runnable
 	public int action = 0;
 	public String text = "";
 	public int multiline = 0;
+	public int inputType = 0; //0=normal, 1=numbers
 	public int cursorpos = 0;
 	
 	public void run() {
@@ -251,6 +257,7 @@ class RunnableKeyboard implements Runnable
 			{
 				AGKHelper.mTextInput = new EditText(act);
 				AGKHelper.mTextInput.setSingleLine(multiline == 0);
+				AGKHelper.mTextInput.setInputType( inputType==1 ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT );
 				if ( MyTextWatcher.m_TextWatcher == null ) MyTextWatcher.m_TextWatcher = new MyTextWatcher();
 				if ( MyTextActionWatcher.m_TextActionWatcher == null ) MyTextActionWatcher.m_TextActionWatcher = new MyTextActionWatcher();
 				MyTextActionWatcher.act = act;
@@ -300,6 +307,8 @@ class RunnableKeyboard implements Runnable
 			{
 				if ( AGKHelper.mTextInput != null ) 
 				{
+					AGKHelper.mTextInput.setSingleLine(multiline == 0);
+					AGKHelper.mTextInput.setInputType( inputType==1 ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT );
 					AGKHelper.mTextFinished = false;
 					if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
 					AGKHelper.mTextInput.requestFocus();
@@ -1142,6 +1151,10 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		
 		m_filename = filename;
 		m_filetype = type;
+		U1 = 0;
+		V1 = 0;
+		U2 = 1;
+		V2 = 1;
 		
 		if ( player != null )
 		{
@@ -1195,14 +1208,16 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 						return;
 					}
 					String subfilename = filename.substring(index+1);
-					ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
-					if ( expansionFile == null )
+					if ( AGKHelper.g_pExpansionFile == null ) {
+						AGKHelper.g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
+					}
+					if (AGKHelper.g_pExpansionFile == null)
 					{
 						Log.e("Video","Failed to load expansion file");
 						m_filename = "";
 						return;
 					}
-					AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+					AssetFileDescriptor afd = AGKHelper.g_pExpansionFile.getAssetFileDescriptor(subfilename);
 					if ( afd == null )
 					{
 						Log.e("Video","Failed to find video file in expansion file");
@@ -1456,14 +1471,20 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 			if (pTexture == null) return;
 			if (Build.VERSION.SDK_INT < 14) return;
 
-			pTexture.updateTexImage();
-
-			float matrix[] = new float[16];
-			pTexture.getTransformMatrix(matrix);
-			U1 = matrix[12];
-			V1 = matrix[5] + matrix[13];
-			U2 = matrix[0] + matrix[12];
-			V2 = matrix[13];
+			try
+			{
+				pTexture.updateTexImage();
+				float matrix[] = new float[16];
+				pTexture.getTransformMatrix(matrix);
+				U1 = matrix[12];
+				V1 = matrix[5] + matrix[13];
+				U2 = matrix[0] + matrix[12];
+				V2 = matrix[13];
+			}
+			catch( RuntimeException e )
+			{
+				Log.e( "Video", "Failed to update video texture: " + e.toString() );
+			}
 		}
 	}
 	
@@ -1518,13 +1539,15 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 						return;
 					}
 					String subfilename = m_filename.substring(index+1);
-					ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile( act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
-					if ( expansionFile == null )
+					if ( AGKHelper.g_pExpansionFile == null ) {
+						AGKHelper.g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
+					}
+					if ( AGKHelper.g_pExpansionFile == null )
 					{
 						Log.e("Video","Failed to load expansion file");
 						return;
 					}
-					AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+					AssetFileDescriptor afd = AGKHelper.g_pExpansionFile.getAssetFileDescriptor(subfilename);
 					if ( afd == null )
 					{
 						Log.e("Video","Failed to find video file in expansion file");
@@ -2048,7 +2071,19 @@ class AGKSpeechListener  implements TextToSpeech.OnInitListener, TextToSpeech.On
 	@Override
 	public void onInit(int status)
 	{
-		if ( status == TextToSpeech.SUCCESS ) AGKHelper.g_iSpeechReady = 1;
+		if ( status == TextToSpeech.SUCCESS )
+		{
+			if ( Build.VERSION.SDK_INT >= 21 )
+			{
+				try {
+					if (AGKHelper.g_pTextToSpeech.getAvailableLanguages() != null) {
+						AGKHelper.g_SpeechLanguages = AGKHelper.g_pTextToSpeech.getAvailableLanguages().toArray();
+					}
+				}
+				catch( Exception e ) { Log.w("TextToSpeech", "Failed to get available languages"); }
+			}
+			AGKHelper.g_iSpeechReady = 1;
+		}
 		else AGKHelper.g_iSpeechReady = -1;
 	}
 
@@ -2107,7 +2142,14 @@ public class AGKHelper {
 	{
 		if ( Build.VERSION.SDK_INT >= 21 ) {
 			if (mMediaRecorder != null) {
-				mMediaRecorder.stop();
+				try
+				{
+					mMediaRecorder.stop();
+				}
+				catch( IllegalStateException e )
+				{
+					Log.w("ScreenRecorder", "Tried to stop media recorder in an illegal state");
+				}
 				mMediaRecorder.release();
 				mMediaRecorder = null;
 
@@ -2119,6 +2161,35 @@ public class AGKHelper {
 	public static int IsScreenRecording()
 	{
 		return mMediaRecorder == null ? 0 : 1;
+	}
+
+	public static void SetClipboardText( Activity act, String text )
+	{
+		Looper.prepare();
+
+		ClipboardManager clipboard = (ClipboardManager) act.getSystemService( Context.CLIPBOARD_SERVICE );
+		ClipData clip = ClipData.newPlainText( "Text", text );
+		clipboard.setPrimaryClip( clip );
+	}
+
+	public static String GetClipboardText( Activity act )
+	{
+		Looper.prepare();
+
+		ClipboardManager clipboard = (ClipboardManager) act.getSystemService(Context.CLIPBOARD_SERVICE);
+		String pasteData;
+
+		if (!(clipboard.hasPrimaryClip())) return "";
+		if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
+
+		ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+		pasteData = item.getText().toString();
+		if (pasteData != null) return pasteData;
+
+		pasteData = item.coerceToText( act ).toString();
+		if (pasteData != null) return pasteData;
+
+		return "";
 	}
 
 	public static void MinimizeApp( Activity act )
@@ -2166,8 +2237,10 @@ public class AGKHelper {
 				int result = DownloaderService.startDownloadServiceIfRequired(act, "default", pIntent, g_sExpansionSalt, g_sExpansionKey);
 				if (DownloaderService.NO_DOWNLOAD_REQUIRED == result) {
 					g_iExpansionState = 3;
-					mExpansionClient.unregister( act );
-					mExpansionClient = null;
+					if ( mExpansionClient != null ) {
+						mExpansionClient.unregister(act);
+						mExpansionClient = null;
+					}
 					Intent downloadIntent = new Intent(act, DownloaderService.class);
 					act.stopService(downloadIntent);
 				}
@@ -2177,10 +2250,18 @@ public class AGKHelper {
 				Log.e( "Expansion Download", "Failed to restart download" );
 			}
 		}
+
+		if (mMediaRecorder != null)
+		{
+			if (Build.VERSION.SDK_INT >= 24)
+			{
+				try { mMediaRecorder.resume(); }
+				catch( IllegalStateException e ) { Log.w("ScreenRecorder", "Tried to resume MediaRecorder from illegal state"); }
+			}
+		}
 	}
 	
-	public static void OnStop( Activity act )
-	{
+	public static void OnStop( Activity act ) {
 		isVisible = 0;
 
 		// pause ad
@@ -2188,11 +2269,9 @@ public class AGKHelper {
 		run.action = 7;
 		run.act = act;
 		act.runOnUiThread(run);
-		
-		if ( m_GPSClient != null ) 
-		{
-			if ( m_GPSClient.isConnected() ) 
-			{
+
+		if (m_GPSClient != null) {
+			if (m_GPSClient.isConnected()) {
 				LocationServices.FusedLocationApi.removeLocationUpdates(m_GPSClient, m_GPSListener);
 			}
 			m_GPSClient.disconnect();
@@ -2203,9 +2282,14 @@ public class AGKHelper {
 		video.action = 8; // OnContextLost
 		act.runOnUiThread(video);
 
-		if( deviceCamera != null ) deviceCamera.OnContextLost();
+		if (deviceCamera != null) deviceCamera.OnContextLost();
 
-		StopScreenRecording();
+		if (mMediaRecorder != null)
+		{
+			if (Build.VERSION.SDK_INT >= 24) mMediaRecorder.pause();
+			else StopScreenRecording();
+		}
+
 		StopSpeaking();
 
 		if (  g_CloudRefreshTimer != null ) g_CloudRefreshTimer.cancel();
@@ -2354,12 +2438,24 @@ public class AGKHelper {
 		{
 			m_ReconnectGameCenter = 0;
 			GoogleApiAvailability api = GoogleApiAvailability.getInstance();
-			int code = api.isGooglePlayServicesAvailable(act);
+			int code = ConnectionResult.UNKNOWN;
+			try { code = api.isGooglePlayServicesAvailable(act); }
+			catch( Exception e ) { Log.w("GameCenter", "Failed to check Google Play services available: " + e.toString()); }
+
 			if (code == ConnectionResult.SUCCESS) m_GameClient.connect();
-			else if ( !api.isUserResolvableError(code) || !api.showErrorDialogFragment(act, code, 9001) )
+			else
 			{
-				m_GameCenterLoggedIn = -1;
-				ShowMessage( act, "Google Play Game Services unavailable" );
+				try
+				{
+					if (!api.isUserResolvableError(code) || !api.showErrorDialogFragment(act, code, 9001)) {
+						m_GameCenterLoggedIn = -1;
+						ShowMessage(act, "Google Play Game Services unavailable");
+					}
+				}
+				catch( Exception e )
+				{
+					Log.w("GameCenter", "Failed to show error dialog for Google Play services: " + e.toString());
+				}
 			}
 		}
 	}
@@ -2588,7 +2684,7 @@ public class AGKHelper {
 	public static void SetInputText( Activity act, String text, int cursorpos )
 	{
 		//if ( mTextInput == null ) return;
-		
+
 		RunnableKeyboard run = new RunnableKeyboard();
 		run.act = act;
 		run.action = 3;
@@ -2608,7 +2704,7 @@ public class AGKHelper {
 		act.runOnUiThread( run );
 	}
 	
-	public static void ShowKeyboard( Activity act, int multiline )
+	public static void ShowKeyboard( Activity act, int multiline, int inputType )
 	{
 		//InputMethodManager lInputMethodManager = (InputMethodManager)act.getSystemService(Context.INPUT_METHOD_SERVICE);
 		//lInputMethodManager.showSoftInput( act.getWindow().getDecorView(), 0 );
@@ -2620,6 +2716,8 @@ public class AGKHelper {
 			RunnableKeyboard run = new RunnableKeyboard();
 			run.act = act;
 			run.action = 4;
+			run.multiline = multiline;
+			run.inputType = inputType;
 			run.cursorpos = -1;
 			act.runOnUiThread( run );
 			return;
@@ -2631,6 +2729,7 @@ public class AGKHelper {
 		run.act = act;
 		run.action = 1;
 		run.multiline = multiline;
+		run.inputType = inputType;
 		run.cursorpos = -1;
 		act.runOnUiThread( run );
 	}
@@ -2778,6 +2877,7 @@ public class AGKHelper {
 	public static float GetVideoValue( Activity act, int value )
 	{
 		if ( RunnableVideo.video == null ) return videoLoaded==1 ? 0 : -1;
+		if ( RunnableVideo.video.m_filename == null ) return videoLoaded==1 ? 0 : -1;
 		if ( RunnableVideo.video.m_filename.equals("Error") ) return -1;
 		if ( RunnableVideo.video.m_filename.equals("") ) return videoLoaded==1 ? 0 : -1;
 		
@@ -2787,6 +2887,7 @@ public class AGKHelper {
 			{
 				synchronized( videoLock ) 
 				{
+					if ( RunnableVideo.video == null ) return 0;
 					if ( RunnableVideo.video.player == null ) return 0;
 					return RunnableVideo.video.player.getCurrentPosition()/1000.0f;
 				}
@@ -2904,15 +3005,24 @@ public class AGKHelper {
 	public static int g_iSpeechReady = 0;
 	public static int g_iIsSpeaking = 0;
 	public static int g_iSpeechIDLast = 0;
+	static Object[] g_SpeechLanguages = null;
 
 	public static void TextToSpeechSetup( Activity act )
 	{
 		if ( g_pTextToSpeech != null ) return;
 
 		g_pSpeechListener = new AGKSpeechListener();
-		//g_pTextToSpeech = new TextToSpeech( act, g_pSpeechListener, "com.google.android.tts" ); // takes minutes to initialise?
-		g_pTextToSpeech = new TextToSpeech( act, g_pSpeechListener );
+		g_pTextToSpeech = new TextToSpeech( act, g_pSpeechListener, "com.google.android.tts" );
+		//g_pTextToSpeech = new TextToSpeech( act, g_pSpeechListener );
 		g_pTextToSpeech.setOnUtteranceCompletedListener(g_pSpeechListener);
+
+		List<TextToSpeech.EngineInfo> engines = g_pTextToSpeech.getEngines();
+		for ( TextToSpeech.EngineInfo engine: engines )
+		{
+			Log.i( "TextToSpeech", "Engine: " + engine.name );
+		}
+
+		Log.i( "TextToSpeech", "Default Engine: " + g_pTextToSpeech.getDefaultEngine() );
 	}
 
 	public static int GetTextToSpeechReady()
@@ -2961,31 +3071,26 @@ public class AGKHelper {
 
 	public static int GetSpeechNumVoices( Activity act )
 	{
-		if ( g_pTextToSpeech == null ) return 0;
-		if ( Build.VERSION.SDK_INT < 21 ) return 0;
-		if ( g_pTextToSpeech.getVoices() == null ) return 0;
-
-		return g_pTextToSpeech.getVoices().size();
+		if ( g_SpeechLanguages == null ) return 0;
+		return g_SpeechLanguages.length;
 	}
 
 	public static String GetSpeechVoiceLanguage( Activity act, int index )
 	{
-		if ( g_pTextToSpeech == null ) return "";
-		if ( Build.VERSION.SDK_INT < 21 ) return "";
-		if ( index < 0 || index >= g_pTextToSpeech.getVoices().size() ) return "";
+		if ( g_SpeechLanguages == null ) return "";
+		if ( index < 0 || index >= g_SpeechLanguages.length ) return "";
 
-		Voice voice = (Voice) g_pTextToSpeech.getVoices().toArray()[ index ];
-		return voice.getLocale().toString();
+		Locale locale = (Locale)g_SpeechLanguages[ index ];
+		return locale.toString();
 	}
 
 	public static String GetSpeechVoiceName( Activity act, int index )
 	{
-		if ( g_pTextToSpeech == null ) return "";
-		if ( Build.VERSION.SDK_INT < 21 ) return "";
-		if ( index < 0 || index >= g_pTextToSpeech.getVoices().size() ) return "";
+		if ( g_SpeechLanguages == null ) return "";
+		if ( index < 0 || index >= g_SpeechLanguages.length ) return "";
 
-		Voice voice = (Voice) g_pTextToSpeech.getVoices().toArray()[ index ];
-		return voice.getName();
+		Locale locale = (Locale)g_SpeechLanguages[ index ];
+		return locale.getDisplayName();
 	}
 
 	public static void SetSpeechLanguage( Activity act, String lang )
@@ -2994,6 +3099,25 @@ public class AGKHelper {
 		String[] parts = lang.split("_");
 		if ( parts.length <= 1 ) g_pTextToSpeech.setLanguage( new Locale(lang) );
 		else g_pTextToSpeech.setLanguage( new Locale(parts[0],parts[1]) );
+	}
+
+	public static void SetSpeechLanguageByID( Activity act, String sID )
+	{
+		if ( g_SpeechLanguages == null ) return;
+
+		int index = 0;
+		try {
+			index = Integer.parseInt(sID);
+		}
+		catch( NumberFormatException e )
+		{
+			Log.e( "SetSpeechLanguageByID", "Invalid language ID: " + sID );
+			return;
+		}
+		if ( index < 0 || index >= g_SpeechLanguages.length ) return;
+
+		Locale locale = (Locale)g_SpeechLanguages[ index ];
+		g_pTextToSpeech.setLanguage( locale );
 	}
 
 	public static void SetSpeechRate( Activity act, float rate )
@@ -3346,8 +3470,17 @@ public class AGKHelper {
 	}
 
 	// local notifications
+	static NotificationChannel mNotificationChannel = null;
 	public static void SetNotification( Activity act, int id, int unixtime, String message )
 	{
+		if (mNotificationChannel == null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+		{
+			NotificationManager mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
+			mNotificationChannel = new NotificationChannel("notify","Notifications", NotificationManager.IMPORTANCE_DEFAULT );
+			mNotificationChannel.setDescription("App Notifications");
+			mNotificationManager.createNotificationChannel(mNotificationChannel);
+		}
+
 		Intent intent = new Intent(act, NotificationAlarmReceiver.class);
 		intent.putExtra("title", act.getString(R.string.app_name) );
 		intent.putExtra("message", message);
@@ -3974,11 +4107,14 @@ public class AGKHelper {
 	
 	// expansion files
 	static int g_iExpansionState = 1; // 1=not found, 2=downloading, 3=found
+	static int g_iExpansionPrevState = -2;
+	static int g_iExpansionError = 0;
 	static int g_iExpansionVersion = 0;
 	static float g_fExpansionProgress = 0;
 	static String g_sExpansionKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqV2cB4Ih8C8mPqzCDrAxe4gatHx6JNx/lC9H3hIhEmnDljeWkQBLqiRFTG4ocOv1YjSMLrxvK3LYaSlGuEzTk+KxHAu3tTJzgtQ1ZcajbeqT8f1Xc+3p6+qMccPrl0DbWAIrRku2f5q0f5XoAkJHGMXmRFjZ56puwW1MYEjy40i7HulWFhj3HmfedopXE06jwjhzZxUda9qCAl0aRUq/TJ6mX6BBVAloBrPNNWitCIj/x18P5ItWpwAVGb3MbZnSFR7BKzmGIUnGYG1ULISWC8evf/zDD0N3lWMUChzd1kPr6/Ok8mfjuMVYd4L+mx5KC/sBazJb7v4h8DNLNgy7qQIDAQAB";
 	static byte[] g_sExpansionSalt = new byte[] { 1, 42, -12, -1, 54, 98, -100, -12, 43, 2, -8, -4, 9, 5, -106, -107, -33, 45, -1, 84 };
 	static DownloaderClient mExpansionClient = null;
+	static ZipResourceFile g_pExpansionFile = null;
 
 	static class DownloaderClient extends BroadcastDownloaderClient {
 
@@ -3988,8 +4124,10 @@ public class AGKHelper {
 		public void onDownloadStateChanged(int newState) {
 			if (newState == STATE_COMPLETED) {
 				AGKHelper.g_iExpansionState = 3;
-				mExpansionClient.unregister( act );
-				mExpansionClient = null;
+				if ( mExpansionClient != null ) {
+					mExpansionClient.unregister(act);
+					mExpansionClient = null;
+				}
 				Intent downloadIntent = new Intent(act, DownloaderService.class);
 				act.stopService(downloadIntent);
 			}
@@ -3998,7 +4136,11 @@ public class AGKHelper {
 				if ( newState >= 15 )
 				{
 					AGKHelper.g_iExpansionState = -1;
-					mExpansionClient = null;
+					g_iExpansionError = newState;
+					if ( mExpansionClient != null ) {
+						mExpansionClient.unregister(act);
+						mExpansionClient = null;
+					}
 					Intent downloadIntent = new Intent(act, DownloaderService.class);
 					act.stopService(downloadIntent);
 				}
@@ -4035,10 +4177,19 @@ public class AGKHelper {
 			// check file progress
 			return 2;
 		}
-		
-		Log.i("Get Expansion State", "State: " + Integer.toString(g_iExpansionState));
+
+		if ( g_iExpansionPrevState != g_iExpansionState )
+		{
+			Log.i("Get Expansion State", "State: " + Integer.toString(g_iExpansionState));
+			g_iExpansionPrevState = g_iExpansionState;
+		}
 		
 		return g_iExpansionState;
+	}
+
+	public static int GetExpansionError(Activity act)
+	{
+		return g_iExpansionError;
 	}
 	
 	public static void DownloadExpansion(Activity act)
@@ -4074,12 +4225,12 @@ public class AGKHelper {
 			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
 			{
 				NotificationManager mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
-				NotificationChannel channel = new NotificationChannel("default","DTS Downloader", NotificationManager.IMPORTANCE_DEFAULT );
+				NotificationChannel channel = new NotificationChannel("dts","DTS Downloader", NotificationManager.IMPORTANCE_DEFAULT );
 				channel.setDescription("DTS File Downloader Status");
 				mNotificationManager.createNotificationChannel(channel);
 			}
 
-    		int result = DownloaderService.startDownloadServiceIfRequired(act, "default", pIntent, g_sExpansionSalt, g_sExpansionKey );
+    		int result = DownloaderService.startDownloadServiceIfRequired(act, "dts", pIntent, g_sExpansionSalt, g_sExpansionKey );
     		if ( DownloaderService.NO_DOWNLOAD_REQUIRED == result )
     		{
     			g_iExpansionState = 3;
@@ -4117,12 +4268,14 @@ public class AGKHelper {
 		}
 		String subfilename = filename.substring(index+1);
 		try {
-			ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
-			if (expansionFile == null) {
+			if ( g_pExpansionFile == null ) {
+				g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
+			}
+			if (g_pExpansionFile == null) {
 				Log.e("Expansion File", "Failed to load expansion file for GetFileExists");
 				return 0;
 			}
-			AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+			AssetFileDescriptor afd = g_pExpansionFile.getAssetFileDescriptor(subfilename);
 			if (afd == null) {
 				return 0;
 			}
@@ -4146,12 +4299,14 @@ public class AGKHelper {
 		}
 		String subfilename = filename.substring(index+1);
 		try {
-			ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
-			if (expansionFile == null) {
+			if ( g_pExpansionFile == null ) {
+				g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
+			}
+			if (g_pExpansionFile == null) {
 				Log.e("Expansion File", "Failed to load expansion file: " + filename);
 				return 0;
 			}
-			AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+			AssetFileDescriptor afd = g_pExpansionFile.getAssetFileDescriptor(subfilename);
 			if (afd == null) {
 				Log.e("Expansion File", "Failed to find expansion file entry: " + filename);
 				return 0;

@@ -23,7 +23,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2018.07.12</string>
+	<string>2018.08.30</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -36,7 +36,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>2045</string>
+	<string>2055</string>
 	<key>FacebookAppID</key>
 	<string>358083327620324</string>
 	<key>FacebookAutoLogAppEventsEnabled</key>
@@ -58,9 +58,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Streaming the camera feed into the app</string>
 	<key>NSLocationUsageDescription</key>
-	<string></string>
+	<string>Provide your current GPS coordinates to the app</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Provide your current GPS coordinates to the app</string>
 	<key>NSMainNibFile</key>
 	<string>MainWindow</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

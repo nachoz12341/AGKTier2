@@ -1917,6 +1917,12 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
 		return false;
 	}
 
+	if ( !szLocalFile || !*szLocalFile )
+	{
+		agk::Error( "Cannot send HTTP file, filename is empty" );
+		return false;
+	}
+
 	m_sResponse.SetStr( "" );
 	m_bFailed = false;
 	m_fProgress = 0;

@@ -61,6 +61,8 @@
 #include "curl_memory.h"
 #include "memdebug.h"
 
+#include "cabundle.h"
+
 /* apply threading? */
 #if defined(USE_THREADS_POSIX) || defined(USE_THREADS_WIN32)
 #define THREADING_SUPPORT
@@ -301,6 +303,20 @@ mbed_connect_step1(struct connectdata *conn,
 #endif /* MBEDTLS_ERROR_C */
       failf(data, "Error reading ca cert path %s - mbedTLS: (-0x%04X) %s",
             ssl_capath, -ret, errorbuf);
+
+      if(verifypeer)
+        return CURLE_SSL_CACERT_BADFILE;
+    }
+  }
+  else
+  {
+	  ret = mbedtls_x509_crt_parse( &connssl->cacert, (const unsigned char*)szCABundle, strlen(szCABundle)+1 );
+	 
+	  if(ret<0) {
+#ifdef MBEDTLS_ERROR_C
+      mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
+#endif /* MBEDTLS_ERROR_C */
+      failf(data, "Error reading szCABundle - mbedTLS: (-0x%04X) %s", -ret, errorbuf);
 
       if(verifypeer)
         return CURLE_SSL_CACERT_BADFILE;

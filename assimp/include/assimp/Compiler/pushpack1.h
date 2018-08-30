@@ -26,6 +26,9 @@
 #	pragma pack(push,1)
 #	define PACK_STRUCT
 #elif defined( __GNUC__ )
+// packed structs on ARM cause memory alignment crashes
+#	define PACK_STRUCT
+/*
 #	if defined(__clang__)
 #		define PACK_STRUCT	__attribute__((__packed__))
 #	else
@@ -35,6 +38,7 @@
 			#define PACK_STRUCT	__attribute__((gcc_struct, __packed__))
 		#endif
 #	endif
+*/
 #else
 #	error Compiler not supported
 #endif

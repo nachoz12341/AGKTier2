@@ -26,7 +26,6 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../../common/include \
     $(LOCAL_PATH)/../../../zxing \
     $(LOCAL_PATH)/../../../curl \
     $(LOCAL_PATH)/../../../curl/include \
-    $(LOCAL_PATH)/../../../curl/axTLS \
     $(LOCAL_PATH)/../../../giflib \
     $(LOCAL_PATH)/../../../json \
     $(LOCAL_PATH)/../../../assimp \
@@ -264,7 +263,7 @@ LOCAL_SRC_FILES := ../../../common/Source/AGKMotionState.cpp \
     ../../../freetype/src/winfonts/winfnt.c
 
 LOCAL_EXPORT_LDLIBS    := -llog -landroid -lEGL -lGLESv1_CM -lz -lOpenSLES 
-LOCAL_CFLAGS += -DIDE_ANDROID -O3 -DUSE_AXTLS -DHAVE_CONFIG_H -fsigned-char
+LOCAL_CFLAGS += -DIDE_ANDROID -O3 -DUSE_MBEDTLS -DHAVE_CONFIG_H -fsigned-char
 LOCAL_CPPFLAGS += -fexceptions -std=c++11
 LOCAL_ARM_MODE := arm
 LOCAL_SHORT_COMMANDS := false

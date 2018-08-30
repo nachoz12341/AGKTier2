@@ -5,7 +5,7 @@ OUT64 = platform/linux/Lib/Release64
 OUT = $(OUT$(ARCH))/libAGKLinux.a
 CC = g++
 ODIR = $(OUT$(ARCH))/obj
-INC = -Icommon/include -Icommon -Igiflib -Izxing -Ilibpng -Ilibjpeg -Izlib -Iassimp -Ibullet -Ibullet/BulletCollision/CollisionShapes -Ilibogg/include -Ifreetype/include -Icurl -Icurl/include -Icurl/axTLS
+INC = -Icommon/include -Icommon -Igiflib -Izxing -Ilibpng -Ilibjpeg -Izlib -Iassimp -Ibullet -Ibullet/BulletCollision/CollisionShapes -Ilibogg/include -Ifreetype/include -Icurl -Icurl/include 
 
 CFLAGS = -O2
 
@@ -756,27 +756,85 @@ _OBJS = AGKMotionState.o \
         curl/pop3.o \
         curl/smtp.o \
         curl/version.o \
-        curl/axTLS/aes.o \
-        curl/axTLS/asn1.o \
-        curl/axTLS/bigint.o \
-        curl/axTLS/crypto_misc.o \
-        curl/axTLS/gen_cert.o \
-        curl/axTLS/hmac.o \
-        curl/axTLS/loader.o \
-        curl/axTLS/md5.o \
-        curl/axTLS/openssl.o \
-        curl/axTLS/os_port.o \
-        curl/axTLS/p12.o \
-        curl/axTLS/rc4.o \
-        curl/axTLS/rsa.o \
-        curl/axTLS/sha1.o \
-        curl/axTLS/sha256.o \
-        curl/axTLS/sha384.o \
-        curl/axTLS/sha512.o \
-        curl/axTLS/tls1.o \
-        curl/axTLS/tls1_clnt.o \
-        curl/axTLS/tls1_svr.o \
-        curl/axTLS/x509.o \
+        curl/mbedTLS/xtea.o \
+        curl/mbedTLS/aes.o \
+        curl/mbedTLS/aesni.o \
+        curl/mbedTLS/arc4.o \
+        curl/mbedTLS/aria.o \
+        curl/mbedTLS/asn1parse.o \
+        curl/mbedTLS/asn1write.o \
+        curl/mbedTLS/base64.o \
+        curl/mbedTLS/bignum.o \
+        curl/mbedTLS/blowfish.o \
+        curl/mbedTLS/camellia.o \
+        curl/mbedTLS/ccm.o \
+        curl/mbedTLS/certs.o \
+        curl/mbedTLS/chacha20.o \
+        curl/mbedTLS/chachapoly.o \
+        curl/mbedTLS/cipher.o \
+        curl/mbedTLS/cipher_wrap.o \
+        curl/mbedTLS/cmac.o \
+        curl/mbedTLS/ctr_drbg.o \
+        curl/mbedTLS/debug.o \
+        curl/mbedTLS/des.o \
+        curl/mbedTLS/dhm.o \
+        curl/mbedTLS/ecdh.o \
+        curl/mbedTLS/ecdsa.o \
+        curl/mbedTLS/ecjpake.o \
+        curl/mbedTLS/ecp.o \
+        curl/mbedTLS/ecp_curves.o \
+        curl/mbedTLS/entropy.o \
+        curl/mbedTLS/entropy_poll.o \
+        curl/mbedTLS/error.o \
+        curl/mbedTLS/gcm.o \
+        curl/mbedTLS/havege.o \
+        curl/mbedTLS/hkdf.o \
+        curl/mbedTLS/hmac_drbg.o \
+        curl/mbedTLS/md.o \
+        curl/mbedTLS/md_wrap.o \
+        curl/mbedTLS/md2.o \
+        curl/mbedTLS/md4.o \
+        curl/mbedTLS/md5.o \
+        curl/mbedTLS/memory_buffer_alloc.o \
+        curl/mbedTLS/net_sockets.o \
+        curl/mbedTLS/nist_kw.o \
+        curl/mbedTLS/oid.o \
+        curl/mbedTLS/padlock.o \
+        curl/mbedTLS/pem.o \
+        curl/mbedTLS/pk.o \
+        curl/mbedTLS/pk_wrap.o \
+        curl/mbedTLS/pkcs5.o \
+        curl/mbedTLS/pkcs11.o \
+        curl/mbedTLS/pkcs12.o \
+        curl/mbedTLS/pkparse.o \
+        curl/mbedTLS/pkwrite.o \
+        curl/mbedTLS/platform.o \
+        curl/mbedTLS/platform_util.o \
+        curl/mbedTLS/poly1305.o \
+        curl/mbedTLS/ripemd160.o \
+        curl/mbedTLS/rsa.o \
+        curl/mbedTLS/rsa_internal.o \
+        curl/mbedTLS/sha1.o \
+        curl/mbedTLS/sha256.o \
+        curl/mbedTLS/sha512.o \
+        curl/mbedTLS/ssl_cache.o \
+        curl/mbedTLS/ssl_ciphersuites.o \
+        curl/mbedTLS/ssl_cli.o \
+        curl/mbedTLS/ssl_cookie.o \
+        curl/mbedTLS/ssl_srv.o \
+        curl/mbedTLS/ssl_ticket.o \
+        curl/mbedTLS/ssl_tls.o \
+        curl/mbedTLS/threading.o \
+        curl/mbedTLS/timing.o \
+        curl/mbedTLS/version.o \
+        curl/mbedTLS/version_features.o \
+        curl/mbedTLS/x509.o \
+        curl/mbedTLS/x509_create.o \
+        curl/mbedTLS/x509_crl.o \
+        curl/mbedTLS/x509_crt.o \
+        curl/mbedTLS/x509_csr.o \
+        curl/mbedTLS/x509write_crt.o \
+        curl/mbedTLS/x509write_csr.o \
         curl/vauth/cleartext.o \
         curl/vauth/cram.o \
         curl/vauth/digest.o \
@@ -862,7 +920,7 @@ setup:
 	mkdir -p $(OUT$(ARCH))/obj/freetype/src/type42
 	mkdir -p $(OUT$(ARCH))/obj/freetype/src/winfonts
 	mkdir -p $(OUT$(ARCH))/obj/curl
-	mkdir -p $(OUT$(ARCH))/obj/curl/axTLS
+	mkdir -p $(OUT$(ARCH))/obj/curl/mbedTLS
 	mkdir -p $(OUT$(ARCH))/obj/curl/vauth
 	mkdir -p $(OUT$(ARCH))/obj/curl/vtls
 
@@ -912,7 +970,7 @@ $(ODIR)/freetype/%.o: freetype/%.c
 	gcc -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
 	
 $(ODIR)/curl/%.o: curl/%.c
-	gcc -DAGK_LINUX -DBUILDING_LIBCURL -DUSE_AXTLS -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	gcc -DAGK_LINUX -DBUILDING_LIBCURL -DUSE_MBEDTLS -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
 	
 linkall: | $(OBJS)
 	ar rcs $(OUT) $(OBJS)

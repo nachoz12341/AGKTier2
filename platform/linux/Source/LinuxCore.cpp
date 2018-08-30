@@ -600,6 +600,11 @@ int agk::GetExpansionFileState()
 	return 0;
 }
 
+int agk::GetExpansionFileError()
+{
+	return 0;
+}
+
 void agk::DownloadExpansionFile()
 {
 	// do nothing on linux
@@ -2008,6 +2013,19 @@ void agk::VibrateDevice( float seconds )
 //****
 {
 	// do nothing
+}
+
+void agk::SetClipboardText( const char* szText )
+//****
+{
+
+}
+
+char* agk::GetClipboardText()
+//****
+{
+	char *str = new char[1]; *str = 0;
+	return str;
 }
 
 // Music
@@ -5266,7 +5284,7 @@ void agk::GameCenterAchievementsReset ( void )
 
 int agk::CheckPermission( const char* szPermission )
 {
-	return 1;
+	return 2;
 }
 
 void agk::RequestPermission( const char* szPermission )

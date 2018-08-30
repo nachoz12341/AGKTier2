@@ -958,6 +958,7 @@ namespace AGK
 			static void SetExpansionFileKey( const char *key );
 			static void SetExpansionFileVersion(int version);
 			static int GetExpansionFileState();
+			static int GetExpansionFileError();
 			static void DownloadExpansionFile();
 			static float GetExpansionFileProgress();
 			static bool ExtractExpansionFile( const char* localFile, const char* expansionFile );
@@ -1186,6 +1187,7 @@ namespace AGK
 			static int GetSpriteTransparency( UINT iSpriteIndex );
 			static int GetSpriteFlippedH(UINT iSpriteIndex);
 			static int GetSpriteFlippedV(UINT iSpriteIndex);
+			static int GetSpriteInScreen( UINT iSpriteIndex );
 
 			static float GetSpriteXFromPixel( UINT iSpriteIndex, int x );
 			static float GetSpriteYFromPixel( UINT iSpriteIndex, int y );
@@ -1241,7 +1243,7 @@ namespace AGK
 			static void SetSpriteCollideBit( UINT iSpriteIndex, UINT category, int flag, int shapeID );
 
 			static void DrawSprite( UINT iSpriteIndex );
-
+			
 			// physics commands
 			static void SetPhysicsScale( float scale );
 			static void SetPhysicsGravity( float x, float y );
@@ -1501,6 +1503,8 @@ namespace AGK
 
 			static void UpdateParticles( UINT ID, float time );
 			static void OffsetParticles( UINT ID, float x, float y );
+
+			static void DrawParticles( UINT ID );
 
 			// text commands
 			static void SetTextDefaultFontImage( UINT iImageID );
@@ -2044,6 +2048,7 @@ namespace AGK
 			static void SetEditBoxPasswordMode( UINT index, int mode );
             static void SetEditBoxUseAlternateInput( UINT index, int mode );
 			static void SetEditBoxWrapMode( UINT index, int mode );
+			static void SetEditBoxInputType( UINT index, int inputType );
 			static void FixEditBoxToScreen( UINT index, int fix );
 			static char* GetEditBoxText( UINT index );
 			static float GetEditBoxX( UINT index );
@@ -2132,6 +2137,9 @@ namespace AGK
 			static int IsSoundRecording();
 
 			static void VibrateDevice( float seconds );
+
+			static void SetClipboardText( const char* szText );
+			static char* GetClipboardText();
 
 			// file system commands
 			static char* SimplifyPath( const char *szPath );
@@ -3136,6 +3144,8 @@ namespace AGK
 
 			static void Update3DParticles( UINT ID, float time );
 			static void Offset3DParticles( UINT ID, float x, float y, float z );
+
+			static void Draw3DParticles( UINT ID );
 
 			//3D Physics Commands
 

@@ -33,6 +33,6 @@ dependencies {
     compile files('libs/chartboost.jar')
     compile files('libs/amazon-ads-5.8.2.jar')
     implementation 'com.google.ar:core:1.0.0'
-    implementation 'com.google.android.ads.consent:consent-library:1.0.3'
+    implementation 'com.google.android.ads.consent:consent-library:1.0.6'
     compile "com.google.firebase:firebase-messaging:15.0.0"
 }

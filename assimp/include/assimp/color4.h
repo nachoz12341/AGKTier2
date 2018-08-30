@@ -87,7 +87,7 @@ public:
 
 	// Red, green, blue and alpha color values 
 	TReal r, g, b, a;
-} PACK_STRUCT;  // !struct aiColor4D
+};  // !struct aiColor4D
 
 typedef aiColor4t<float> aiColor4D;
 

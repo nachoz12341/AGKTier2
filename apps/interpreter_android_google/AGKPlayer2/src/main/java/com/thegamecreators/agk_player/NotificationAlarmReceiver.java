@@ -53,6 +53,7 @@ public class NotificationAlarmReceiver extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setLargeIcon(largeIcon)
                 .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_LIGHTS)
+                .setChannelId("notify")
                 .build();
 
         notificationManager.notify(id, notif);

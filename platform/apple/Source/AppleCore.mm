@@ -204,6 +204,7 @@ namespace AGK
 	cSprite *pTextBackground = 0;
     bool g_bEditBoxHack = false;
     bool g_bMultiline = false;
+    int g_iInputType = 0;
     bool g_bPasswordMode = false;
 }
 
@@ -246,6 +247,7 @@ void SetSystemTextBox( const char* text )
     {
         m_bFinished = true;
         g_bMultiline = false;
+        g_iInputType = 0;
     }
     m_bSkipResign = false;
 }
@@ -255,12 +257,12 @@ void SetSystemTextBox( const char* text )
 	[ pTextView resignFirstResponder ];
 	[ pTextView removeFromSuperview ];
 	m_sText.SetStr( [pTextView.text cStringUsingEncoding:NSUTF8StringEncoding ] );
-	
     
     if ( !m_bSkipResign )
     {
         m_bFinished = true;
         g_bMultiline = false;
+        g_iInputType = 0;
     }
     m_bSkipResign = false;
 }
@@ -1652,6 +1654,11 @@ int agk::GetExpansionFileState()
 	return 0;
 }
 
+int agk::GetExpansionFileError()
+{
+	return 0;
+}
+
 void agk::DownloadExpansionFile()
 {
 	// do nothing on ios
@@ -2028,7 +2035,8 @@ void agk::PlatformInitGL( void* ptr )
     pTextView.autocorrectionType = UITextAutocorrectionTypeNo;
     
     g_bMultiline = false;
-	
+    g_iInputType = 0;
+    
 	pTextBackground = new cSprite();
 	pTextBackground->SetColor( 0,0,0, 128 );
 	pTextBackground->SetPosition( -m_iDisplayExtraX, -m_iDisplayExtraY );
@@ -2488,7 +2496,7 @@ int agk::PlatformInputPointerPressed(float x, float y)
 			if ( pFound )
 			{
 				pFound->GetText( m_sCurrInput );
-                if ( g_bMultiline != pFound->GetMultiLine() )
+                if ( g_bMultiline != pFound->GetMultiLine() || g_iInputType != pFound->GetInputType() )
                 {
                     g_EventListener->m_bSkipResign = true;
                     if ( g_bMultiline )
@@ -2558,6 +2566,8 @@ void agk::PlatformStartTextInput( const char* sInitial )
     }
     else
     {
+        if ( g_iInputType == 1 ) pTextField.keyboardType = UIKeyboardTypeDecimalPad;
+        else pTextField.keyboardType = UIKeyboardTypeDefault;
         pTextField.secureTextEntry = g_bPasswordMode ? YES : NO;
         [ pTextField setText:pString ];
         
@@ -2580,6 +2590,8 @@ void agk::PlatformStopTextInput()
 		if( g_bMultiline ) [ pTextView resignFirstResponder ];
 		else [ pTextField resignFirstResponder ];
 	}
+    
+    g_iInputType = 0;
 }
 
 void agk::PlatformChangeTextInput( const char* str )
@@ -2624,8 +2636,8 @@ void agk::PlatformUpdateTextInput()
 void agk::PlatformDrawTextInput()
 {
 	// text input setup
-	float width = 250;
-	float height = 25;
+	float width = 2 * agk::GetDeviceDPI();
+	float height = 0.2f * agk::GetDeviceDPI();
 	if ( width > m_iRealDeviceWidth ) width = (float) m_iRealDeviceWidth;
 	float x = (m_iRealDeviceWidth - width) / 2.0f;
 	float y = m_iRealDeviceHeight/4.0f;
@@ -3183,6 +3195,33 @@ void agk::VibrateDevice( float seconds )
 	AudioServicesPlaySystemSound( kSystemSoundID_Vibrate );
 }
 
+void agk::SetClipboardText( const char* szText )
+//****
+{
+    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+    if ( !pasteboard ) return;
+    pasteboard.string = [NSString stringWithUTF8String:szText];
+}
+
+char* agk::GetClipboardText()
+//****
+{
+    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+    if ( pasteboard && pasteboard.string )
+    {
+        const char* text = [pasteboard.string UTF8String];
+        if ( text && *text )
+        {
+            char *str = new char[ strlen(text) + 1 ];
+            strcpy( str, text );
+            return str;
+        }
+    }
+    
+    char *str = new char[1]; *str = 0;
+    return str;
+}
+
 // Music
 
 void cMusicMgr::PlatformAddFile( cMusic *pMusic )
@@ -3586,26 +3625,9 @@ void cSoundMgr::PlatformInit()
 {
 	if ( !audioDevice )
 	{
-		AudioSessionInitialize ( NULL, NULL, NULL, NULL );
-								
-		//query audio hw to see if ipod is playing...
-		UInt32 propertySize = sizeof(audioIsAlreadyPlaying);
-		AudioSessionGetProperty(kAudioSessionProperty_OtherAudioIsPlaying, &propertySize, &audioIsAlreadyPlaying);	
-		
-		if(audioIsAlreadyPlaying)
-		{
-			//register session as ambient sound so our effects mix with ipod audio
-			UInt32	sessionCategory = kAudioSessionCategory_AmbientSound;
-			AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(sessionCategory), &sessionCategory);		
-		}
-		else
-		{
-			//register session as solo ambient sound so the ipod is silenced, and we can use hardware codecs for background audio
-			UInt32	sessionCategory = kAudioSessionCategory_SoloAmbientSound;
-			AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(sessionCategory), &sessionCategory);		
-		}
-		
-		AudioSessionSetActive (true);
+		AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+		[audioSession setCategory:AVAudioSessionCategoryAmbient error:nil];
+		[audioSession setActive:YES error:nil];
 		
 		audioDevice = alcOpenDevice(NULL); // select the "preferred device"
 		if(!audioDevice) agk::Error( "Failed to setup audio device" );
@@ -3629,7 +3651,11 @@ void cSoundMgr::AppPaused()
 
 void cSoundMgr::AppResumed()
 {
-    if ( audioContext ) alcMakeContextCurrent(audioContext);
+    if ( audioContext ) 
+	{
+		[[AVAudioSession sharedInstance] setActive:YES error:nil];
+		alcMakeContextCurrent(audioContext);
+	}
 }
 
 void cSoundMgr::PlatformAddFile( cSoundFile *pSound )
@@ -4462,8 +4488,19 @@ char* agk::GetSpeechVoiceLanguage( int index )
     }
 
     AVSpeechSynthesisVoice* voice = [[AVSpeechSynthesisVoice speechVoices] objectAtIndex:index];
+	if ( !voice )
+	{
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
     
     const char* lang = [[voice language] UTF8String];
+	if ( !lang )
+	{
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
+
     char* str = new char[ strlen(lang)+1 ];
     strcpy( str, lang );
     return str;
@@ -4479,8 +4516,19 @@ char* agk::GetSpeechVoiceName( int index )
     }
     
     AVSpeechSynthesisVoice* voice = [[AVSpeechSynthesisVoice speechVoices] objectAtIndex:index];
+	if ( !voice || ![voice respondsToSelector:@selector(name)] || ![voice name] )
+	{
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
     
     const char* name = [[voice name] UTF8String];
+	if ( !name )
+	{
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
+    
     char* str = new char[ strlen(name)+1 ];
     strcpy( str, name );
     return str;
@@ -4496,6 +4544,11 @@ char* agk::GetSpeechVoiceID( int index )
     }
     
     AVSpeechSynthesisVoice* voice = [[AVSpeechSynthesisVoice speechVoices] objectAtIndex:index];
+    if ( !voice || ![voice respondsToSelector:@selector(identifier)] || ![voice identifier] )
+    {
+        char *str = new char[1]; *str = 0;
+        return str;
+    }
     
     const char* sID = [[voice identifier] UTF8String];
     char* str = new char[ strlen(sID)+1 ];
@@ -4519,6 +4572,8 @@ void agk::SetSpeechLanguageByID( const char* sID )
 {
 	if ( !g_pTextToSpeech ) return;
     if ( g_pSpeechVoice ) [g_pSpeechVoice release];
+    g_pSpeechVoice = nil;
+    if ( ![AVSpeechSynthesisVoice respondsToSelector:@selector(voiceWithIdentifier:)] ) return;
     g_pSpeechVoice = [AVSpeechSynthesisVoice voiceWithIdentifier:[NSString stringWithUTF8String:sID]];
     [g_pSpeechVoice retain];
 }
@@ -4536,6 +4591,10 @@ void agk::StopSpeaking()
 {
 	if ( !g_pTextToSpeech ) return;
     [g_pTextToSpeech stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
+    // hack to workaround speech engine not being able to speak if stopped during a delay
+    [ g_pTextToSpeech release ];
+    g_pTextToSpeech = [[AVSpeechSynthesizer alloc] init];
+    g_pTextToSpeech.delegate = g_pSpeechDelegate;
     if ( g_pSpeechDelegate ) g_pSpeechDelegate->m_iIsSpeaking = 0;
 }
 
@@ -5942,8 +6001,12 @@ void cEditBox::PlatformStartText()
 	// if the edit box is in the lower half of the screen use the normal text entry, unless alternate methods are turned off
     
     g_bMultiline = GetMultiLine();
+    g_iInputType = GetInputType();
+
+	float topY = m_fY+m_fHeight;
+	if ( !m_bFixed ) topY = agk::WorldToScreenY( topY );
     
-	if ( !m_bUseAlternateInput || m_fY < agk::GetVirtualHeight()/2 )
+	if ( !m_bUseAlternateInput || topY < agk::GetVirtualHeight()/2 )
 	{
 		g_bEditBoxHack = true;
 		agk::PlatformDrawTextInput();
@@ -5953,7 +6016,7 @@ void cEditBox::PlatformStartText()
     agk::StartTextInput( m_sCurrInput );
     
 	// StartTextInput resets this flag
-	if ( !m_bUseAlternateInput || m_fY < agk::GetVirtualHeight()/2 ) g_bEditBoxHack = true;
+	if ( !m_bUseAlternateInput || topY < agk::GetVirtualHeight()/2 ) g_bEditBoxHack = true;
     
     m_iCursorPos = m_sCurrInput.GetNumChars();
     m_iLastLength = m_sCurrInput.GetNumChars();
@@ -6685,7 +6748,7 @@ int agk::PlatformGetIPv6( uString &sIP, int *iInterface )
 
 int agk::CheckPermission( const char* szPermission )
 {
-	return 1;
+	return 2;
 }
 
 void agk::RequestPermission( const char* szPermission )

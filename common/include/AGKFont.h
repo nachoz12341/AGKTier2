@@ -22,6 +22,7 @@ namespace AGK
 			int m_iRefCount;
 			unsigned int m_iUnicodeValue;
 			unsigned int m_iCharIndex;
+			unsigned int m_iCreatedOrder;
 			short m_iOffsetX;
 			short m_iOffsetY;
 			short m_iAdvanceX;
@@ -57,6 +58,7 @@ namespace AGK
 			unsigned short m_iCurrX;
 			unsigned short m_iCurrY;
 			unsigned short m_iMaxRowY;
+			unsigned int m_iCreatedCount;
 
 			cHashedList<AGKFontImage> m_CharImages;
 			int m_iRefCount;

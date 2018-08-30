@@ -9835,3 +9835,70 @@ case AGKI_SETSPEECHLANGUAGEBYID_0_S:
     agk::SetSpeechLanguageByID( param0 );
     break;
 }
+case AGKI_GETSPRITEFLIPPEDH_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSpriteFlippedH( param0 );
+    break;
+}
+case AGKI_GETSPRITEINSCREEN_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSpriteInScreen( param0 );
+    break;
+}
+case AGKI_GETSPRITEFLIPPEDV_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSpriteFlippedV( param0 );
+    break;
+}
+case AGKI_DRAWPARTICLES_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::DrawParticles( param0 );
+    break;
+}
+case AGKI_DRAW3DPARTICLES_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::Draw3DParticles( param0 );
+    break;
+}
+case AGKI_SETCLIPBOARDTEXT_0_S:
+{
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::SetClipboardText( param0 );
+    break;
+}
+case AGKI_GETCLIPBOARDTEXT_S_0:
+{
+    char *szReturnStr = agk::GetClipboardText( );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_SETEDITBOXINPUTTYPE_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetEditBoxInputType( param0, param1 );
+    break;
+}
+case AGKI_GETEXPANSIONFILEERROR_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetExpansionFileError( );
+    break;
+}
+case AGKI_GETSKELETON2DDEPTH_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSkeleton2DDepth( param0 );
+    break;
+}
+case AGKI_GETEDITBOXDEPTH_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetEditBoxDepth( param0 );
+    break;
+}

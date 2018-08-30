@@ -1785,7 +1785,7 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
     
     if ( !szLocalFile || !cFile::Exists(szLocalFile) )
     {
-        agk::Warning( "Failed to send HTTP file, could not find file to upload" );
+        agk::Error( "Failed to send HTTP file, could not find file to upload" );
         return false;
     }
     

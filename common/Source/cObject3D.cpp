@@ -437,14 +437,45 @@ void cObject3D::CreateQuad()
 	SetShader( AGKShader::g_pObjectQuad );
 }
 
-void cObject3D::CreateFromHeightMap( const char *szHeightMap, float width, float height, float length, int smoothing, int split )
+void cObject3D::CreateFromHeightMap( cImage *pImage, float width, float height, float length, int smoothing, int split )
 {
-	DeleteMeshes();
-
-	if ( m_pHeightMap ) delete [] m_pHeightMap;
 	int imgWidth = 0;
 	int imgHeight = 0;
 
+	if ( !pImage ) return;
+	
+	unsigned char* data;
+	int size = pImage->GetRawData( &data );
+	if ( !data )
+	{
+		agk::Warning("Failed to get image data");
+		return;
+	}
+
+	imgWidth = pImage->GetWidth();
+	imgHeight = pImage->GetHeight();
+
+	// convert image into unsigned 16-bit integers
+	unsigned short *pData = new unsigned short[ imgWidth*imgHeight ];
+	for ( int z = 0; z < imgHeight; z++ )
+	{
+		for ( int x = 0; x < imgWidth; x++ )
+		{
+			UINT index = z*imgWidth + x;
+			pData[ index ] = data[ index*4 ] * 256;
+		}
+	}
+
+	CreateFromHeightMapFromData( pData, imgWidth, imgHeight, width, height, length, smoothing, split );
+	delete [] pData;
+}
+
+void cObject3D::CreateFromHeightMap( const char *szHeightMap, float width, float height, float length, int smoothing, int split )
+{
+	int imgWidth = 0;
+	int imgHeight = 0;
+
+	// temporary solution, ideally use png_read_png directly to load a 16bit image
 	cImage *pImage = new cImage();
 	if ( !pImage->Load( szHeightMap ) )
 	{
@@ -454,8 +485,10 @@ void cObject3D::CreateFromHeightMap( const char *szHeightMap, float width, float
 		imgWidth = width < 1 ? 1 : agk::Floor(width);
 		imgHeight = height < 1 ? 1 : agk::Floor(height);
 
-		m_pHeightMap = new unsigned short[ imgWidth*imgHeight ];
+		unsigned short *pData = new unsigned short[ imgWidth*imgHeight ];
 		memset( m_pHeightMap, 0, imgWidth*imgHeight*sizeof(short) );
+		CreateFromHeightMapFromData( pData, imgWidth, imgHeight, width, height, length, smoothing, split );
+		delete [] pData;
 	}
 	else
 	{
@@ -471,20 +504,42 @@ void cObject3D::CreateFromHeightMap( const char *szHeightMap, float width, float
 		imgHeight = pImage->GetHeight();
 
 		// convert image into unsigned 16-bit integers
-		m_pHeightMap = new unsigned short[ imgWidth*imgHeight ];
+		unsigned short *pData = new unsigned short[ imgWidth*imgHeight ];
 		for ( int z = 0; z < imgHeight; z++ )
 		{
 			for ( int x = 0; x < imgWidth; x++ )
 			{
 				UINT index = z*imgWidth + x;
-				m_pHeightMap[ index ] = data[ index*4 ] * 256;
+				pData[ index ] = data[ index*4 ] * 256;
 			}
 		}
 
-		// no longer need raw image data
-		delete [] data;
+		CreateFromHeightMapFromData( pData, imgWidth, imgHeight, width, height, length, smoothing, split );
+		delete [] pData;
 		delete pImage;
+	}
+}
 
+void cObject3D::CreateFromHeightMapFromData( const unsigned short *pData, int imgWidth, int imgHeight, float width, float height, float length, int smoothing, int split )
+{
+	DeleteMeshes();
+
+	if ( m_pHeightMap ) delete [] m_pHeightMap;
+	
+	if ( !pData )
+	{
+		// create a flat terrain with 1 segment per unit
+		imgWidth = width < 1 ? 1 : agk::Floor(width);
+		imgHeight = height < 1 ? 1 : agk::Floor(height);
+
+		m_pHeightMap = new unsigned short[ imgWidth*imgHeight ];
+		memset( m_pHeightMap, 0, imgWidth*imgHeight*sizeof(short) );
+	}
+	else
+	{
+		m_pHeightMap = new unsigned short[ imgWidth*imgHeight ];
+		memcpy( m_pHeightMap, pData, imgWidth*imgWidth*2 );
+		
 		if ( smoothing > 0 )
 		{
 			float *pValues2 = new float[ imgWidth*imgHeight ];
@@ -2136,12 +2191,15 @@ float cObject3D::GetHeightMapHeight( float x, float z )
 	float height_01 = m_pHeightMap[ indexZ2*m_iHeightMapPixelsX + indexX1 ] * (m_fHeightMapSizeY/65535.0f);
 	float height_11 = m_pHeightMap[ indexZ2*m_iHeightMapPixelsX + indexX2 ] * (m_fHeightMapSizeY/65535.0f);
 
+	float dfx = indexX2 - p.x;
+	float dfz = indexZ2 - p.z;
+
 	// blend the points in the X direction
-	float height1 = height_00 * (indexX2-p.x) + height_10 * (p.x-indexX1);
-	float height2 = height_01 * (indexX2-p.x) + height_11 * (p.x-indexX1);
+	float height1 = height_00 * dfx + height_10 * (1 - dfx);
+	float height2 = height_01 * dfx + height_11 * (1 - dfx);
 
 	// blend the two resulting points in the Z direction
-	float height = height1 * (indexZ2-p.z) + height2 * (p.z-indexZ1);
+	float height = height1 * dfz + height2 * (1 - dfz);
 
 	return height + posFinal().y;
 }

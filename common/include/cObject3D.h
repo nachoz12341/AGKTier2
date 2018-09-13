@@ -152,7 +152,9 @@ namespace AGK
 			void CreateCylinder( float height, float diameter, int segments );
 			void CreatePlane( float width, float height );
 			void CreateQuad();
+			void CreateFromHeightMap( cImage *pImage, float width, float height, float length, int smoothing, int split );
 			void CreateFromHeightMap( const char *szHeightMap, float width, float height, float length, int smoothing, int split );
+			void CreateFromHeightMapFromData( const unsigned short *szHeightMap, int imgWidth, int imgHeight, float width, float height, float length, int smoothing, int split );
 			void CreateFromMeshes( int numMeshes, cMesh **pMeshes );
 			void AddMesh( cMesh *pMesh, int updateCollision=1 );
 

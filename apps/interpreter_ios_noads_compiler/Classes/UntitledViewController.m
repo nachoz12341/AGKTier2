@@ -131,6 +131,12 @@ BOOL g_bDisplayLinkReady = FALSE;
     return YES;
 }
 
+-(BOOL)prefersHomeIndicatorAutoHidden
+{
+    // set by SetImmersiveMode
+    return agk::GetInternalDataI(0) ? YES : NO;
+}
+
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
     //NSLog(@"Orientation Changed");

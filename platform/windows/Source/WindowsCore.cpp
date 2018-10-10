@@ -1454,6 +1454,22 @@ void agk::SetScreenResolution( int width, int height )
 	agk::SetWindowSize( width, height, 0 );
 }
 
+//****f* Core/Misc/GetURLSchemeText
+// FUNCTION
+//   On Android and iOS this returns the full URL that was used to open this app if a URL scheme was used. For example if you 
+//   have set the URL scheme "myapp" for this app and the user clicks on a link such as "myapp://sometext", then the OS will
+//   open your app and GetURLSchemeText will return "myapp://sometext" until the app is next opened. If a URL was not used
+//   to open the app, or the platform doesn't support URL schemes, then an empty string will be returned.<br/><br/>
+//   When choosing a URL scheme you must make sure it is unique to your app, as iOS will not allow two apps to have the same
+//   scheme.
+// SOURCE
+char* agk::GetURLSchemeText()
+//****
+{
+	char* str = new char[1]; *str = 0;
+	return str;
+}
+
 void agk::GetDeviceName( uString &outString )
 {
 	outString.SetStr( "windows" );
@@ -1942,7 +1958,7 @@ BOOL __stdcall InputEnumCallback( LPCDIDEVICEINSTANCE device, void* ptr )
 		cJoystick *pJoystick = new cJoystick( pDevice );
 
 		pDevice->EnumObjects( InputEnumObjectsCallback, pDevice, DIDFT_ALL );
-		pDevice->SetDataFormat( &c_dfDIJoystick );
+		pDevice->SetDataFormat( &c_dfDIJoystick2 );
 		if ( g_bGLInit && g_hWnd ) pDevice->SetCooperativeLevel( g_hWnd, DISCL_EXCLUSIVE | DISCL_FOREGROUND );
 
 		pDevice->Acquire();
@@ -2780,6 +2796,13 @@ void agk::PlatformSync ( void )
 	{
 		DwmFlush();
 	}
+
+	if ( (GetAsyncKeyState( VK_LSHIFT ) & 0x8000) == 0 ) agk::KeyUp( 257 );
+	if ( (GetAsyncKeyState( VK_RSHIFT ) & 0x8000) == 0 ) agk::KeyUp( 258 );
+	if ( (GetAsyncKeyState( VK_LCONTROL ) & 0x8000) == 0 ) agk::KeyUp( 259 );
+	if ( (GetAsyncKeyState( VK_RCONTROL ) & 0x8000) == 0 ) agk::KeyUp( 260 );
+	if ( (GetAsyncKeyState( VK_LMENU ) & 0x8000) == 0 ) agk::KeyUp( 261 );
+	if ( (GetAsyncKeyState( VK_RMENU ) & 0x8000) == 0 ) agk::KeyUp( 262 );
 }
 
 void agk::PlatformCompleteInputInit()
@@ -9103,8 +9126,8 @@ void cJoystick::PlatformUpdate()
 			}
 		}
 
-		DIJOYSTATE js;
-		hr = pDevice->GetDeviceState(sizeof(DIJOYSTATE), &js);
+		DIJOYSTATE2 js;
+		hr = pDevice->GetDeviceState(sizeof(DIJOYSTATE2), &js);
 		if ( FAILED(hr) ) 
 		{
 			m_iConnected = 0;
@@ -9121,7 +9144,15 @@ void cJoystick::PlatformUpdate()
 		m_fRY = (js.lRy / 32768.0f);
 		m_fRZ = (js.lRz / 32768.0f);
 
-		for ( UINT j = 0; j < 32; j++ ) m_iButtons[ j ] = js.rgbButtons[ j ] != 0 ? 1 : 0;
+		m_iSlider[ 0 ] = js.rglSlider[ 0 ];
+		m_iSlider[ 1 ] = js.rglSlider[ 1 ];
+
+		m_iPOV[ 0 ] = js.rgdwPOV[ 0 ];
+		m_iPOV[ 1 ] = js.rgdwPOV[ 1 ];
+		m_iPOV[ 2 ] = js.rgdwPOV[ 2 ];
+		m_iPOV[ 3 ] = js.rgdwPOV[ 3 ];
+
+		for ( UINT j = 0; j < AGK_MAX_JOYSTICK_BUTTONS; j++ ) m_iButtons[ j ] = js.rgbButtons[ j ] != 0 ? 1 : 0;
 	}
 	else if ( m_iDeviceType == 1 )
 	{
@@ -9616,12 +9647,14 @@ int agk::GetInternetState()
 
 //****f* Extras/PushNotifications/SetPushNotificationKeys
 // FUNCTION
-//   This command is no longer needed on any platform and now does nothing
+//   This command is used on Android to set the SenderID used by the Firebase project. Currently keyName must be 
+//   set to "SenderID" (case sensitive), and the keyValue must be set to the SenderID value that can be found in
+//   your Firebase project settings, in the Cloud Messaging tab.
 // INPUTS
-//   data1 -- your key data
-//   reserved -- not currently used, must be an empty string
+//   keyName -- The key to set
+//   keyValue -- The key value
 // SOURCE
-void agk::SetPushNotificationKeys( const char* data1, const char* reserved )
+void agk::SetPushNotificationKeys( const char* keyName, const char* keyValue )
 //****
 {
 	// do nothing on windows

@@ -839,7 +839,7 @@ void cSpriteMgrEx::DrawSplit( int depth, int side )
 					iLastScissorHeight = iScissorHeight;
 				}
 				
-				if ( iScissorWidth != 0 && iScissorHeight != 0 )
+				if ( iScissorX != 0 || iScissorY != 0 || iScissorWidth != 0 || iScissorHeight != 0 )
 				{
 					agk::PlatformScissor( iScissorX, iScissorY, iScissorWidth, iScissorHeight );
 				}

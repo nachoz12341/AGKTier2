@@ -694,11 +694,19 @@ void sessionStateChanged ( FBSession* session, FBSessionState state, NSError* er
 #pragma mark -
 #pragma mark Internal AGK Commands
 
+namespace AGK {
+    extern uString g_sLastURLSchemeText;
+}
+
 int agk::FacebookHandleOpenURL( void* url )
 {
+    NSString *text = [((NSURL*)url) absoluteString];
+    AGK::g_sLastURLSchemeText.SetStr( [text UTF8String] );
 #ifndef LITEVERSION
-    //if ( g_pSocialPlugins ) return [ [ g_pSocialPlugins facebook ] handleOpenURL: (NSURL*)url ] ? 1 : 0;
-    if ( FBSession.activeSession ) return [ FBSession.activeSession handleOpenURL: (NSURL*)url ] ? 1 : 0;
+    if ( AGK::g_sLastURLSchemeText.CompareCaseToN("fb", 2) == 0 )
+    {
+        if ( FBSession.activeSession ) return [ FBSession.activeSession handleOpenURL: (NSURL*)url ] ? 1 : 0;
+    }
 #endif
     return 1;
 }

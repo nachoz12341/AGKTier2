@@ -9,6 +9,7 @@ import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -23,6 +24,21 @@ public class AGKActivity extends NativeActivity
     public void onCreate( Bundle state )
     {
         super.onCreate( state );
+
+        Intent intent = getIntent();
+        if ( intent != null )
+        {
+            Uri data = intent.getData();
+            if ( data != null ) AGKHelper.g_sLastURI = data.toString();
+        }
+    }
+
+    @Override
+    public void onNewIntent( Intent intent )
+    {
+        if ( intent == null ) return;
+        if ( intent.getData() == null ) return;
+        AGKHelper.g_sLastURI = intent.getData().toString();
     }
 
     @Override

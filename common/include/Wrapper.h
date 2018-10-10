@@ -332,9 +332,10 @@ namespace AGK
 			static UINT m_bSensorFlags;
 
 			// keyboard
-			static unsigned char m_iPrevKeyDown[ 256 ];
-			static unsigned char m_iKeyDown[ 256 ];
-			static unsigned char m_iResetKey[ 256 ];
+			#define AGK_MAX_KEYS 512
+			static unsigned char m_iPrevKeyDown[ AGK_MAX_KEYS ];
+			static unsigned char m_iKeyDown[ AGK_MAX_KEYS ];
+			static unsigned char m_iResetKey[ AGK_MAX_KEYS ];
 			static unsigned int m_iLastKey;
 			static int m_iKeyboardMode;
 
@@ -363,6 +364,7 @@ namespace AGK
 			static uString m_sCurrInput;
 			static int m_iLastChar;
 			static int m_iCurrChar;
+			static uString m_sCharBuffer;
 			static float m_fCursorBlinkDelay;
 			static UINT m_iInputMaxChars;
 			static uString m_sInputLabel;
@@ -915,6 +917,7 @@ namespace AGK
 			static int GetPaused();
 			static int GetResumed();
 			static int GetResumed2();
+			static char* GetURLSchemeText();
 			static char* GetDeviceName();
 			static void GetDeviceName( uString &sString );
 			static char* GetDeviceBaseName();
@@ -1931,6 +1934,8 @@ namespace AGK
 			static float GetRawJoystickRX( UINT index );
 			static float GetRawJoystickRY( UINT index );
 			static float GetRawJoystickRZ( UINT index );
+			static int GetRawJoystickSlider( UINT index, UINT slider );
+			static int GetRawJoystickPOV( UINT index, UINT pov );
 			static int GetRawJoystickButtonPressed( UINT index, UINT button );
 			static int GetRawJoystickButtonState( UINT index, UINT button );
 			static int GetRawJoystickButtonReleased( UINT index, UINT button );
@@ -1974,6 +1979,8 @@ namespace AGK
 			static int GetRawKeyState( UINT key );
 			static int GetRawKeyReleased( UINT key );
 			static int GetRawLastKey();
+			static char* GetCharBuffer();
+			static int GetCharBufferLength();
 		
 			// AGK emulated input commands
 			static int GetPointerPressed();
@@ -2289,6 +2296,7 @@ namespace AGK
 			static float GetNetworkClientFloat( UINT iNetID, UINT client, const char *name );
 
 			static UINT CreateNetworkMessage( );
+			static UINT CopyNetworkMessage( UINT iFromMsgID );
 			static void AddNetworkMessageInteger( UINT iMsgID, int value );
 			static void AddNetworkMessageFloat( UINT iMsgID, float value );
 			static void AddNetworkMessageString( UINT iMsgID, const char *value );

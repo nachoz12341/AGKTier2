@@ -156,6 +156,7 @@ using namespace AGK;
     // called by Facebook when returning back to our application after signing in,
     // this version is called by OS 4.2 and previous
     
+    // this also handles user URL schemes, but the command name is from before that
     return agk::FacebookHandleOpenURL(url) > 0;
 }
 
@@ -163,6 +164,7 @@ using namespace AGK;
 {
     // same as above but for OS 4.3 and later
     
+    // this also handles user URL schemes, but the command name is from before that
     return agk::FacebookHandleOpenURL(url) > 0;
 }
 

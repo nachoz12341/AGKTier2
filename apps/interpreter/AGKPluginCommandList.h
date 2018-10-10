@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1965;
+int g_iNumAGKFunctions = 1971;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -130,6 +130,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"COPYIMAGE_0_L_L_L_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,int,int,int,int)) (agk::CopyImage) },
 	{"COPYIMAGE_L_L_L_L_L_L", (AGKVoidFunc) (UINT(*)(UINT,int,int,int,int)) (agk::CopyImage) },
 	{"COPYMEMBLOCK_0_L_L_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,UINT,UINT)) (agk::CopyMemblock) },
+	{"COPYNETWORKMESSAGE_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::CopyNetworkMessage) },
 	{"COSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::CosRad) },
 	{"COS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Cos) },
 	{"COUNTSTRINGTOKENS2_L_S_S", (AGKVoidFunc) (int(*)(const char*,const char*)) (agk::CountStringTokens2) },
@@ -424,6 +425,8 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETCAMERAY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraY) },
 	{"GETCAMERAZ_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraZ) },
 	{"GETCAPTUREDIMAGE_L_0", (AGKVoidFunc) (UINT(*)()) (agk::GetCapturedImage) },
+	{"GETCHARBUFFERLENGTH_L_0", (AGKVoidFunc) (int(*)()) (agk::GetCharBufferLength) },
+	{"GETCHARBUFFER_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetCharBuffer) },
 	{"GETCHOSENIMAGE_L_0", (AGKVoidFunc) (UINT(*)()) (agk::GetChosenImage) },
 	{"GETCLIPBOARDTEXT_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetClipboardText) },
 	{"GETCLOUDDATAALLOWED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetCloudDataAllowed) },
@@ -791,9 +794,11 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETRAWJOYSTICKBUTTONSTATE_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetRawJoystickButtonState) },
 	{"GETRAWJOYSTICKCONNECTED_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetRawJoystickConnected) },
 	{"GETRAWJOYSTICKEXISTS_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetRawJoystickExists) },
+	{"GETRAWJOYSTICKPOV_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetRawJoystickPOV) },
 	{"GETRAWJOYSTICKRX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickRX) },
 	{"GETRAWJOYSTICKRY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickRY) },
 	{"GETRAWJOYSTICKRZ_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickRZ) },
+	{"GETRAWJOYSTICKSLIDER_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetRawJoystickSlider) },
 	{"GETRAWJOYSTICKX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickX) },
 	{"GETRAWJOYSTICKY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickY) },
 	{"GETRAWJOYSTICKZ_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickZ) },
@@ -1034,6 +1039,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETUNIXFROMDATE_L_L_L_L_L_L_L", (AGKVoidFunc) (int(*)(int,int,int,int,int,int)) (agk::GetUnixFromDate) },
 	{"GETUNIXTIME_L_0", (AGKVoidFunc) (int(*)()) (agk::GetUnixTime) },
 	{"GETUPDATETIME_F_0", (AGKVoidFunc) (float(*)()) (agk::GetUpdateTime) },
+	{"GETURLSCHEMETEXT_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetURLSchemeText) },
 	{"GETVECTOR3ADD_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::GetVector3Add) },
 	{"GETVECTOR3CROSS_0_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,UINT)) (agk::GetVector3Cross) },
 	{"GETVECTOR3DISTANCE_F_L_L", (AGKVoidFunc) (float(*)(UINT,UINT)) (agk::GetVector3Distance) },

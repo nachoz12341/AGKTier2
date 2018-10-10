@@ -73,12 +73,12 @@ static const aiImporterDesc desc = {
 // - computes its length
 #define ASSIMP_3DS_BEGIN_CHUNK()                                         \
 	while (true) {                                                       \
-	if (stream->GetRemainingSizeToLimit() < sizeof(Discreet3DS::Chunk)){ \
+	if (stream->GetRemainingSizeToLimit() < Discreet3DS::chunkSize){ \
 		return;                                                          \
 	}                                                                    \
 	Discreet3DS::Chunk chunk;                                            \
 	ReadChunk(&chunk);                                                   \
-	int chunkSize = chunk.Size-sizeof(Discreet3DS::Chunk);	             \
+	int chunkSize = chunk.Size-Discreet3DS::chunkSize;	             \
     if(chunkSize <= 0)                                                   \
         continue;                                                        \
 	const int oldReadLimit = stream->GetReadLimit();                     \
@@ -234,10 +234,10 @@ void Discreet3DSImporter::ReadChunk(Discreet3DS::Chunk* pcOut)
 	pcOut->Flag = stream->GetI2();
 	pcOut->Size = stream->GetI4();
 
-	if (pcOut->Size - sizeof(Discreet3DS::Chunk) > stream->GetRemainingSize())
+	if (pcOut->Size - Discreet3DS::chunkSize > stream->GetRemainingSize())
 		throw DeadlyImportError("Chunk is too large");
 	
-	if (pcOut->Size - sizeof(Discreet3DS::Chunk) > stream->GetRemainingSizeToLimit())
+	if (pcOut->Size - Discreet3DS::chunkSize > stream->GetRemainingSizeToLimit())
 		DefaultLogger::get()->error("3DS: Chunk overflow");
 }
 
@@ -248,7 +248,7 @@ void Discreet3DSImporter::SkipChunk()
 	Discreet3DS::Chunk psChunk;
 	ReadChunk(&psChunk);
 	
-	stream->IncPtr(psChunk.Size-sizeof(Discreet3DS::Chunk));
+	stream->IncPtr(psChunk.Size-Discreet3DS::chunkSize);
 	return;
 }
 
@@ -1065,7 +1065,7 @@ void Discreet3DSImporter::ParseMeshChunk()
 
 		// Larger 3DS files could have multiple FACE chunks here
 		chunkSize = stream->GetRemainingSizeToLimit();
-		if ( chunkSize > (int) sizeof(Discreet3DS::Chunk ) )
+		if ( chunkSize > (int) Discreet3DS::chunkSize )
 			ParseFaceChunk();
 		}
 		break;
@@ -1342,7 +1342,7 @@ void Discreet3DSImporter::ParseColorChunk(aiColor3D* out,
 
 	Discreet3DS::Chunk chunk;
 	ReadChunk(&chunk);
-	const unsigned int diff = chunk.Size - sizeof(Discreet3DS::Chunk);
+	const unsigned int diff = chunk.Size - Discreet3DS::chunkSize;
 
 	bool bGamma = false;
 

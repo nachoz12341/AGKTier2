@@ -657,6 +657,13 @@ void agk::SetScreenResolution( int width, int height )
 	agk::SetWindowSize( width, height, 0 );
 }
 
+char* agk::GetURLSchemeText()
+//****
+{
+	char* str = new char[1]; *str = 0;
+	return str;
+}
+
 void agk::GetDeviceName( uString &outString )
 //****
 {

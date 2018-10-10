@@ -371,10 +371,11 @@ float agk::m_fGPSAltitude = 0;
 UINT agk::m_bSensorFlags = 0;
 
 // keyboard
-unsigned char agk::m_iPrevKeyDown[ 256 ] = { 0 };
-unsigned char agk::m_iKeyDown[ 256 ] = { 0 };
-unsigned char agk::m_iResetKey[ 256 ] = { 0 };
+unsigned char agk::m_iPrevKeyDown[ AGK_MAX_KEYS ] = { 0 };
+unsigned char agk::m_iKeyDown[ AGK_MAX_KEYS ] = { 0 };
+unsigned char agk::m_iResetKey[ AGK_MAX_KEYS ] = { 0 };
 unsigned int agk::m_iLastKey = 0;
+uString agk::m_sCharBuffer;
 
 // joystick
 cJoystick* agk::m_pJoystick[ AGK_NUM_JOYSTICKS ] = { 0 };
@@ -570,6 +571,7 @@ void agk::MasterReset()
 	agk::SetVirtualResolution( 100, 100 );
 	SetAntialiasMode( 0 );
 	SetPrintFont( 0 );
+	SetImmersiveMode( 0 );
 
 	SetShadowMappingMode( 0 );
 	SetShadowSmoothing( 1 );
@@ -959,9 +961,9 @@ void agk::MasterReset()
 	m_fGPSAltitude = 0;
 
 	// keyboard
-	for ( int i = 0; i < 256; i++ ) m_iPrevKeyDown[ i ] = 0;
-	for ( int i = 0; i < 256; i++ ) m_iKeyDown[ i ] = 0;
-	for ( int i = 0; i < 256; i++ ) m_iResetKey[ i ] = 0;
+	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iPrevKeyDown[ i ] = 0;
+	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iKeyDown[ i ] = 0;
+	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iResetKey[ i ] = 0;
 	m_iLastKey = 0;
 
 	// joystick
@@ -1362,7 +1364,7 @@ void agk::GPS( float longitude, float latitude, float altitude )
 
 void agk::KeyDown( UINT index )
 {
-	if ( index > 255 ) 
+	if ( index > AGK_MAX_KEYS-1 ) 
 	{
 		uString sErr( "KeyDown index out of range: ", 40 ); sErr += index;
 		agk::Warning( sErr );
@@ -1375,14 +1377,14 @@ void agk::KeyDown( UINT index )
 
 void agk::KeyUp( UINT index )
 {
-	if ( index > 255 ) 
+	if ( index > AGK_MAX_KEYS-1 ) 
 	{
 		uString sErr( "KeyUp index out of range: ", 40 ); sErr += index;
 		agk::Warning( sErr );
 		return;
 	}
     
-    if ( m_iPrevKeyDown[ index ] == 0 )
+    if ( m_iPrevKeyDown[ index ] == 0 && m_iKeyDown[ index ] == 1 )
 	{
 		// this means the down an up events have been sent at the same time and down hasn't had enough time to be picked up
 		m_iResetKey[ index ] = 1;
@@ -1400,6 +1402,8 @@ void agk::CharDown( UINT c )
 
 	m_iLastChar = 0;
 	m_iCurrChar = c;
+
+	if ( m_sCharBuffer.GetLength() < 1024 )	m_sCharBuffer.AppendUnicode( c );
 }
 
 void agk::JoystickAxis( void* pDevice, int stick, int axis, float value )
@@ -2017,9 +2021,9 @@ void agk::ResetAllStates ( void )
 	m_pPrintText->SetExtendedFontImage( pAsciiExt );
 
 	// input setup
-	for ( int i = 0; i < 256; i++ ) m_iPrevKeyDown[ i ] = 0;
-	for ( int i = 0; i < 256; i++ ) m_iKeyDown[ i ] = 0;
-	for ( int i = 0; i < 256; i++ ) m_iResetKey[ i ] = 0;
+	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iPrevKeyDown[ i ] = 0;
+	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iKeyDown[ i ] = 0;
+	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iResetKey[ i ] = 0;
 }
 
 //****f* Core/Display/SetSyncRate
@@ -3654,7 +3658,7 @@ void agk::UpdateInput()
 	}
     
 	m_iLastChar = m_iCurrChar;
-	for ( int i = 0; i < 256; i++ ) 
+	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) 
 	{
 		m_iPrevKeyDown[ i ] = m_iKeyDown[ i ];
 		// if the key has already been released and we have delayed it, release it now
@@ -14228,8 +14232,7 @@ UINT agk::GetRayCastSpriteID( )
 float agk::GetRayCastX()
 //****
 {
-	if ( g_RayCastCallback.m_sprite ) return agk::PhyToWorldX(g_RayCastCallback.m_point.x);
-	return 0.0f;
+	return agk::PhyToWorldX(g_RayCastCallback.m_point.x);
 }
 
 //****f* 2DPhysics/RayCast/GetRayCastY
@@ -14240,8 +14243,7 @@ float agk::GetRayCastX()
 float agk::GetRayCastY()
 //****
 {
-	if ( g_RayCastCallback.m_sprite ) return agk::PhyToWorldY(g_RayCastCallback.m_point.y);
-	return 0.0f;
+	return agk::PhyToWorldY(g_RayCastCallback.m_point.y);
 }
 
 //****f* 2DPhysics/RayCast/GetRayCastNormalX
@@ -14253,8 +14255,7 @@ float agk::GetRayCastNormalX()
 //****
 {
 	// use PhyToWorldY to convert X for normals
-	if ( g_RayCastCallback.m_sprite ) return agk::PhyToWorldY(g_RayCastCallback.m_normal.x);
-	return 0.0f;
+	return agk::PhyToWorldY(g_RayCastCallback.m_normal.x);
 }
 
 //****f* 2DPhysics/RayCast/GetRayCastNormalY
@@ -14266,8 +14267,7 @@ float agk::GetRayCastNormalY()
 //****
 {
 	// use PhyToWorldX to convert Y for normals
-	if ( g_RayCastCallback.m_sprite ) return agk::PhyToWorldX(g_RayCastCallback.m_normal.y);
-	return 0.0f;
+	return agk::PhyToWorldX(g_RayCastCallback.m_normal.y);
 }
 
 //****f* 2DPhysics/RayCast/GetRayCastFraction
@@ -14278,8 +14278,7 @@ float agk::GetRayCastNormalY()
 float agk::GetRayCastFraction()
 //****
 {
-	if ( g_RayCastCallback.m_sprite ) return g_RayCastCallback.m_fraction;
-	return 0.0f;
+	return g_RayCastCallback.m_fraction;
 }
 
 // non physics collision commands
@@ -14354,7 +14353,8 @@ int agk::GetSpriteInCircle( UINT iSprite, float x1, float y1, float radius )
 //   if the sprites overlap. This function is not limited by group or category settings.<br><br>
 //
 //   This function only operates on the sprite's base shape. Any additional shapes added to physics sprites will
-//   not be used in this function, use <i>GetPhysicsCollision</i> instead.<br><br>
+//   not be used in this function, use <i>GetPhysicsCollision</i> instead. Also Chain shapes will always return 
+//   no collision using this command, chain shapes are only used in physics calculations.<br><br>
 //
 //   If you have not assigned a shape to either sprite using <i>SetSpriteShape</i> they will use the default 
 //   box shape based on the sprite's width and height.
@@ -29194,6 +29194,33 @@ UINT agk::CreateNetworkMessage( )
 	return ID;
 }
 
+//****f* Multiplayer/Messages/CopyNetworkMessage
+// FUNCTION
+//   Creates a network message that is a copy of an existing message. It returns an ID that can be used to
+//   interact with the message. Messages created in this way can only be added to, not read from, but the 
+//   source messsage can be either a message you have created, or one you have received. The new message
+//   becomes completely independent of the source message and can be sent using <i>SendNetworkMessage</i>
+//   without affecting the original.
+// SOURCE
+UINT agk::CopyNetworkMessage( UINT iFromMsgID )
+//****
+{
+	cNetworkMessage *pMsg = m_cNetMessageList.GetItem( iFromMsgID );
+	if ( !pMsg )
+	{
+		uString err;
+		err.Format( "Failed to copy network message, Message ID %d does not exist", iFromMsgID );
+		agk::Error( err );
+		return 0;
+	}
+
+	UINT ID = m_cNetMessageList.GetFreeID();
+	cNetworkMessage *pNewMsg = new cNetworkMessage();
+	pNewMsg->CopyMessage( pMsg );
+	m_cNetMessageList.AddItem( pNewMsg, ID );
+	return ID;
+}
+
 //****f* Multiplayer/Messages/AddNetworkMessageInteger
 // FUNCTION
 //   Adds an integer to a previously created network message. This can only be called on messages created by 
@@ -31212,11 +31239,78 @@ float agk::GetRawJoystickRZ( UINT index )
 	return m_pJoystick[ index ]->GetRZ();
 }
 
+
+//****f* Input-Raw/Joysticks/GetRawJoystickSlider
+// FUNCTION
+//   Returns the current value of the joystick slider, this can vary based on joystick type. Currently the 
+//   slider index must be either 0 or 1. Sliders are typically used for additional axes.
+// INPUTS
+//   index -- The ID of the joystick to check.
+//   slider -- The index of the slider to check.
+// SOURCE
+int agk::GetRawJoystickSlider( UINT index, UINT slider )
+//****
+{
+	index--;
+	if ( index >= AGK_NUM_JOYSTICKS ) 
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Invalid joystick index, valid range is 1-8" );
+#endif
+		return 0;
+	}
+
+	if ( !m_pJoystick[ index ] )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Joystick %d does not exist", index );
+		agk::Error( err );
+#endif
+		return 0;
+	}
+
+	return m_pJoystick[ index ]->GetSlider( slider );
+}
+
+//****f* Input-Raw/Joysticks/GetRawJoystickPOV
+// FUNCTION
+//   Returns the current value of the joystick POV, this can vary based on joystick type. Currently the 
+//   POV index must be either 0, 1, 2, or 3
+// INPUTS
+//   index -- The ID of the joystick to check.
+//   pov -- The index of the POV to check.
+// SOURCE
+int agk::GetRawJoystickPOV( UINT index, UINT pov )
+//****
+{
+	index--;
+	if ( index >= AGK_NUM_JOYSTICKS ) 
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Invalid joystick index, valid range is 1-8" );
+#endif
+		return 0;
+	}
+
+	if ( !m_pJoystick[ index ] )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Joystick %d does not exist", index );
+		agk::Error( err );
+#endif
+		return 0;
+	}
+
+	return m_pJoystick[ index ]->GetPOV( pov );
+}
+
 //****f* Input-Raw/Joysticks/GetRawJoystickButtonPressed
 // FUNCTION
 //   Returns 1 if the given button was pressed this frame, otherwise returns 0. Once the button has been
 //   pressed this function returns to 0, to check the state of the button use <i>GetJoystickButtonState</i>.<br><br>
-//   AGK supports up to 32 joystick buttons in the range 1-32.
+//   AGK supports up to 64 joystick buttons in the range 1-64.
 // INPUTS
 //   index -- The ID of the joystick to check.
 //   button -- The ID of the button to check.
@@ -31234,10 +31328,10 @@ int agk::GetRawJoystickButtonPressed( UINT index, UINT button )
 	}
 
 	button--;
-	if ( button > 31 ) 
+	if ( button >= AGK_MAX_JOYSTICK_BUTTONS ) 
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Error( "Invalid joystick button index, valid range is 1-32" );
+		agk::Error( "Invalid joystick button index, valid range is 1-64" );
 #endif
 		return 0;
 	}
@@ -31259,7 +31353,7 @@ int agk::GetRawJoystickButtonPressed( UINT index, UINT button )
 // FUNCTION
 //   Returns 1 if the given button is currently down, otherwise returns 0. To detect the instance that a button
 //   is pressed or released use <i>GetRawJoystickButtonPressed</i> or <i>GetRawJoystickButtonReleased</i>.<br><br>
-//   AGK supports up to 32 joystick buttons in the range 1-32.
+//   AGK supports up to 64 joystick buttons in the range 1-64.
 // INPUTS
 //   index -- The ID of the joystick to check.
 //   button -- The ID of the button to check.
@@ -31277,10 +31371,10 @@ int agk::GetRawJoystickButtonState( UINT index, UINT button )
 	}
 
 	button--;
-	if ( button > 31 ) 
+	if ( button >= AGK_MAX_JOYSTICK_BUTTONS ) 
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Error( "Invalid joystick button index, valid range is 1-32" );
+		agk::Error( "Invalid joystick button index, valid range is 1-64" );
 #endif
 		return 0;
 	}
@@ -31302,7 +31396,7 @@ int agk::GetRawJoystickButtonState( UINT index, UINT button )
 // FUNCTION
 //   Returns 1 if the given button was released this frame, otherwise returns 0. Once the button has been
 //   released this function returns to 0, to check the state of the button use <i>GetRawJoystickButtonState</i>.<br><br>
-//   AGK supports up to 32 joystick buttons in the range 1-32.
+//   AGK supports up to 64 joystick buttons in the range 1-64.
 // INPUTS
 //   index -- The ID of the joystick to check.
 //   button -- The ID of the button to check.
@@ -31320,10 +31414,10 @@ int agk::GetRawJoystickButtonReleased( UINT index, UINT button )
 	}
 
 	button--;
-	if ( button > 31 ) 
+	if ( button >= AGK_MAX_JOYSTICK_BUTTONS ) 
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Error( "Invalid joystick button index, valid range is 1-32" );
+		agk::Error( "Invalid joystick button index, valid range is 1-64" );
 #endif
 		return 0;
 	}
@@ -32342,7 +32436,7 @@ void agk::SetVirtualButtonText( UINT index, const char *str )
 int agk::GetRawKeyPressed( UINT key )
 //****
 {
-	if ( key > 255 ) return 0;
+	if ( key > AGK_MAX_KEYS-1 ) return 0;
 	if ( !m_iPrevKeyDown[ key ] && m_iKeyDown[ key ] ) return 1;
 	return 0;
 }
@@ -32361,7 +32455,7 @@ int agk::GetRawKeyPressed( UINT key )
 int agk::GetRawKeyState( UINT key )
 //****
 {
-	if ( key > 255 ) return 0;
+	if ( key > AGK_MAX_KEYS-1 ) return 0;
 	return m_iKeyDown[ key ];
 }
 
@@ -32379,7 +32473,7 @@ int agk::GetRawKeyState( UINT key )
 int agk::GetRawKeyReleased( UINT key )
 //****
 {
-	if ( key > 255 ) return 0;
+	if ( key > AGK_MAX_KEYS-1 ) return 0;
 	if ( m_iPrevKeyDown[ key ] && !m_iKeyDown[ key ] ) return 1;
 	return 0;
 }
@@ -32387,7 +32481,7 @@ int agk::GetRawKeyReleased( UINT key )
 //****f* Input-Raw/Keyboard/GetRawLastKey
 // FUNCTION
 //   Returns the key code of the last key pressed. This only applies to platforms with a full sized
-//   keybboard such as PC and Mac. You can check if a keyboard exists by using <i>GetKeyboardExists</i>.
+//   keyboard such as PC, Mac, and Linux. You can check if a keyboard exists by using <i>GetKeyboardExists</i>.
 //   This function continue to return the last key pressed even when the key has been released.
 //   Check out the scan codes page in the guides section of the help files to see which key matches 
 //   which key code
@@ -32396,6 +32490,37 @@ int agk::GetRawLastKey( )
 //****
 {
 	return m_iLastKey;
+}
+
+//****f* Input-Raw/Keyboard/GetCharBuffer
+// FUNCTION
+//   Returns a string of all the characters pressed since the last time this command was called,
+//   after this command is called the buffer is cleared. This only works on devices with a physical 
+//   keyboard. The buffer is limited to 1024 characters, after which additional characters will be 
+//   ignored. In Tier 2 the string is encoded in UTF-8, and must be deleted with agk::DeleteString 
+//   when you are done with it.
+// SOURCE
+char* agk::GetCharBuffer()
+//****
+{
+	int length = m_sCharBuffer.GetLength();
+	char *str = new char[ length + 1 ];
+	if ( length > 0 ) strcpy( str, m_sCharBuffer.GetStr() );
+	str[ length ] = 0;
+
+	m_sCharBuffer.ClearTemp();
+	return str;
+}
+
+//****f* Input-Raw/Keyboard/GetCharBufferLength
+// FUNCTION
+//   Returns the current length of the char buffer wihtout modifying it. Note that this is the length 
+//   in characters, not bytes, which may be different when the string contains unicode characters.
+// SOURCE
+int agk::GetCharBufferLength()
+//****
+{
+	return m_sCharBuffer.GetLength();
 }
 
 //   AGK input

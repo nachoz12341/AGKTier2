@@ -289,6 +289,7 @@ cText::~cText()
 	if ( pIndices ) delete [] pIndices;
 
 	if ( m_pFTSizedFont ) m_pFTSizedFont->Release();
+	m_pFTSizedFont = 0;
 }
 
 void cText::SetSpriteManager( cSpriteMgrEx *pMgr )
@@ -1789,7 +1790,7 @@ bool cText::GetHitTest( float x, float y )
 	}
 
 	// scissor test
-	if ( m_fClipX != m_fClipX2 && m_fClipY != m_fClipY2 )
+	if ( m_fClipX2 != 0 || m_fClipX != 0 || m_fClipY != 0 || m_fClipY2 != 0 )
 	{
 		if ( x < m_fClipX || x > m_fClipX2 || y < m_fClipY || y > m_fClipY2 ) return false;
 	}
@@ -1858,7 +1859,7 @@ void cText::SetScissor( float x, float y, float x2, float y2 )
 
 void cText::GetClipValues( int &x, int &y, int &width, int &height )
 {
-	if ( (m_fClipX2 == m_fClipX) || (m_fClipY == m_fClipY2) )
+	if ( m_fClipX2 == 0 && m_fClipX == 0 && m_fClipY == 0 && m_fClipY2 == 0 )
 	{
 		x = 0;
 		y = 0;
@@ -1937,7 +1938,7 @@ void cText::Draw()
 	{
 		GetClipValues( iScissorX, iScissorY, iScissorWidth, iScissorHeight );
 		
-		if ( iScissorWidth > 0 && iScissorHeight > 0 )
+		if ( iScissorX != 0 || iScissorY != 0 || iScissorWidth != 0 || iScissorHeight != 0 )
 		{
 			agk::PlatformScissor( iScissorX, iScissorY, iScissorWidth, iScissorHeight );
 		}
@@ -1952,7 +1953,7 @@ void cText::Draw()
 
 	if ( (m_bFlags & AGK_TEXT_OVERRIDE_SCISSOR) == 0 )
 	{
-		if ( iScissorWidth > 0 && iScissorHeight > 0 )
+		if ( iScissorX != 0 || iScissorY != 0 || iScissorWidth != 0 || iScissorHeight != 0 )
 		{
 			agk::ResetScissor();
 		}

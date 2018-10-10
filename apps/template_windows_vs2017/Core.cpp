@@ -74,40 +74,107 @@ void Output( const char *szMsg )
 	WriteConsole ( hDebugConsoleOut, "\n", 1, &dwWritten, NULL );
 }
 
-unsigned int TranslateKey( unsigned int key )
+void AdditionalKeyDown( unsigned int key )
 {
 	switch( key )
 	{
-		case 20: key = 0; break; // Caps lock
-		case 120: key = 0; break; // F9
-		case 121: key = 0; break; // F10
-		case 122: key = 0; break; // F11
-		case 123: key = 0; break; // F12
-		case 18: key = 18; break; // Alt Gr
-		case 91: key = 0; break; // Windows key (left)
-		case 92: key = 0; break; // Windows key (right)
+		// Top row 0-9
+		case 48: agk::KeyDown(263); break;
+		case 49: agk::KeyDown(264); break;
+		case 50: agk::KeyDown(265); break;
+		case 51: agk::KeyDown(266); break;
+		case 52: agk::KeyDown(267); break;
+		case 53: agk::KeyDown(268); break;
+		case 54: agk::KeyDown(269); break;
+		case 55: agk::KeyDown(270); break;
+		case 56: agk::KeyDown(271); break;
+		case 57: agk::KeyDown(272); break;
 
 		// Num pad 0-9
-		case 96:
-		case 97: 
-		case 98: 
-		case 99: 
-		case 100: 
-		case 101: 
-		case 102: 
-		case 103: 
-		case 104: 
-		case 105: key -= 48; break;
+		case 96: agk::KeyDown(48); break;
+		case 97: agk::KeyDown(49); break;
+		case 98: agk::KeyDown(50); break;
+		case 99: agk::KeyDown(51); break;
+		case 100: agk::KeyDown(52); break;
+		case 101: agk::KeyDown(53); break;
+		case 102: agk::KeyDown(54); break;
+		case 103: agk::KeyDown(55); break;
+		case 104: agk::KeyDown(56); break;
+		case 105: agk::KeyDown(57); break;
 
-		case 111: key = 192; break; // Num pad /
-		case 109: key = 189; break; // Num pad -
-		case 110: key = 190; break; // Num pad .
+		case 16: // shift
+		{
+			if ( GetAsyncKeyState( VK_LSHIFT ) & 0x8000 ) agk::KeyDown( 257 );
+			if ( GetAsyncKeyState( VK_RSHIFT ) & 0x8000 ) agk::KeyDown( 258 );
+			break;
+		}
 
-		case 144: key = 0; break;  // Num lock
-		case 19: key = 0; break;  // pause/break
+		case 17: // ctrl
+		{
+			if ( GetAsyncKeyState( VK_LCONTROL ) & 0x8000 ) agk::KeyDown( 259 );
+			if ( GetAsyncKeyState( VK_RCONTROL ) & 0x8000 ) agk::KeyDown( 260 );
+			break;
+		}
+
+		case 18: // alt
+		{
+			if ( GetAsyncKeyState( VK_LMENU ) & 0x8000 ) agk::KeyDown( 261 );
+			if ( GetAsyncKeyState( VK_RMENU ) & 0x8000 ) agk::KeyDown( 262 );
+			break;
+		}
 	}
+}
 
-	return key;
+void AdditionalKeyUp( unsigned int key )
+{
+	switch( key )
+	{
+		// Top row 0-9
+		case 48: agk::KeyUp(263); break;
+		case 49: agk::KeyUp(264); break;
+		case 50: agk::KeyUp(265); break;
+		case 51: agk::KeyUp(266); break;
+		case 52: agk::KeyUp(267); break;
+		case 53: agk::KeyUp(268); break;
+		case 54: agk::KeyUp(269); break;
+		case 55: agk::KeyUp(270); break;
+		case 56: agk::KeyUp(271); break;
+		case 57: agk::KeyUp(272); break;
+
+		// Num pad 0-9
+		case 96: agk::KeyUp(48); break;
+		case 97: agk::KeyUp(49); break;
+		case 98: agk::KeyUp(50); break;
+		case 99: agk::KeyUp(51); break;
+		case 100: agk::KeyUp(52); break;
+		case 101: agk::KeyUp(53); break;
+		case 102: agk::KeyUp(54); break;
+		case 103: agk::KeyUp(55); break;
+		case 104: agk::KeyUp(56); break;
+		case 105: agk::KeyUp(57); break;
+
+		// note that shift keyup is not always triggered if both keys are down, so the lib does its own check
+		case 16: // shift
+		{
+			if ( (GetAsyncKeyState( VK_LSHIFT ) & 0x8000) == 0 ) agk::KeyUp( 257 );
+			if ( (GetAsyncKeyState( VK_RSHIFT ) & 0x8000) == 0 ) agk::KeyUp( 258 );
+			break;
+		}
+
+		case 17: // ctrl
+		{
+			if ( (GetAsyncKeyState( VK_LCONTROL ) & 0x8000) == 0 ) agk::KeyUp( 259 );
+			if ( (GetAsyncKeyState( VK_RCONTROL ) & 0x8000) == 0 ) agk::KeyUp( 260 );
+			break;
+		}
+
+		case 18: // alt
+		{
+			if ( (GetAsyncKeyState( VK_LMENU ) & 0x8000) == 0 ) agk::KeyUp( 261 );
+			if ( (GetAsyncKeyState( VK_RMENU ) & 0x8000) == 0 ) agk::KeyUp( 262 );
+			break;
+		}
+	}
 }
 
 bool g_bShouldBeTopMost = false;
@@ -454,6 +521,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				agk::MouseMiddleButton( 0, 0 );
 				if ( g_bShouldBeTopMost ) ::SetWindowPos( g_hWnd, HWND_NOTOPMOST, 0,0,0,0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSENDCHANGING | SWP_NOSIZE );
 				agk::Paused();
+				agk::KeyUp( 18 ); // Alt key up in case Alt-Tab was used
 			}
 			agk::WindowMoved();
 			return DefWindowProc(hWnd, message, wParam, lParam);
@@ -480,29 +548,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				ShowCursor( TRUE );
 			}
 #endif
-			unsigned int key = TranslateKey( wParam );
-			if ( key > 0 )
-			{
-				agk::KeyDown( key );
-			}
+			AdditionalKeyDown( wParam );
+			if ( wParam > 0 ) agk::KeyDown( wParam );			
 			
 			/*
 			uString sKey;
 			sKey.Format( "Key: %d", wParam );
 			agk::Warning( sKey );
 			*/
-
-			//if ( wParam == VK_ESCAPE ) PostQuitMessage(0);
 			break;
 		}
 
 		case WM_KEYUP:
 		{
-			unsigned int key = TranslateKey( wParam );
-			if ( key > 0 )
-			{
-				agk::KeyUp( key );
-			}
+			AdditionalKeyUp( wParam );
+			if ( wParam > 0 ) agk::KeyUp( wParam );
 			break;
 		}
 
@@ -521,23 +581,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_SYSKEYDOWN:
 		{
-			//if ( wParam == VK_MENU ) agk::KeyDown( 18 ); // Alt
-			unsigned int key = TranslateKey( wParam );
-			if ( key > 0 )
-			{
-				agk::KeyDown( key );
-			}
+			AdditionalKeyDown( wParam );
+			if ( wParam > 0 ) agk::KeyDown( wParam );	
 			break;
 		}
 
 		case WM_SYSKEYUP:
 		{
-			//if ( wParam == VK_MENU ) agk::KeyUp( 18 ); // Alt
-			unsigned int key = TranslateKey( wParam );
-			if ( key > 0 )
-			{
-				agk::KeyUp( key );
-			}
+			AdditionalKeyUp( wParam );
+			if ( wParam > 0 ) agk::KeyUp( wParam );
 			break;
 		}
 

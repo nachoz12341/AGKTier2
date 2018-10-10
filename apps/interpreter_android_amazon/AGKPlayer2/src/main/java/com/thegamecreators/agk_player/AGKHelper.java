@@ -56,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 import android.content.SharedPreferences;
 import android.graphics.SurfaceTexture;
@@ -254,7 +255,16 @@ class RunnableKeyboard implements Runnable
 			{
 				if ( AGKHelper.mTextInput != null )
 				{
-					if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
+					if ( cursorpos >= 0 )
+					{
+						try {
+							AGKHelper.mTextInput.setSelection(cursorpos);
+						}
+						catch( IndexOutOfBoundsException e )
+						{
+							Log.w("Keyboard", "SetCursor index out of bounds: " + cursorpos);
+						}
+					}
 				}
 				break;
 			}
@@ -1861,6 +1871,8 @@ class AGKSpeechListener  implements TextToSpeech.OnInitListener, TextToSpeech.On
 // Entry point for all AGK Helper calls
 public class AGKHelper {
 
+	static String g_sLastURI = null;
+
 	static int m_iGameCenterUsed = 0;
 	static int m_iGameCenterLoggedIn = 0;
 	static String m_sGameCenterPlayerID = "";
@@ -2025,6 +2037,11 @@ public class AGKHelper {
 			if (Build.VERSION.SDK_INT >= 24) mMediaRecorder.pause();
 			else StopScreenRecording();
 		}
+	}
+
+	public static String GetLastURIText()
+	{
+		return (g_sLastURI == null) ? "" : g_sLastURI;
 	}
 
 	public static int HasFirebase() { return 0; }
@@ -3108,11 +3125,23 @@ public class AGKHelper {
 	{
 		return act.getWindowManager().getDefaultDisplay().getRotation();
 	}
-	
+
 	public static String GetDeviceID(Activity nativeactivityptr)
 	{
 		// This ID will remain constant for this device until a factory reset is performed
-		String uuid = Secure.getString(nativeactivityptr.getContentResolver(), Secure.ANDROID_ID);		
+		String uuid = Secure.getString(nativeactivityptr.getContentResolver(), Secure.ANDROID_ID);
+		if ( uuid == null || uuid.equals("") )
+		{
+			SharedPreferences sharedPrefs = nativeactivityptr.getSharedPreferences( "PREF_UNIQUE_ID", Context.MODE_PRIVATE);
+			uuid = sharedPrefs.getString( "PREF_UNIQUE_ID", null);
+
+			if (uuid == null || uuid.equals("")) {
+				uuid = UUID.randomUUID().toString();
+				SharedPreferences.Editor editor = sharedPrefs.edit();
+				editor.putString("PREF_UNIQUE_ID", uuid);
+				editor.commit();
+			}
+		}
 		return uuid;
 	}
 

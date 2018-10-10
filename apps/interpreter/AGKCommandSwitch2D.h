@@ -9902,3 +9902,42 @@ case AGKI_GETEDITBOXDEPTH_L_L:
     m_pStack[ m_iStackPtr++ ].i = agk::GetEditBoxDepth( param0 );
     break;
 }
+case AGKI_GETCHARBUFFER_S_0:
+{
+    char *szReturnStr = agk::GetCharBuffer( );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_GETCHARBUFFERLENGTH_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetCharBufferLength( );
+    break;
+}
+case AGKI_GETRAWJOYSTICKSLIDER_L_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawJoystickSlider( param0, param1 );
+    break;
+}
+case AGKI_GETRAWJOYSTICKPOV_L_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawJoystickPOV( param0, param1 );
+    break;
+}
+case AGKI_COPYNETWORKMESSAGE_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::CopyNetworkMessage( param0 );
+    break;
+}
+case AGKI_GETURLSCHEMETEXT_S_0:
+{
+    char *szReturnStr = agk::GetURLSchemeText( );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}

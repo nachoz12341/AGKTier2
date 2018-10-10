@@ -923,7 +923,7 @@ bool cSprite::GetHitTest( float x, float y )
 	}
 
 	// scissor test
-	if ( m_fClipX != m_fClipX2 && m_fClipY != m_fClipY2 )
+	if ( GetScissorOn() )
 	{
 		if ( x < m_fClipX || x > m_fClipX2 || y < m_fClipY || y > m_fClipY2 ) return false;
 	}
@@ -1027,7 +1027,12 @@ int cSprite::GetPlaying( )
 
 bool cSprite::GetScissorOn( )
 {
-	return (m_fClipX2 != m_fClipX) && (m_fClipY2 != m_fClipY);
+	if ( m_fClipX2 != 0 ) return true;
+	if ( m_fClipX != 0 )  return true;
+	if ( m_fClipY2 != 0 ) return true;
+	if ( m_fClipY != 0 ) return true;
+
+	return false;
 }
 
 
@@ -2923,7 +2928,7 @@ void cSprite::SetScissor( float x, float y, float x2, float y2 )
 
 void cSprite::GetClipValues( int &x, int &y, int &width, int &height )
 {
-	if ( (m_fClipX2 == m_fClipX) || (m_fClipY == m_fClipY2) )
+	if ( m_fClipX2 == 0 && m_fClipX == 0 && m_fClipY == 0 && m_fClipY2 == 0 )
 	{
 		x = 0;
 		y = 0;
@@ -3303,7 +3308,7 @@ void cSprite::PlatformDraw( float *vertices, float *uv, unsigned char *color )
 
 	int iScissorX, iScissorY, iScissorWidth, iScissorHeight;
 	GetClipValues( iScissorX, iScissorY, iScissorWidth, iScissorHeight );
-	if ( iScissorWidth != 0 && iScissorHeight != 0 )
+	if ( iScissorX != 0 || iScissorY != 0 || iScissorWidth != 0 || iScissorHeight != 0 )
 	{
 		agk::PlatformScissor( iScissorX, iScissorY, iScissorWidth, iScissorHeight );
 	}

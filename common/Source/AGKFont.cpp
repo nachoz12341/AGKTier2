@@ -40,7 +40,7 @@ AGKFontImage::~AGKFontImage()
 void AGKFontImage::Release() 
 { 
 	m_iRefCount--; 
-	if ( m_iRefCount < 0 ) agk::Error("Released font image too many times"); 
+	if ( m_iRefCount < 0 ) agk::Warning("Released font image too many times"); 
 }
 
 float AGKFontImage::GetDisplayAdvanceX() const
@@ -121,7 +121,7 @@ AGKSizedFont::~AGKSizedFont()
 void AGKSizedFont::Release() 
 { 
 	m_iRefCount--; 
-	if ( m_iRefCount < 0 ) agk::Error("Released font too many times"); 
+	if ( m_iRefCount < 0 ) agk::Warning("Released font too many times"); 
 }
 
 void AGKSizedFont::SetSize( int height )
@@ -308,7 +308,7 @@ int AGKSizedFont::AddToMainImage( AGKFontImage* pNewFontImage )
 
 				if ( pFontImage->m_pImage->GetParent() == m_pCurrImage )
 				{
-					if ( pFontImage->m_iRefCount == 0 && pFontImage->m_iUnicodeValue > 127 )
+					if ( pFontImage->m_iRefCount <= 0 && pFontImage->m_iUnicodeValue > 127 )
 					{
 						// not being used, so get rid of it
 						m_CharImages.RemoveItem( pFontImage->m_iCharIndex );
@@ -645,7 +645,7 @@ AGKSizedFont* AGKFont::GetSizedFont( int size )
 	pSizedFont = m_SizedFonts.GetFirst();
 	while ( pSizedFont )
 	{
-		if ( pSizedFont->m_iRefCount == 0 )
+		if ( pSizedFont->m_iRefCount <= 0 )
 		{
 			if ( pSizedFont->GetSize() * pSizedFont->m_iUnusedCount > 75 )
 			{

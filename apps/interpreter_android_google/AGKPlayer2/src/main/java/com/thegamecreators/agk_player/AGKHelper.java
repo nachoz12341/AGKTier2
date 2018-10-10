@@ -104,6 +104,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 import android.media.MediaRecorder;
 import android.media.projection.MediaProjection;
@@ -321,7 +322,16 @@ class RunnableKeyboard implements Runnable
 			{
 				if ( AGKHelper.mTextInput != null )
 				{
-					if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
+					if ( cursorpos >= 0 )
+					{
+						try {
+							AGKHelper.mTextInput.setSelection(cursorpos);
+						}
+						catch( IndexOutOfBoundsException e )
+						{
+							Log.w("Keyboard", "SetCursor index out of bounds: " + cursorpos);
+						}
+					}
 				}
 				break;
 			}
@@ -2116,6 +2126,7 @@ public class AGKHelper {
 	static int immersiveMode = 0; // 0 = show nav bar, 1 = hide nav bar
 	static int listenerSet = 0;
 	static Activity g_pImmersiveAct = null;
+	public static String g_sLastURI = null;
 
 	static MediaProjectionManager mMediaProjectionManager = null;
 	static MediaRecorder mMediaRecorder = null;
@@ -2225,7 +2236,8 @@ public class AGKHelper {
 
 		if ( g_CloudRefreshTimer != null && g_CloudRefreshTask != null )
 		{
-			g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000);
+			try { g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000); }
+			catch( IllegalStateException e ) {}
 		}
 
 		if ( mExpansionClient != null )
@@ -2292,9 +2304,18 @@ public class AGKHelper {
 
 		StopSpeaking();
 
-		if (  g_CloudRefreshTimer != null ) g_CloudRefreshTimer.cancel();
+		if (  g_CloudRefreshTimer != null )
+		{
+			try { g_CloudRefreshTimer.cancel(); }
+			catch( IllegalStateException e ) {}
+		}
 
 		if ( mExpansionClient != null ) mExpansionClient.unregister( act );
+	}
+
+	public static String GetLastURIText()
+	{
+		return (g_sLastURI == null) ? "" : g_sLastURI;
 	}
 
 	public static int HasFirebase() { return 1; }
@@ -3515,7 +3536,19 @@ public class AGKHelper {
 	public static String GetDeviceID(Activity nativeactivityptr)
 	{
 		// This ID will remain constant for this device until a factory reset is performed
-		String uuid = Secure.getString(nativeactivityptr.getContentResolver(), Secure.ANDROID_ID);		
+		String uuid = Secure.getString(nativeactivityptr.getContentResolver(), Secure.ANDROID_ID);
+		if ( uuid == null || uuid.equals("") )
+		{
+			SharedPreferences sharedPrefs = nativeactivityptr.getSharedPreferences( "PREF_UNIQUE_ID", Context.MODE_PRIVATE);
+			uuid = sharedPrefs.getString( "PREF_UNIQUE_ID", null);
+
+			if (uuid == null || uuid.equals("")) {
+				uuid = UUID.randomUUID().toString();
+				SharedPreferences.Editor editor = sharedPrefs.edit();
+				editor.putString("PREF_UNIQUE_ID", uuid);
+				editor.commit();
+			}
+		}
 		return uuid;
 	}
 
@@ -3845,22 +3878,40 @@ public class AGKHelper {
 	// ******************
 	
 	public static String GCM_PNRegID = "";
+	public static String FCM_Sender_ID = "";
 	
 	public static void setPushNotificationKeys( String key1, String key2 )
 	{
-
+		switch( key1 )
+		{
+			case "SenderID": FCM_Sender_ID = key2;
+		}
 	}
 	
 	public static int registerPushNotification( Activity nativeactivityptr )
 	{
-		GCM_PNRegID = FirebaseInstanceId.getInstance().getToken();
-		Log.e( "Push Token", ": " + GCM_PNRegID );
-		return 1;
+		if ( FCM_Sender_ID == null || FCM_Sender_ID.equals("") )
+		{
+			ShowMessage( nativeactivityptr, "You must call SetPushNotificationKeys before calling PushNotificationSetup" );
+			return 0;
+		}
+
+		try
+		{
+			GCM_PNRegID = FirebaseInstanceId.getInstance().getToken(FCM_Sender_ID, "FCM");
+			Log.e( "Push Token", "Token: " + GCM_PNRegID );
+			return 1;
+		}
+		catch( IOException e )
+		{
+			Log.e( "Push Token", "Failed to get push token: " + e.toString() );
+			return 0;
+		}
 	}
 	
 	public static String getPNRegID()
 	{
-		if ( GCM_PNRegID == null ) return "";
+		if ( GCM_PNRegID == null ) return "Error";
 		else return GCM_PNRegID;
 	}
 	

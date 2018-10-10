@@ -528,10 +528,18 @@ void cJoystick::Zero()
 	m_fRY = 0;
 	m_fRZ = 0;
 
+	m_iSlider[ 0 ] = 0;
+	m_iSlider[ 1 ] = 0;
+
+	m_iPOV[ 0 ] = 0;
+	m_iPOV[ 1 ] = 0;
+	m_iPOV[ 2 ] = 0;
+	m_iPOV[ 3 ] = 0;
+
 	m_iNumButtons = 0;
-	for ( UINT i = 0; i < 32; i++ ) m_iPrevButtons[ i ] = 0;
-	for ( UINT i = 0; i < 32; i++ ) m_iButtons[ i ] = 0;
-	for ( UINT i = 0; i < 32; i++ ) m_iResetButtons[ i ] = 0;
+	for ( UINT i = 0; i < AGK_MAX_JOYSTICK_BUTTONS; i++ ) m_iPrevButtons[ i ] = 0;
+	for ( UINT i = 0; i < AGK_MAX_JOYSTICK_BUTTONS; i++ ) m_iButtons[ i ] = 0;
+	for ( UINT i = 0; i < AGK_MAX_JOYSTICK_BUTTONS; i++ ) m_iResetButtons[ i ] = 0;
 }
 
 cJoystick::cJoystick( void *pDevice )
@@ -585,9 +593,21 @@ float cJoystick::GetRZ()
 	else return m_fRZ; 
 }
 
+int cJoystick::GetSlider( UINT slider )
+{
+	if ( slider > 1 ) return 0;
+	return m_iSlider[ slider ];
+}
+
+int cJoystick::GetPOV( UINT pov )
+{
+	if ( pov > 1 ) return 0;
+	return m_iPOV[ pov ];
+}
+
 void cJoystick::Update()
 {
-	for ( UINT i = 0; i < 32; i++ ) 
+	for ( UINT i = 0; i < AGK_MAX_JOYSTICK_BUTTONS; i++ ) 
 	{
 		m_iPrevButtons[ i ] = m_iButtons[ i ];
 

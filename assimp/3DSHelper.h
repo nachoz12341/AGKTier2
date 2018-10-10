@@ -68,8 +68,9 @@ public:
 	{
 		uint16_t	Flag;
 		uint32_t	Size;
-	} PACK_STRUCT;
+	};
 
+	static const unsigned int chunkSize = 6;
 
 	//! Used for shading field in material3ds structure
 	//! From AutoDesk 3ds SDK

@@ -130,6 +130,12 @@ BOOL g_bDisplayLinkReady = FALSE;
     return YES;
 }
 
+-(BOOL)prefersHomeIndicatorAutoHidden
+{
+    // set by SetImmersiveMode
+    return agk::GetInternalDataI(0) ? YES : NO;
+}
+
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
     //NSLog(@"Orientation Changed");
@@ -138,7 +144,24 @@ BOOL g_bDisplayLinkReady = FALSE;
 
 - (BOOL) prefersStatusBarHidden
 {
-    return YES;
+    /*
+    if (@available(iOS 11.0, *))
+    {
+        UIWindow *window = UIApplication.sharedApplication.keyWindow;
+        CGFloat topPadding = window.safeAreaInsets.top;
+        if ( topPadding > 0 )
+        {
+            return agk::GetInternalDataI(0) ? YES : NO;
+        }
+        else
+        {
+            return YES;
+        }
+    }
+    else */
+    {
+        return YES;
+    }
 }
 
 - (void)dealloc

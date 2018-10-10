@@ -201,3 +201,8 @@ using namespace AGK;
  @implementation FIRApp : NSObject @end
  @implementation FIRAnalytics : NSObject @end
  */
+
+#if defined(__i386__) || defined(__x86_64__)
+@implementation PACConsentForm : NSObject @end
+@implementation PACConsentInformation : NSObject @end
+#endif

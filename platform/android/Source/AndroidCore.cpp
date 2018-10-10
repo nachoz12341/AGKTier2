@@ -120,8 +120,6 @@ namespace AGK
 	
 	// an audio player that plays nothing to force the android volume control buttons to media mode
 	SLObjectItf pTempPlayer = NULL;
-	SLPlayItf pTempPlayerPlay = 0;
-	SLAndroidSimpleBufferQueueItf pTempPlayerQueue = 0;
 	bool g_bTempFinished = false;
 	unsigned char *pSilence = 0;
 	
@@ -446,6 +444,37 @@ void agk::SetScreenResolution( int width, int height )
     __android_log_print( ANDROID_LOG_ERROR, "native-activity", "%s", sMsg.GetStr() );
 
 	g_iUpdateSurface = 1;
+}
+
+char* agk::GetURLSchemeText()
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetLastURIText", "()Ljava/lang/String;" );
+
+	// call our java class method
+	jstring text = (jstring) lJNIEnv->CallStaticObjectMethod( AGKHelper, method );
+
+	jboolean bCopy;
+	const char* sText = lJNIEnv->GetStringUTFChars( text, &bCopy );
+
+	char *str = new char[ strlen(sText)+1 ];
+	strcpy( str, sText );
+
+	lJNIEnv->ReleaseStringUTFChars( text, sText );
+	lJNIEnv->DeleteLocalRef( text );
+
+	vm->DetachCurrentThread();
+
+	return str;
 }
 
 void agk::GetDeviceName( uString &outString )
@@ -932,11 +961,11 @@ bool agk::PlatformGetDeviceID( uString &out )
 	const char* sDeviceID = lJNIEnv->GetStringUTFChars( devicestring, &bCopy );
 	
 	out.SetStr( "" );
-	if ( !sDeviceID || strlen(sDeviceID) < 16 ) return false;	
+	if ( !sDeviceID || strlen(sDeviceID) < 1 ) return false;	
 	
 	unsigned int result[ 5 ];
 	SHA1 sha;
-	sha.Input( sDeviceID, 16 );
+	sha.Input( sDeviceID, strlen(sDeviceID) );
 	sha.Result( &(result[0]) );
 	out.Format( "%08X%08X%08X%08X%08X", result[0], result[1], result[2], result[3], result[4] );
 	
@@ -1101,12 +1130,17 @@ void agk::PlatformUpdateWritePath()
 			strcat( szWriteDir, sModule );
 			strcat( szWriteDir, "/" );
 
-			chdir( internal );
-			if ( chdir( sModule ) < 0 )
+			int fd = open( internal, O_RDONLY | O_CLOEXEC );
+			int newFd = openat( fd, sModule, O_RDONLY | O_CLOEXEC );
+			if ( newFd >= 0 )
 			{
-				mkdir( sModule, 0777 );
-				chdir( sModule );
+				close( newFd );
 			}
+			else
+			{
+				mkdirat( fd, sModule, 0777 );
+			}
+			close( fd );
 		}
 	}
 	else
@@ -1121,12 +1155,17 @@ void agk::PlatformUpdateWritePath()
 			strcat( szWriteDir, sModule );
 			strcat( szWriteDir, "/" );
 
-			chdir( internal );
-			if ( chdir( sModule ) < 0 )
+			int fd = open( szWriteDir, O_RDONLY | O_CLOEXEC );
+			int newFd = openat( fd, sModule, O_RDONLY | O_CLOEXEC );
+			if ( newFd >= 0 )
 			{
-				mkdir( sModule, 0777 );
-				chdir( sModule );
+				close( newFd );
 			}
+			else
+			{
+				mkdirat( fd, sModule, 0777 );
+			}
+			close( fd );
 		}
 	}
 	
@@ -4379,47 +4418,7 @@ void cSoundMgr::PlatformInit()
 		// no longer play the temp player, was only used to force the volume buttons to set the media volume instead 
 		// of notification volume, but Android now has an option to do this in the volume control
 		// we still need it to work out the max/min payback rates though
-		/*
-		// get the play interface
-		result = (*pTempPlayer)->GetInterface(pTempPlayer, SL_IID_PLAY, &(pTempPlayerPlay));
-		if ( result != SL_RESULT_SUCCESS)
-		{
-			agk::Warning( "Failed to get temp audio player interface" );
-			return;
-		}
 		
-		// get the buffer queue interface
-		result = (*pTempPlayer)->GetInterface(pTempPlayer, SL_IID_ANDROIDSIMPLEBUFFERQUEUE , &pTempPlayerQueue);
-		if ( result != SL_RESULT_SUCCESS)
-		{
-			agk::Warning( "Failed to get temp audio player buffer" );
-			return;
-		}
-		
-		result = (*pTempPlayerPlay)->RegisterCallback(pTempPlayerPlay, &TempSoundEventCallback, (void*)(pTempPlayerQueue) );
-		if ( result != SL_RESULT_SUCCESS )
-		{
-			agk::Warning( "Failed to set temp sound callback" );
-			return;
-		}
-
-		result = (*pTempPlayerPlay)->SetCallbackEventsMask( pTempPlayerPlay, SL_PLAYEVENT_HEADATEND );
-		if ( result != SL_RESULT_SUCCESS )
-		{
-			agk::Warning( "Failed to set temp sound callback flags" );
-			return;
-		}
-
-		if ( pSilence == 0 ) pSilence = new unsigned char[ 16000 ];
-		for ( int i = 0; i < 16000; i++ ) pSilence[ i ] = 0;
-		
-		result = (*pTempPlayerQueue)->Enqueue( pTempPlayerQueue, pSilence, 16000 );
-		if ( result != SL_RESULT_SUCCESS)
-		{
-			agk::Warning( "Failed to queue temp audio buffer" );
-		}
-		*/
-
 		SLPlaybackRateItf rateIf;
 		SLpermille min, max, step;
 		SLuint32 caps;
@@ -4434,16 +4433,6 @@ void cSoundMgr::PlatformInit()
 		m_fMaxPlaybackRate = max/1000.0f;
 		m_fStepPlaybackRate = step/1000.0f;
 		
-		/*
-		// set the player's state to playing
-		result = (*pTempPlayerPlay)->SetPlayState(pTempPlayerPlay, SL_PLAYSTATE_PLAYING);
-		if ( result != SL_RESULT_SUCCESS)
-		{
-			agk::Warning( "Failed to play temp audio player" );
-			return;
-		}
-		*/
-
 		(*pTempPlayer)->Destroy( pTempPlayer );
 		pTempPlayer = 0;
 	}
@@ -4477,20 +4466,6 @@ void cSoundMgr::PlatformAddFile( cSoundFile *pSound )
 
 void cSoundMgr::PlatformUpdate()
 {
-	// no longer use the temp player
-	/*
-	if ( g_bTempFinished )
-	{
-		g_bTempFinished = false;
-		
-		SLresult result = (*pTempPlayerQueue)->Enqueue( pTempPlayerQueue, pSilence, 16000 );
-		if ( result != SL_RESULT_SUCCESS)
-		{
-			agk::Warning( "Failed to queue temp audio buffer 2" );
-		}
-	}
-	*/
-	
 	// check music
 	if ( g_bMusicFinished )
 	{
@@ -4652,16 +4627,7 @@ void cSoundMgr::PlatformCleanUp()
 		delete pSound;
 	}
 
-	if ( pTempPlayerPlay ) (*pTempPlayerPlay)->SetPlayState(pTempPlayerPlay, SL_PLAYSTATE_STOPPED);
-	pTempPlayerPlay = 0;
-
-	if ( pTempPlayerQueue ) (*pTempPlayerQueue)->Clear( pTempPlayerQueue );
-	pTempPlayerQueue = 0;
-
-	if ( pTempPlayer ) (*pTempPlayer)->Destroy( pTempPlayer );
-	pTempPlayer = 0;
-	
-    if ( outputMixObject ) (*outputMixObject)->Destroy( outputMixObject );
+	if ( outputMixObject ) (*outputMixObject)->Destroy( outputMixObject );
 	outputMixObject = 0;
 	 
 	if ( engineObject ) (*engineObject)->Destroy( engineObject );
@@ -6056,15 +6022,37 @@ int agk::PlatformCreateRawPath( const char* path )
 		return 0;
 	}
 
-	const char *origPath = path;
-
-	chdir( "/" );
-	path++;
-
 	uString sPath( path );
 	sPath.Replace( '\\', '/' );
+	sPath.Trunc( '/' );
+	if ( sPath.GetLength() == 0 ) sPath.SetStr( "/" );
+
+	int fd = open( sPath.GetStr(), O_RDONLY | O_CLOEXEC );
+	if ( fd >= 0 ) 
+	{
+		close( fd );
+		return 1; // already exists
+	}
+
+	int found = 0;
+	do
+	{
+		sPath.Trunc( '/' );
+		if ( sPath.GetLength() == 0 ) sPath.SetStr( "/" );
+		fd = open( sPath.GetStr(), O_RDONLY | O_CLOEXEC );
+		if ( fd >= 0 ) found = 1;
+	} while( sPath.GetLength() > 1 && !found );
 	
-	const char *szRemaining = sPath.GetStr();
+	if ( !found )
+	{
+		uString err; err.Format( "Failed to create path \"%s\", the app may not have permissions to create folders in the part that exists", path );
+		agk::Error( err );
+		return 0;
+	}
+
+	uString sPath2( path );
+	sPath2.Replace( '\\', '/' );
+	const char *szRemaining = sPath2.GetStr() + sPath.GetLength() + 1;
 	const char *szSlash;
 	char szFolder[ MAX_PATH ];
 	while ( (szSlash = strchr( szRemaining, '/' )) )
@@ -6072,7 +6060,7 @@ int agk::PlatformCreateRawPath( const char* path )
 		UINT length = (UINT)(szSlash-szRemaining);
 		if ( length == 0 )
 		{
-			uString err; err.Format( "Invalid path \"%s\", folder names must have at least one character", origPath );
+			uString err; err.Format( "Invalid path \"%s\", folder names must have at least one character", path );
 			agk::Error( err );
 			return 0;
 		}
@@ -6080,21 +6068,26 @@ int agk::PlatformCreateRawPath( const char* path )
 		strncpy( szFolder, szRemaining, length );
 		szFolder[ length ] = '\0';
 
-		if ( chdir( szFolder ) < 0 )
+		int newFd = openat( fd, szFolder, O_RDONLY | O_CLOEXEC );
+		if ( newFd < 0 )
 		{
-			mkdir( szFolder, 0777 );
-			if ( chdir( szFolder ) < 0 )
+			mkdirat( fd, szFolder, 0777 );
+			newFd = openat( fd, szFolder, O_RDONLY | O_CLOEXEC );
+			if ( newFd < 0 )
 			{
-				uString err; err.Format( "Failed to create folder \"%s\" in path \"%s\", the app may not have permission to create it", szFolder, origPath );
+				uString err; err.Format( "Failed to create folder \"%s\" in path \"%s\", the app may not have permission to create it", szFolder, path );
 				agk::Error( err );
 				return 0;
 			}
 		}
 
+		close( fd );
+		fd = newFd;
+
 		szRemaining = szSlash+1;
 	}
 
-	chdir( szWriteDir );
+	close( fd );
 
 	return 1;
 }
@@ -7198,15 +7191,8 @@ void agk::DeleteFolder( const char* szName )
 	{
 		uString sPath( szName+4 );
 		sPath.Replace( '\\', '/' );
-		int pos = sPath.RevFind( '/' );
-		if ( pos < 0 ) return;
-		uString sFolder;
-		sPath.SubString( sFolder, pos+1 );
-		sPath.Trunc( '/' );
 		
-		if ( chdir( sPath.GetStr() ) < 0 ) return;
-		rmdir( sFolder.GetStr() );
-		chdir( szWriteDir );
+		rmdir( sPath.GetStr() );
 	}
 	else
 	{
@@ -7217,13 +7203,11 @@ void agk::DeleteFolder( const char* szName )
 			return;
 		}
 
-		uString sDirPath( szWriteDir );
-		sDirPath.Append( m_sCurrentDir );
-		if ( chdir( sDirPath.GetStr() ) < 0 ) return;
+		uString sPath( szName );
+		PlatformGetFullPathWrite( sPath );
 
-		rmdir( szName );
-		chdir( szWriteDir );
-	
+		rmdir( sPath.GetStr() );
+			
 		m_bUpdateFileLists = true;
 	}
 }

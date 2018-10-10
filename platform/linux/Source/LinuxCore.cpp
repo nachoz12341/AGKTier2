@@ -473,6 +473,13 @@ void agk::SetScreenResolution( int width, int height )
 	agk::SetWindowSize( width, height, 0 );
 }
 
+char* agk::GetURLSchemeText()
+//****
+{
+	char* str = new char[1]; *str = 0;
+	return str;
+}
+
 void agk::GetDeviceName( uString &outString )
 //****
 {
@@ -750,27 +757,40 @@ void agk::PlatformUpdateWritePath()
 		homedir = getpwuid(getuid())->pw_dir;
 	}
 
-	chdir( homedir );
-	chdir( ".config" );
+	int fd = open( homedir, O_RDONLY | O_CLOEXEC );
+	int newFd = openat( fd, ".config", O_RDONLY | O_CLOEXEC );
+	close( fd ); fd = newFd;
 
-	if ( chdir( "AGKApps" ) < 0 )
+	// create AGKApps folder
+	newFd = openat( fd, "AGKApps", O_RDONLY | O_CLOEXEC );
+	if ( newFd < 0 )
 	{
-		mkdir( "AGKApps", 0700 );
-		chdir( "AGKApps" );
+		mkdirat( fd, "AGKApps", 0777 );
+		newFd = openat( fd, "AGKApps", O_RDONLY | O_CLOEXEC );
+	}
+	close( fd ); fd = newFd;
+	
+	// create companyName folder
+	if ( m_sCompanyName.GetLength() > 0 )
+	{
+		newFd = openat( fd, m_sCompanyName, O_RDONLY | O_CLOEXEC );
+		if ( newFd < 0 )
+		{
+			mkdirat( fd, m_sCompanyName, 0700 );
+			newFd = openat( fd, m_sCompanyName, O_RDONLY | O_CLOEXEC );
+		}
+		close( fd ); fd = newFd;
 	}
 
-	if ( m_sCompanyName.GetLength() > 0 && chdir( m_sCompanyName ) < 0 )
+	// create szAppFolderName folder
+	newFd = openat( fd, szAppFolderName, O_RDONLY | O_CLOEXEC );
+	if ( newFd < 0 )
 	{
-		mkdir( m_sCompanyName, 0700 );
-		chdir( m_sCompanyName );
+		mkdirat( fd, szAppFolderName, 0700 );
+		newFd = openat( fd, szAppFolderName, O_RDONLY | O_CLOEXEC );
 	}
-
-	if ( chdir( szAppFolderName ) < 0 )
-	{
-		mkdir( szAppFolderName, 0700 );
-		chdir( szAppFolderName );
-	}
-
+	close( fd ); fd = newFd;
+	
 	strcpy( szWriteDir, homedir );
 	strcat( szWriteDir, "/.config/AGKApps/" );
 	if ( m_sCompanyName.GetLength() > 0 )
@@ -789,14 +809,16 @@ void agk::PlatformUpdateWritePath()
 		strcat( szWriteDir, sModule );
 		strcat( szWriteDir, "/" );
 
-		if ( chdir( sModule ) < 0 )
+		newFd = openat( fd, sModule, O_RDONLY | O_CLOEXEC );
+		if ( newFd < 0 )
 		{
-			mkdir( sModule, 0700 );
-			chdir( sModule );
+			mkdirat( fd, sModule, 0700 );
+			newFd = openat( fd, sModule, O_RDONLY | O_CLOEXEC );
 		}
+		close( fd ); fd = newFd;
 	}
 
-	chdir( szRootDir );
+	close ( fd );
 
 	m_bUpdateFileLists = true;
 }
@@ -3203,23 +3225,45 @@ int agk::PlatformCreateRawPath( const char* path )
 		return 0;
 	}
 
-	const char *origPath = path;
-
-	chdir( "/" );
-	path++;
-
 	uString sPath( path );
 	sPath.Replace( '\\', '/' );
+	sPath.Trunc( '/' );
+	if ( sPath.GetLength() == 0 ) sPath.SetStr( "/" );
+
+	int fd = open( sPath.GetStr(), O_RDONLY | O_CLOEXEC );
+	if ( fd >= 0 ) 
+	{
+		close( fd );
+		return 1; // already exists
+	}
+
+	int found = 0;
+	do
+	{
+		sPath.Trunc( '/' );
+		if ( sPath.GetLength() == 0 ) sPath.SetStr( "/" );
+		fd = open( sPath.GetStr(), O_RDONLY | O_CLOEXEC );
+		if ( fd >= 0 ) found = 1;
+	} while( sPath.GetLength() > 1 && !found );
 	
-	const char *szRemaining = sPath.GetStr();
+	if ( !found )
+	{
+		uString err; err.Format( "Failed to create path \"%s\", the app may not have permissions to create folders in the part that exists", path );
+		agk::Error( err );
+		return 0;
+	}
+
+	uString sPath2( path );
+	sPath2.Replace( '\\', '/' );
+	const char *szRemaining = sPath2.GetStr() + sPath.GetLength() + 1;
 	const char *szSlash;
 	char szFolder[ MAX_PATH ];
-	while ( szSlash = strchr( szRemaining, '/' ) )
+	while ( (szSlash = strchr( szRemaining, '/' )) )
 	{
 		UINT length = (UINT)(szSlash-szRemaining);
 		if ( length == 0 )
 		{
-			uString err; err.Format( "Invalid path \"%s\", folder names must have at least one character", origPath );
+			uString err; err.Format( "Invalid path \"%s\", folder names must have at least one character", path );
 			agk::Error( err );
 			return 0;
 		}
@@ -3227,22 +3271,27 @@ int agk::PlatformCreateRawPath( const char* path )
 		strncpy( szFolder, szRemaining, length );
 		szFolder[ length ] = '\0';
 
-		if ( chdir( szFolder ) < 0 )
+		int newFd = openat( fd, szFolder, O_RDONLY | O_CLOEXEC );
+		if ( newFd < 0 )
 		{
-			mkdir( szFolder, 0777 );
-			if ( chdir( szFolder ) < 0 )
+			mkdirat( fd, szFolder, 0777 );
+			newFd = openat( fd, szFolder, O_RDONLY | O_CLOEXEC );
+			if ( newFd < 0 )
 			{
-				uString err; err.Format( "Failed to create folder \"%s\" in path \"%s\", the app may not have permission to create it", szFolder, origPath );
+				uString err; err.Format( "Failed to create folder \"%s\" in path \"%s\", the app may not have permission to create it", szFolder, path );
 				agk::Error( err );
 				return 0;
 			}
 		}
 
+		close( fd );
+		fd = newFd;
+
 		szRemaining = szSlash+1;
 	}
 
-	chdir( szWriteDir );
-	
+	close( fd );
+
 	return 1;
 }
 
@@ -4181,15 +4230,8 @@ void agk::DeleteFolder( const char* szName )
 	{
 		uString sPath( szName+4 );
 		sPath.Replace( '\\', '/' );
-		int pos = sPath.RevFind( '/' );
-		if ( pos < 0 ) return;
-		uString sFolder;
-		sPath.SubString( sFolder, pos+1 );
-		sPath.Trunc( '/' );
 		
-		if ( chdir( sPath.GetStr() ) < 0 ) return;
-		rmdir( sFolder.GetStr() );
-		chdir( szWriteDir );
+		rmdir( sPath.GetStr() );
 	}
 	else
 	{
@@ -4200,13 +4242,11 @@ void agk::DeleteFolder( const char* szName )
 			return;
 		}
 
-		uString sDirPath( szWriteDir );
-		sDirPath.Append( m_sCurrentDir );
-		if ( chdir( sDirPath.GetStr() ) < 0 ) return;
+		uString sPath( szName );
+		PlatformGetFullPathWrite( sPath );
 
-		rmdir( szName );
-		chdir( szWriteDir );
-	
+		rmdir( sPath.GetStr() );
+			
 		m_bUpdateFileLists = true;
 	}
 }
@@ -4343,39 +4383,12 @@ void cJoystick::PlatformUpdate()
 	{
 		switch (je.type) {
 			case JS_EVENT_BUTTON:
-				/* determine which button the event is for */
-				switch (je.number) {
-					case 0: 
-					case 1: 
-					case 2: 
-					case 3: 
-					case 4: 
-					case 5: 
-					case 6: 
-					case 7: m_iButtons[ je.number ] = je.value ? 1 : 0; break;
-					case 8: m_iButtons[ 10 ] = je.value ? 1 : 0; break; /* XBOX button  */
-					case 9: m_iButtons[ 8 ] = je.value ? 1 : 0; break;
-					case 10: m_iButtons[ 9 ] = je.value ? 1 : 0; break;
-					case 11: m_iButtons[ 11 ] = je.value ? 1 : 0; break;
-
-					case 12: 
-					case 13: 
-					case 14: 
-					case 15: 
-					case 16:
-					case 17:
-					case 18:
-					case 19:
-					case 20:
-					case 21:
-					case 22:
-					case 23:
-					case 24:
-					case 25:
-					case 26: 
-					case 27: m_iButtons[ je.number+4 ] = je.value ? 1 : 0; break;
-					default: break;
-				}
+				if ( je.number == 8 ) m_iButtons[ 10 ] = je.value ? 1 : 0; // XBox button
+				else if ( je.number == 9 ) m_iButtons[ 8 ] = je.value ? 1 : 0;
+				else if ( je.number == 10 ) m_iButtons[ 9 ] = je.value ? 1 : 0;
+				else if ( je.number < 12 ) m_iButtons[ je.number ] = je.value ? 1 : 0;
+				else if ( je.number < 60 ) m_iButtons[ je.number+4 ] = je.value ? 1 : 0;
+				
 				break;
 				
 			case JS_EVENT_AXIS:
@@ -4398,6 +4411,7 @@ void cJoystick::PlatformUpdate()
 							m_iButtons[ 12 ] = 0;
 							m_iButtons[ 14 ] = 0;
 						}
+						m_iSlider[0] = je.value;
 						break;
 					case 7:
 						if (je.value == -32767) {
@@ -4410,7 +4424,12 @@ void cJoystick::PlatformUpdate()
 							m_iButtons[ 13 ] = 0;
 							m_iButtons[ 15 ] = 0;
 						}
+						m_iSlider[1] = je.value;
 						break;
+					case 8: m_iPOV[0] = je.value; break;
+					case 9: m_iPOV[1] = je.value; break;
+					case 10: m_iPOV[2] = je.value; break;
+					case 11: m_iPOV[3] = je.value; break;
 					default: break;
 				}
 				break;

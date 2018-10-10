@@ -1284,6 +1284,25 @@ void cNetworkClient::SetVariableF( UINT index, float f, int mode )
 }
 
 //**********************
+// Network Message
+//**********************
+
+void cNetworkMessage::CopyMessage( cNetworkMessage *pOther )
+{
+	int max = pOther->GetPos();
+	if ( pOther->m_iSize > max ) max = pOther->m_iSize;
+	if ( max > 0 )
+	{
+		memcpy( m_Buffer, pOther->GetBuffer(), max );
+	}
+
+	m_iSize = pOther->m_iSize;
+	m_iPtr = m_iSize;
+	m_iFromClientID = 0;
+	m_iToClientID = 0;
+}
+
+//**********************
 // Network
 //**********************
 
@@ -1701,7 +1720,7 @@ void cNetwork::CheckMessagesServer()
 					UINT from = m_ppClientSock[ i ]->RecvUInt();
 					UINT to = m_ppClientSock[ i ]->RecvUInt();
 					UINT size = m_ppClientSock[ i ]->RecvUInt();
-					if ( size > 0 )
+					if ( size > 0 && size <= AGK_NET_PACKET_SIZE )
 					{
 						cNetworkMessage *pMsg = new cNetworkMessage();
 						pMsg->m_iFromClientID = from;
@@ -1714,6 +1733,7 @@ void cNetwork::CheckMessagesServer()
 							total += written;
 						}
 						pMsg->SetPos( size );
+						pMsg->SetSize( size );
 						
 						cAutoLock autolock2( m_kMessageLock );
 
@@ -1739,6 +1759,7 @@ void cNetwork::CheckMessagesServer()
 							pMsg->m_iToClientID = to;
 							pMsg->Copy( m_pRecvTail );
 							pMsg->SetPos( size );
+							pMsg->SetSize( size );
 
 							m_pRecvTail->SetPos( 0 );
 
@@ -2485,7 +2506,7 @@ void cNetwork::CheckMessagesClient()
 			{
 				UINT from = m_pServerSock->RecvUInt();
 				UINT size = m_pServerSock->RecvUInt();
-				if ( size > 0 )
+				if ( size > 0 && size <= AGK_NET_PACKET_SIZE )
 				{
 					cNetworkMessage *pMsg = new cNetworkMessage();
 					pMsg->m_iFromClientID = from;
@@ -2498,6 +2519,7 @@ void cNetwork::CheckMessagesClient()
 						total += written;
 					}
 					pMsg->SetPos( 0 );
+					pMsg->SetSize( size );
 
 					cAutoLock autolock2( m_kMessageLock );
 

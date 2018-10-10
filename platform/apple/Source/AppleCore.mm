@@ -98,6 +98,7 @@ namespace AGK
 	UIView *g_pMainWindow = 0;
 	
     float m_fDeviceScale = 1.0f;
+	int g_iImmersiveMode = 0;
     
 	double dStartTime = 0;
 	double dCurrentTime = 0;
@@ -136,6 +137,8 @@ namespace AGK
     // cloud data
     int g_iCloudDataChanged = 0;
     int g_iCloudSetup = 0;
+    
+    uString g_sLastURLSchemeText;
     
 	class cSoundInst
 	{
@@ -1457,7 +1460,14 @@ void agk::RestoreApp()
 
 void agk::SetImmersiveMode( int mode )
 {
-	
+	g_iImmersiveMode = mode ? 1 : 0;
+    if (@available(iOS 11.0, *))
+    {
+        if ([g_pViewController respondsToSelector:@selector(setNeedsUpdateOfHomeIndicatorAutoHidden)])
+        {
+            [ g_pViewController setNeedsUpdateOfHomeIndicatorAutoHidden ];
+        }
+	}
 }
 
 void agk::SetScreenResolution( int width, int height )
@@ -1484,6 +1494,14 @@ void agk::SetScreenResolution( int width, int height )
     agk::SetVideoDimensions(m_fVideoX, m_fVideoY, m_fVideoWidth, m_fVideoHeight);
     
     agk::ClearScreen();
+}
+
+char* agk::GetURLSchemeText()
+//****
+{
+	char* str = new char[g_sLastURLSchemeText.GetLength()+1];
+    strcpy( str, g_sLastURLSchemeText.GetStr() );
+	return str;
 }
 
 void agk::GetDeviceName( uString &outString )
@@ -2154,6 +2172,7 @@ void agk::UpdatePtr2( void *ptr )
 
 int agk::GetInternalDataI( int index )
 {
+	if ( index == 0 ) return g_iImmersiveMode;
 	return 0;
 }
 
@@ -3646,16 +3665,12 @@ void cSoundMgr::PlatformInit()
 
 void cSoundMgr::AppPaused()
 {
-    alcMakeContextCurrent(NULL);
+    // don't modify sound settings, it breaks on some iOS devices
 }
 
 void cSoundMgr::AppResumed()
 {
-    if ( audioContext ) 
-	{
-		[[AVAudioSession sharedInstance] setActive:YES error:nil];
-		alcMakeContextCurrent(audioContext);
-	}
+    // don't try to re-initialise sound, it breaks on some iOS devices
 }
 
 void cSoundMgr::PlatformAddFile( cSoundFile *pSound )
@@ -6280,9 +6295,26 @@ int agk::GetInternetState()
         while (temp_addr != NULL) {
             if( temp_addr->ifa_addr->sa_family == AF_INET) {
                 sIP.SetStr( inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr) );
-                if ( sIP.CompareTo( "0.0.0.0" ) != 0 )
+				if (sIP.CompareTo( "127.0.0.1" ) != 0 && sIP.CompareTo( "0.0.0.0" ) != 0 )
                 {
 					freeifaddrs(interfaces);
+					return 1;
+                }
+            }
+			if( temp_addr->ifa_addr->sa_family == AF_INET6) {
+                char szIP[ 65 ];
+				inet_ntop( AF_INET6, &(((struct sockaddr_in6*)temp_addr->ifa_addr)->sin6_addr), szIP, 65 );
+                int level = 0;
+                if ( strncmp( szIP, "::1", 3 ) == 0 ) level = -1; // loopback
+                else if ( strncmp( szIP, "ff", 2 ) == 0 ) level = -1; // multicast address
+                else if ( strncmp( szIP, "fe", 2 ) == 0 ) level = 1; // link local address
+                else if ( strncmp( szIP, "fc", 2 ) == 0 ) level = 2; // site local address
+                else if ( strncmp( szIP, "fd", 2 ) == 0 ) level = 2; // site local address
+                else level = 3;
+                                
+                if ( level > 2 )
+                {
+                    freeifaddrs(interfaces);
 					return 1;
                 }
             }

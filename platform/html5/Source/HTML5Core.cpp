@@ -308,6 +308,13 @@ void agk::SetScreenResolution( int width, int height )
 	// do nothing on linux
 }
 
+char* agk::GetURLSchemeText()
+//****
+{
+	char* str = new char[1]; *str = 0;
+	return str;
+}
+
 void agk::GetDeviceName( uString &outString )
 //****
 {
@@ -2935,15 +2942,37 @@ int agk::PlatformCreateRawPath( const char* path )
 		return 0;
 	}
 
-	const char *origPath = path;
-
-	chdir( "/" );
-	path++;
-
 	uString sPath( path );
 	sPath.Replace( '\\', '/' );
+	sPath.Trunc( '/' );
+	if ( sPath.GetLength() == 0 ) sPath.SetStr( "/" );
+
+	int fd = open( sPath.GetStr(), O_RDONLY | O_CLOEXEC );
+	if ( fd >= 0 ) 
+	{
+		close( fd );
+		return 1; // already exists
+	}
+
+	int found = 0;
+	do
+	{
+		sPath.Trunc( '/' );
+		if ( sPath.GetLength() == 0 ) sPath.SetStr( "/" );
+		fd = open( sPath.GetStr(), O_RDONLY | O_CLOEXEC );
+		if ( fd >= 0 ) found = 1;
+	} while( sPath.GetLength() > 1 && !found );
 	
-	const char *szRemaining = sPath.GetStr();
+	if ( !found )
+	{
+		uString err; err.Format( "Failed to create path \"%s\", the app may not have permissions to create folders in the part that exists", path );
+		agk::Error( err );
+		return 0;
+	}
+
+	uString sPath2( path );
+	sPath2.Replace( '\\', '/' );
+	const char *szRemaining = sPath2.GetStr() + sPath.GetLength() + 1;
 	const char *szSlash;
 	char szFolder[ MAX_PATH ];
 	while ( (szSlash = strchr( szRemaining, '/' )) )
@@ -2951,7 +2980,7 @@ int agk::PlatformCreateRawPath( const char* path )
 		UINT length = (UINT)(szSlash-szRemaining);
 		if ( length == 0 )
 		{
-			uString err; err.Format( "Invalid path \"%s\", folder names must have at least one character", origPath );
+			uString err; err.Format( "Invalid path \"%s\", folder names must have at least one character", path );
 			agk::Error( err );
 			return 0;
 		}
@@ -2959,21 +2988,26 @@ int agk::PlatformCreateRawPath( const char* path )
 		strncpy( szFolder, szRemaining, length );
 		szFolder[ length ] = '\0';
 
-		if ( chdir( szFolder ) < 0 )
+		int newFd = openat( fd, szFolder, O_RDONLY | O_CLOEXEC );
+		if ( newFd < 0 )
 		{
-			mkdir( szFolder, 0777 );
-			if ( chdir( szFolder ) < 0 )
+			mkdirat( fd, szFolder, 0777 );
+			newFd = openat( fd, szFolder, O_RDONLY | O_CLOEXEC );
+			if ( newFd < 0 )
 			{
-				uString err; err.Format( "Failed to create folder \"%s\" in path \"%s\", the app may not have permission to create it", szFolder, origPath );
+				uString err; err.Format( "Failed to create folder \"%s\" in path \"%s\", the app may not have permission to create it", szFolder, path );
 				agk::Error( err );
 				return 0;
 			}
 		}
 
+		close( fd );
+		fd = newFd;
+
 		szRemaining = szSlash+1;
 	}
 
-	chdir( szWriteDir );
+	close( fd );
 
 	return 1;
 }

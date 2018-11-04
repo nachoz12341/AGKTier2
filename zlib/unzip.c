@@ -69,9 +69,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef NOUNCRYPT
-        #define NOUNCRYPT
-#endif
+//#ifndef NOUNCRYPT
+//        #define NOUNCRYPT
+//#endif
 
 #include "zlib.h"
 #include "unzip.h"
@@ -1621,7 +1621,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
                 s->encrypted = 0;
 
 #    ifndef NOUNCRYPT
-    if (password != NULL)
+    if (password != NULL && strlen(password) >= 1 )
     {
         int i;
         s->pcrc_32_tab = get_crc_table();
@@ -1641,7 +1641,6 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
         s->encrypted=1;
     }
 #    endif
-
 
     return UNZ_OK;
 }

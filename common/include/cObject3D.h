@@ -26,6 +26,7 @@
 #define AGK_OBJECT_RECV_SHADOWS			0x10000
 
 #define AGK_OBJECT_MAX_BONES 200
+#define AGK_OBJECT_MAX_TEXTURES 30
 //#define AGK_OBJECT_MAX_BONES_STR "100"
 
 // Bullet physics forward declarations
@@ -83,6 +84,8 @@ namespace AGK
 			// unique ID for tier 1 only
 			UINT m_iID;
 			uString m_sName;
+			uString m_sTextures[AGK_OBJECT_MAX_TEXTURES];
+			UINT m_iUsedTextures;
 
 			// meshes that hold raw vertices and VBO vertices
 			UINT m_iNumMeshes;
@@ -107,7 +110,7 @@ namespace AGK
 			unsigned char m_iCullMode; // 0=no culling, 1=front faces (default), 2=back faces
 			float m_fZBias;
 			float m_fDepthNear, m_fDepthFar;
-
+			float m_fLastSqrDist;
 			// collision
 			CollisionObject *m_pColObject;
 
@@ -154,6 +157,7 @@ namespace AGK
 			void CreateQuad();
 			void CreateFromHeightMap( cImage *pImage, float width, float height, float length, int smoothing, int split );
 			void CreateFromHeightMap( const char *szHeightMap, float width, float height, float length, int smoothing, int split );
+			void CreateFromHeightMap(const char *szHeightMap, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight );
 			void CreateFromHeightMapFromData( const unsigned short *szHeightMap, int imgWidth, int imgHeight, float width, float height, float length, int smoothing, int split );
 			void CreateFromMeshes( int numMeshes, cMesh **pMeshes );
 			void AddMesh( cMesh *pMesh, int updateCollision=1 );
@@ -224,6 +228,8 @@ namespace AGK
 			int GetShadowReceiveMode() const { return (m_iObjFlags & AGK_OBJECT_RECV_SHADOWS) ? 1 : 0; }
 
 			const char* GetName() { return m_sName.GetStr(); }
+			const char* GetTexture(int index) { if (index >= 0 && index < AGK_OBJECT_MAX_TEXTURES) return m_sTextures[index].GetStr(); else return(""); }
+			UINT GetNumTextures() { return m_iUsedTextures; }
 
 			float GetMinX() const;
 			float GetMinY() const;

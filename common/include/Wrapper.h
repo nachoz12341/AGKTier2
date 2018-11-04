@@ -2635,7 +2635,8 @@ namespace AGK
 			static UINT CreateZip( const char* filename );
 			static void AddZipEntry( UINT zipID, const char* path, const char* zipPath );
 			static void CloseZip( UINT zipID );
-			static void ExtractZip( const char* zipfilename, const char* path );
+			static void ExtractZip( const char* zipfilename, const char* path);
+			static void ExtractZip(const char* zipfilename, const char* path, const char* password);
 
 			// memblock functions (do not exist at this time)
 			static UINT CreateMemblock( UINT size );
@@ -2769,6 +2770,8 @@ namespace AGK
 			static UINT CreateObjectQuad();
 
 			static void CreateObjectFromHeightMap( UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split ); 
+			static void CreateObjectFromHeightMap(UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight );	
+			static UINT CreateObjectFromHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight);
 			static UINT CreateObjectFromHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split );
 
 			static UINT CreateObjectFromObjectMesh( UINT fromObjID, UINT meshIndex );
@@ -2806,7 +2809,11 @@ namespace AGK
 
 			// mesh
 			static UINT GetObjectNumMeshes( UINT objID );
+			static UINT GetObjectNumTextures(UINT objID);
 			static char* GetObjectMeshName( UINT objID, UINT meshIndex );
+			static char* GetObjectTextureName(UINT objID, UINT textureIndex);
+			static void SetObjectMeshVisible(UINT objID, UINT meshIndex, int mode);
+			static void SetObjectMeshCollisionMode(UINT objID, int meshIndex, int mode);
 			static void SetObjectMeshImage( UINT objID, UINT meshIndex, UINT imageID, UINT textureStage );
 			static void SetObjectMeshLightMap( UINT objID, UINT meshIndex, UINT imageID );
 			static void SetObjectMeshNormalMap( UINT objID, UINT meshIndex, UINT imageID );

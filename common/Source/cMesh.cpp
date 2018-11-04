@@ -31,7 +31,7 @@ cMesh::cMesh( cObject3D *pParent )
 
 	m_pSharedVertices = 0;
 
-	m_iFlags = 0;
+	m_iFlags = AGK_MESH_VISIBLE + AGK_MESH_COLLISION; //PE: default visible with collision.
 
 	m_iNumArrays = 0;
 	m_iVertexStride = 0;
@@ -41,7 +41,6 @@ cMesh::cMesh( cObject3D *pParent )
 	m_ppIndices = 0;
 	m_iVBOVertices = 0;
 	m_iVBOIndices = 0;
-	m_iFlags = 0;
 
 	m_iPosAttrib = -1;
 	m_iNormAttrib = -1;
@@ -227,6 +226,10 @@ void cMesh::ClearAttribs()
 	m_iColorAttrib = -1;
 	m_iNumAttribs = 0;
 	m_iFlags &= ~AGK_MESH_HAS_BONES;
+	m_iFlags |= AGK_MESH_VISIBLE; //PE: Default visible.
+	m_iFlags |= AGK_MESH_COLLISION; //PE: Default collision.
+
+	
 }
 
 void cMesh::ClearRawVertexData()
@@ -991,6 +994,19 @@ int cMesh::WantsShadows() const
 	if ( m_pObject->GetShadowReceiveMode() == 0 ) return 0;
 
 	return 1;
+}
+
+//PE: 25-10-2018 , to be used to quickly do LOD by disabling enabled a mesh quickly.
+void cMesh::SetVisible(UINT mode)
+{
+	if (mode > 0) m_iFlags |= AGK_MESH_VISIBLE;
+	else m_iFlags &= ~AGK_MESH_VISIBLE;
+}
+
+void cMesh::SetCollision(UINT mode)
+{
+	if (mode > 0) m_iFlags |= AGK_MESH_COLLISION;
+	else m_iFlags &= ~AGK_MESH_COLLISION;
 }
 
 UINT cMesh::GetInScreen() 
@@ -4134,6 +4150,7 @@ void cMesh::Update()
 void cMesh::Draw()
 {
 	if ( !m_pObject->GetVisible() ) return;
+	if ( !GetVisible() ) return;
 
 	// set mesh textures, stage 7 is now the shadow map (if used)
 	int maxTex = AGK_MAX_TEXTURES;

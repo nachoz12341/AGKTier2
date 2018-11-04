@@ -12,6 +12,8 @@
 #define AGK_MESH_HAS_BONES			0x0002
 #define AGK_MESH_HAS_LIGHTMAP		0x0004
 #define AGK_MESH_HAS_NORMALMAP		0x0008
+#define AGK_MESH_VISIBLE			0x0010
+#define AGK_MESH_COLLISION			0x0020
 
 struct aiMesh;
 
@@ -214,6 +216,8 @@ namespace AGK
 			int HasTextureStage(int stage) const;
 			int HasLightMap() const { return (m_pImages[1] && (m_iFlags & AGK_MESH_HAS_LIGHTMAP)) ? 1 : 0; }
 			int HasNormalMap() const { return (m_pImages[2] && (m_iFlags & AGK_MESH_HAS_NORMALMAP)) ? 1 : 0; }
+			int GetVisible() const { return (m_iFlags & AGK_MESH_VISIBLE) ? 1 : 0; }
+			int GetCollision() const { return (m_iFlags & AGK_MESH_COLLISION) ? 1 : 0; }
 			int WantsLighting() const;
 			int WantsFog() const;
 			int WantsShadows() const;
@@ -254,6 +258,8 @@ namespace AGK
 			void SetNormalMapScale( float scaleU, float scaleV );
 			void SetShader( AGKShader *pShader );
 			void SetLights( int numVSLights, AGKPointLight **pVSLights, int numPSLights, AGKPointLight **pPSLights );
+			void SetVisible(UINT mode);
+			void SetCollision(UINT mode);
 
 			float GetUVOffsetU( UINT stage ) const { return stage >= AGK_MAX_TEXTURES ? 0 : m_fUVOffsetU[ stage ]; }
 			float GetUVOffsetV( UINT stage ) const { return stage >= AGK_MAX_TEXTURES ? 0 : m_fUVOffsetV[ stage ]; }

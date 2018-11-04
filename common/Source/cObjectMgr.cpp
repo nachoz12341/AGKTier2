@@ -276,9 +276,17 @@ void cObjectMgr::ResortAll()
 	// rebuild transparent array
 	alphaCount = 0;
 	pMember = m_pAlphaObjects;
+	cObject3D* tmpobj;
 	while ( pMember )
 	{
 		m_pAlphaObjectsArray[ alphaCount ] = pMember;
+
+		if (g_pCurrentCamera) {
+			//PE: Store SqrDist so we dont need to update it while sorting.
+			tmpobj = ((cObject3D*) pMember->GetObject()); 
+			tmpobj->m_fLastSqrDist = tmpobj->posFinal().GetSqrDist(g_pCurrentCamera->posFinal());
+		}
+
 		alphaCount++;
 		
 		pMember = pMember->m_pNext;
@@ -286,12 +294,26 @@ void cObjectMgr::ResortAll()
 
 	// sort transparent objects
 	// todo don't use qsort
-	if ( m_pAlphaObjectsArray && g_pCurrentCamera ) qsort( m_pAlphaObjectsArray, m_iNumAlphaObjects, sizeof(cObjectContainer*), cObjectMgr::ContainerCompare );
+	//PE: Poul , std::sort should be 30% faster, perhaps give that a go :)
+//	if (m_pAlphaObjectsArray && g_pCurrentCamera) qsort(m_pAlphaObjectsArray, m_iNumAlphaObjects, sizeof(cObjectContainer*), cObjectMgr::ContainerCompare);
+	if (m_pAlphaObjectsArray && g_pCurrentCamera) qsort(m_pAlphaObjectsArray, m_iNumAlphaObjects, sizeof(cObjectContainer*), cObjectMgr::ContainerComparePE);
 }
 
-int cObjectMgr::ContainerCompare( const void* a, const void* b )
+//PE: ContainerCompare is called many many times, so store GetSqrDist so we dont need to do this everytime. It will not change while sorting.
+//PE: With 722 objects, the old sort used 15FPS (difference with sort/nosort), using this we are down to only using 6 FPS for the same sort.
+int cObjectMgr::ContainerComparePE( const void* a, const void* b )
 {
-	if ( !g_pCurrentCamera ) return 0;
+	float dist1 = ((cObject3D*)(*(cObjectContainer**)a)->GetObject())->m_fLastSqrDist; //PE: used our stored distance.
+	float dist2 = ((cObject3D*)(*(cObjectContainer**)b)->GetObject())->m_fLastSqrDist; //PE: used our stored distance.
+
+	if ( dist2 == dist1 ) return 0;
+	else if ( dist2 < dist1 ) return -1; // b is closer to the camera than a
+	else return 1;
+}
+
+int cObjectMgr::ContainerCompare(const void* a, const void* b)
+{
+	//if ( !g_pCurrentCamera ) return 0; //PE: Already checked before qsort.
 
 	cObject3D* obj1 = (*(cObjectContainer**)a)->GetObject();
 	cObject3D* obj2 = (*(cObjectContainer**)b)->GetObject();
@@ -299,8 +321,8 @@ int cObjectMgr::ContainerCompare( const void* a, const void* b )
 	float dist1 = obj1->posFinal().GetSqrDist( g_pCurrentCamera->posFinal() );
 	float dist2 = obj2->posFinal().GetSqrDist( g_pCurrentCamera->posFinal() );
 
-	if ( dist2 == dist1 ) return 0;
-	else if ( dist2 < dist1 ) return -1; // b is closer to the camera than a
+	if (dist2 == dist1) return 0;
+	else if (dist2 < dist1) return -1; // b is closer to the camera than a
 	else return 1;
 }
 

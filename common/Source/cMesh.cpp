@@ -31,7 +31,7 @@ cMesh::cMesh( cObject3D *pParent )
 
 	m_pSharedVertices = 0;
 
-	m_iFlags = AGK_MESH_VISIBLE + AGK_MESH_COLLISION; //PE: default visible with collision.
+	m_iFlags = AGK_MESH_VISIBLE | AGK_MESH_COLLISION; //PE: default visible with collision.
 
 	m_iNumArrays = 0;
 	m_iVertexStride = 0;
@@ -4154,31 +4154,33 @@ void cMesh::Draw()
 
 	// set mesh textures, stage 7 is now the shadow map (if used)
 	int maxTex = AGK_MAX_TEXTURES;
+	AGKShader* g_pSelectedShader = AGKShader::GetCurrentShader();
+
 	if ( agk::GetShadowMappingMode() > 0 ) 
 	{
-		AGKShader::GetCurrentShader()->SetTextureStage( agk::m_pShadowMap, 7, 1 );
+		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap, 7, 1 );
 		maxTex = 7;
 	}
 	if ( agk::GetShadowMappingMode() == 3 ) 
 	{
-		AGKShader::GetCurrentShader()->SetTextureStage( agk::m_pShadowMap2, 6, 1 );
-		AGKShader::GetCurrentShader()->SetTextureStage( agk::m_pShadowMap3, 5, 1 );
-		AGKShader::GetCurrentShader()->SetTextureStage( agk::m_pShadowMap4, 4, 1 );
+		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap2, 6, 1 );
+		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap3, 5, 1 );
+		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap4, 4, 1 );
 		maxTex = 4;
 	}
 	for ( int i = 0; i < maxTex; i++ )
 	{
-		AGKShader::GetCurrentShader()->SetTextureStage( m_pImages[i], i, 1 );
+		g_pSelectedShader->SetTextureStage( m_pImages[i], i, 1 );
 	}
 
 	for ( int i = 0; i < AGK_MAX_TEXTURES; i++ )
 	{
-		AGKShader::GetCurrentShader()->SetUVScale( i, GetUVOffsetU(i), GetUVOffsetV(i), GetUVScaleU(i), GetUVScaleV(i) );
+		g_pSelectedShader->SetUVScale( i, GetUVOffsetU(i), GetUVOffsetV(i), GetUVScaleU(i), GetUVScaleV(i) );
 	}
 
 	if ( HasNormalMap() )
 	{
-		AGKShader::GetCurrentShader()->SetTempConstantByName( "agk_NormalScale", m_fNormalScaleU, m_fNormalScaleV, 0, 0 );
+		g_pSelectedShader->SetTempConstantByName( "agk_NormalScale", m_fNormalScaleU, m_fNormalScaleV, 0, 0 );
 	}
 
 	if ( m_iNumVSLights > 0 || m_iNumPSLights > 0 )
@@ -4193,8 +4195,8 @@ void cMesh::Draw()
 		{
 			szLightPosVar[ 11 ] = nums[ i ];
 			szLightColorVar[ 11 ] = nums[ i ];
-			AGKShader::GetCurrentShader()->SetTempConstantByName( szLightPosVar, m_pVSLights[i]->m_position.x, m_pVSLights[i]->m_position.y, m_pVSLights[i]->m_position.z, m_pVSLights[i]->m_fRadius*m_pVSLights[i]->m_fRadius );
-			AGKShader::GetCurrentShader()->SetTempConstantByName( szLightColorVar, m_pVSLights[i]->m_color.x, m_pVSLights[i]->m_color.y, m_pVSLights[i]->m_color.z, 1 );
+			g_pSelectedShader->SetTempConstantByName( szLightPosVar, m_pVSLights[i]->m_position.x, m_pVSLights[i]->m_position.y, m_pVSLights[i]->m_position.z, m_pVSLights[i]->m_fRadius*m_pVSLights[i]->m_fRadius );
+			g_pSelectedShader->SetTempConstantByName( szLightColorVar, m_pVSLights[i]->m_color.x, m_pVSLights[i]->m_color.y, m_pVSLights[i]->m_color.z, 1 );
 		}
 
 		szLightPosVar[ 4 ] = 'P';
@@ -4204,8 +4206,8 @@ void cMesh::Draw()
 		{
 			szLightPosVar[ 11 ] = nums[ i ];
 			szLightColorVar[ 11 ] = nums[ i ];
-			AGKShader::GetCurrentShader()->SetTempConstantByName( szLightPosVar, m_pPSLights[i]->m_position.x, m_pPSLights[i]->m_position.y, m_pPSLights[i]->m_position.z, m_pPSLights[i]->m_fRadius*m_pPSLights[i]->m_fRadius );
-			AGKShader::GetCurrentShader()->SetTempConstantByName( szLightColorVar, m_pPSLights[i]->m_color.x, m_pPSLights[i]->m_color.y, m_pPSLights[i]->m_color.z, 1 );
+			g_pSelectedShader->SetTempConstantByName( szLightPosVar, m_pPSLights[i]->m_position.x, m_pPSLights[i]->m_position.y, m_pPSLights[i]->m_position.z, m_pPSLights[i]->m_fRadius*m_pPSLights[i]->m_fRadius );
+			g_pSelectedShader->SetTempConstantByName( szLightColorVar, m_pPSLights[i]->m_color.x, m_pPSLights[i]->m_color.y, m_pPSLights[i]->m_color.z, 1 );
 		}
 	}
 

@@ -41054,7 +41054,7 @@ void agk::CreateObjectFromHeightMap( UINT objID, const char* szImageFile, float 
 	m_cObjectMgr.AddObject( pObject );
 }
 
-//****f* 3D/Objects/CreateObjectFromHeightMap
+//****f* 3D/Objects/CreateObjectFromRawHeightMap
 // FUNCTION
 //   Creates an object from a specified height map, useful for making terrain.
 //   The image should be in raw 16-bit data. If you use extension ".dat" in <i>szImageFile</i> if will expect that this is a
@@ -41083,7 +41083,7 @@ void agk::CreateObjectFromHeightMap( UINT objID, const char* szImageFile, float 
 //   rawWidth -- The width of the 16-bit. raw height map data.
 //   rawHeight -- The height of the 16-bit. raw height map data.
 // SOURCE
-UINT agk::CreateObjectFromHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight)
+UINT agk::CreateObjectFromRawHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight)
 //****
 {
 	//PE:
@@ -41096,13 +41096,30 @@ UINT agk::CreateObjectFromHeightMap( const char* szImageFile, float width, float
 #endif
 		return 0;
 	}
+	
+	uString m_szImageFile,ext;
+	m_szImageFile.SetStr(szImageFile);
+	int pos = m_szImageFile.RevFind('.');
+	if (pos >= 0) {
+		m_szImageFile.SubString(ext, pos + 1);
+	}
+	ext.Lower();
 
-	CreateObjectFromHeightMap(objID, szImageFile, width, height, length, smoothing, split, rawWidth, rawHeight);
+	if (!(ext.CompareTo("raw") == 0 || ext.CompareTo("dat") == 0) )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Failed to CreateObjectFromRawHeightMap - raw heightmaps files must be called .raw or .dat");
+		Error(errStr);
+#endif
+		return 0;
+	}
+
+	CreateObjectFromRawHeightMap(objID, szImageFile, width, height, length, smoothing, split, rawWidth, rawHeight);
 	return objID;
 }
 
 
-//****f* 3D/Objects/CreateObjectFromHeightMap
+//****f* 3D/Objects/CreateObjectFromRawHeightMap
 // FUNCTION
 //   Creates an object from a specified height map, useful for making terrain.
 //   The image should be in raw 16-bit data. If you use extension ".dat" in <i>szImageFile</i> if will expect that this is a
@@ -41132,7 +41149,7 @@ UINT agk::CreateObjectFromHeightMap( const char* szImageFile, float width, float
 //   rawWidth -- The width of the 16-bit. raw height map data.
 //   rawHeight -- The height of the 16-bit. raw height map data.
 // SOURCE
-void agk::CreateObjectFromHeightMap(UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight )
+void agk::CreateObjectFromRawHeightMap(UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight )
 //****
 {
 	//PE:
@@ -41141,6 +41158,23 @@ void agk::CreateObjectFromHeightMap(UINT objID, const char* szImageFile, float w
 #ifdef _AGK_ERROR_CHECK
 		uString errStr("", 100);
 		errStr.Format("Failed to create object %d, ID must be greater than 0", objID);
+		Error(errStr);
+#endif
+		return;
+	}
+
+	uString m_szImageFile, ext;
+	m_szImageFile.SetStr(szImageFile);
+	int pos = m_szImageFile.RevFind('.');
+	if (pos >= 0) {
+		m_szImageFile.SubString(ext, pos + 1);
+	}
+	ext.Lower();
+
+	if (!(ext.CompareTo("raw") == 0 || ext.CompareTo("dat") == 0))
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Failed to CreateObjectFromRawHeightMap - raw heightmaps files must be called .raw or .dat");
 		Error(errStr);
 #endif
 		return;

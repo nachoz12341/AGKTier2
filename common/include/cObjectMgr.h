@@ -111,6 +111,7 @@ namespace AGK
 			~cObjectMgr();
 
 			static int ContainerCompare( const void* a, const void* b );
+			static int ContainerComparePE(const void* a, const void* b);
 
 			void ClearAll();
 

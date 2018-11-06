@@ -105,7 +105,7 @@ void ZipFile::Close()
 	m_zf = 0; // should fix the crash bug
 }
 
-bool ZipFile::ExtractAll( const char* filename, const char* extractPath )
+bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const char* password)
 {
 	uString sPath( filename );
 	if ( cFile::ExistsRaw(filename) ) sPath.SetStr( filename+4 );
@@ -187,7 +187,7 @@ bool ZipFile::ExtractAll( const char* filename, const char* extractPath )
         err = unzGetCurrentFileInfo64( uf, &file_info, szFileNameInZip, 512, NULL,0,NULL,0 );
 		if (err == UNZ_OK)
         {
-            err = unzOpenCurrentFilePassword( uf, NULL );
+            err = unzOpenCurrentFilePassword( uf, password );
 			if ( err == UNZ_OK )
 			{
 				sWritePath.SetStr( extractPath );

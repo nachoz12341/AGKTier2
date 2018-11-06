@@ -126,6 +126,10 @@ btVector3 AGKToBullet::GetObjectSize( UINT objID )
 	Face *pLast = 0;
 	for( UINT i = 0; i < pObject->GetNumMeshes(); i++ )
 	{
+		if (!pObject->GetMesh(i)->GetCollision()) {
+			continue; //PE: Disable mesh collision.
+		}
+
 		Face *pMeshFaces = pObject->GetMesh(i)->GetFaceList( &pLast );
 		if ( pMeshFaces && pLast ) 
 		{
@@ -209,6 +213,10 @@ AGKToBullet::AGKVertexData* AGKToBullet::GetVertexData( UINT objID, btScalar sca
 	Face *pLast = 0;
 	for( UINT i = 0; i < pObject->GetNumMeshes(); i++ )
 	{
+		if (!pObject->GetMesh(i)->GetCollision()) {
+			continue; //PE: Disable mesh collision.
+		}
+
 		Face *pMeshFaces = pObject->GetMesh(i)->GetFaceList( &pLast );
 		if ( pMeshFaces && pLast ) 
 		{

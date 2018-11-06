@@ -240,6 +240,9 @@ void cObject3D::CreateCollisionData()
 	{
 		// don't include boned meshes in the collision data, use the bones for collision instead
 		if ( m_pMeshes[ i ]->HasBones() ) continue;
+		if (!m_pMeshes[i]->GetCollision()) {
+			continue; //PE: Disable mesh collision.
+		}
 
 		Face *pMeshFaces = m_pMeshes[ i ]->GetFaceList( &pLast );
 		if ( pMeshFaces && pLast ) 
@@ -520,6 +523,72 @@ void cObject3D::CreateFromHeightMap( const char *szHeightMap, float width, float
 	}
 }
 
+void cObject3D::CreateFromHeightMap(const char *szHeightMap, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight)
+{
+	int imgWidth = 0;
+	int imgHeight = 0;
+
+	uString m_szFile;
+	uString ext;
+
+	m_szFile.SetStr(szHeightMap);
+	m_szFile.Lower();
+	bool bGameGuruTerrain = false;
+
+	int pos = m_szFile.RevFind('.');
+	if (pos >= 0)
+	{
+		m_szFile.SubString(ext, pos + 1);
+	}
+	ext.Lower();
+
+	if( ext.CompareTo("dat" ) == 0 )
+		bGameGuruTerrain = true;
+
+	//PE: Load in 16 bit raw terrain data.
+	cFile oFile;
+	if (!oFile.OpenToRead(szHeightMap))
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr;
+		errStr.Format("Failed to open .raw HeightMap data %s, file does not exist", szHeightMap);
+		agk::Error(errStr);
+#endif
+		return;
+	}
+
+	imgWidth = rawWidth; //PE: raw data width size
+	imgHeight = rawHeight; //PE: raw data height size
+
+	unsigned short *pData = new unsigned short[imgWidth*imgHeight];
+	if (bGameGuruTerrain) {
+
+		float *f_pData = new float[imgWidth*imgHeight];
+		oFile.Seek(4);
+		oFile.ReadData((char*)f_pData, imgWidth*imgHeight * 4);
+
+		for (int z = 0; z < imgHeight; z++)
+		{
+			for (int x = 0; x < imgWidth; x++)
+			{
+				UINT index = z*imgWidth + x;
+				UINT indexinv =   ( ((imgWidth-(z+1))*imgWidth) + x); // Rotate GG terrain to fit normal heightmap.
+				pData[index] = (unsigned short)(f_pData[indexinv] * 17.0); // Fit GG height to normal heightmap.
+			}
+		}
+
+		delete[] f_pData;
+	}
+	else {
+		oFile.ReadData((char*)pData, imgWidth*imgHeight * 2);
+	}
+
+	oFile.Close();
+	CreateFromHeightMapFromData(pData, imgWidth, imgHeight, width, height, length, smoothing, split);
+	delete[] pData;
+	return;
+}
+
 void cObject3D::CreateFromHeightMapFromData( const unsigned short *pData, int imgWidth, int imgHeight, float width, float height, float length, int smoothing, int split )
 {
 	DeleteMeshes();
@@ -795,6 +864,8 @@ void cObject3D::LoadObject( const char *szFilename, int withChildren,  float hei
 		sExt.SetStr( ext );
 		sExt.Lower();
 	}
+	
+	m_iUsedTextures = 0;
 
 	if ( sExt.CompareTo( ".obj" ) == 0 ) LoadOBJ( szFilename, height );
 	else if ( sExt.CompareTo( ".ago" ) == 0 ) LoadAGOAscii( szFilename, height );
@@ -864,6 +935,30 @@ void cObject3D::LoadObject( const char *szFilename, int withChildren,  float hei
 		}
 
 		m_sName.SetStr( pScene->mRootNode->mName.C_Str() );
+		m_iUsedTextures = 0;
+
+		//if (pScene->HasTextures()) //PE: to be used for imbedded textures.
+
+		if (pScene->HasMaterials())
+		{
+			for (int ti = 0; ti < pScene->mNumMaterials; ti++)
+			{
+				const aiMaterial* pMaterial = pScene->mMaterials[ti];
+
+				if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+					aiString Path;
+					if (pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
+
+						if (m_iUsedTextures < AGK_OBJECT_MAX_TEXTURES) {
+							m_sTextures[m_iUsedTextures++].SetStr(Path.C_Str());
+						}
+						else { break; }
+
+					}
+				}
+			}
+		}
+
 
 		// if withChildren=1 but the object has no bones, animations, or children, load it as if withChildren=0
 		if ( withChildren == 0 || (pScene->mRootNode->mNumChildren == 0 && !hasBones && !pScene->HasAnimations()) )
@@ -2218,6 +2313,13 @@ void cObject3D::CheckLights()
 {
 	if ( GetLightMode() == 0 ) return;
 
+	//PE: using 20000 object and no light, FPS goes from 53 to 134 using this line.
+	//PE: This funtion is really slow , so added !(m_iObjFlags & AGK_OBJECT_VISIBLE) to turn off the light on non visible objects.
+	if (agk::m_cPointLightList.GetCount() == 0 || !(m_iObjFlags & AGK_OBJECT_VISIBLE) ) {
+		for (UINT m = 0; m < m_iNumMeshes; ++m) m_pMeshes[m]->SetLights(0, NULL, 0, NULL);
+		return;
+	}
+
 	AGKVector pos = posFinal();
 	AGKQuaternion rot = rotFinal(); rot.Invert();
 	AGKVector scale = scaleFinal();
@@ -2231,12 +2333,18 @@ void cObject3D::CheckLights()
 
 	AGKPointLight *pVSLights[ AGK_MAX_VERTEX_LIGHTS ];
 	AGKPointLight *pPSLights[ AGK_MAX_PIXEL_LIGHTS ];
-	
+
 	for ( UINT m = 0; m < m_iNumMeshes; ++m )
 	{
 		int iShortListCount = 0;
 		int iVSShortListCount = 0;
 		int iPSShortListCount = 0;
+
+		//PE: Faster when we use LOD meshes inside objects.
+		if ( !(m_pMeshes[m]->m_iFlags & AGK_MESH_VISIBLE) ) {
+			m_pMeshes[m]->SetLights(0, NULL, 0, NULL);
+			continue;
+		}
 
 		AGKPointLight *pLight = agk::m_cPointLightList.GetFirst();
 		while( pLight )
@@ -2380,6 +2488,7 @@ void cObject3D::Update( float time )
 
 void cObject3D::Draw()
 {
+
 	CheckLights();
 
 	for ( UINT i = 0; i < m_iNumMeshes; i++ )
@@ -2387,11 +2496,16 @@ void cObject3D::Draw()
 		m_pMeshes[ i ]->CheckShader();
 	}
 
-	if ( !(m_iObjFlags & AGK_OBJECT_VISIBLE) ) return;
+	//PE: This should REALLY be moved to the very top of this functions , it really slow down everything when its down here!
+	//PE: On a normal level we have many not visible object, used for collision/billboards/LOD1/LOD2/custom culling ... so this "would" make a huge FPS improvement.
+	if (!(m_iObjFlags & AGK_OBJECT_VISIBLE)) return;
 
 	int doneSetup = 0;
+
 	for ( UINT i = 0; i < m_iNumMeshes; i++ )
 	{
+		if ( !m_pMeshes[i]->GetVisible() ) continue;
+
 		if ( !m_pMeshes[i]->m_pShader ) continue;
 
 		if ( !(m_iObjFlags & AGK_OBJECT_NO_FRUSTUM_CULLING) && !m_pMeshes[i]->GetInScreen() ) continue;
@@ -2400,12 +2514,13 @@ void cObject3D::Draw()
 		SetupDrawing();
 
 		m_pMeshes[ i ]->Draw();
+
 	}
 }
 
 void cObject3D::DrawShadow()
 {
-	//if ( !(m_iObjFlags & AGK_OBJECT_VISIBLE) ) return; // draw shadow even if object is inivisible
+	//if ( !(m_iObjFlags & AGK_OBJECT_VISIBLE) ) return; // draw shadow even if object is inivisible, To be able to draw hidden shadow.
 	if ( !(m_iObjFlags & AGK_OBJECT_CAST_SHADOWS) ) return;
 
 	int doneSetup = 0;

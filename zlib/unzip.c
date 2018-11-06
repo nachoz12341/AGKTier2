@@ -1621,7 +1621,7 @@ extern int ZEXPORT unzOpenCurrentFile3 (unzFile file, int* method,
                 s->encrypted = 0;
 
 #    ifndef NOUNCRYPT
-    if (password != NULL && strlen(password) >= 1 )
+    if (password != NULL && *password != 0 )
     {
         int i;
         s->pcrc_32_tab = get_crc_table();

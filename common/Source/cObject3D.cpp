@@ -2314,7 +2314,11 @@ void cObject3D::CheckLights()
 	if ( GetLightMode() == 0 ) return;
 
 	//PE: using 20000 object and no light, FPS goes from 53 to 134 using this line.
-	if (agk::m_cPointLightList.GetCount() == 0) return;
+	//PE: This funtion is really slow , so added !(m_iObjFlags & AGK_OBJECT_VISIBLE) to turn off the light on non visible objects.
+	if (agk::m_cPointLightList.GetCount() == 0 || !(m_iObjFlags & AGK_OBJECT_VISIBLE) ) {
+		for (UINT m = 0; m < m_iNumMeshes; ++m) m_pMeshes[m]->SetLights(0, NULL, 0, NULL);
+		return;
+	}
 
 	AGKVector pos = posFinal();
 	AGKQuaternion rot = rotFinal(); rot.Invert();
@@ -2338,8 +2342,7 @@ void cObject3D::CheckLights()
 
 		//PE: Faster when we use LOD meshes inside objects.
 		if ( !(m_pMeshes[m]->m_iFlags & AGK_MESH_VISIBLE) ) {
-			m_pMeshes[m]->m_iNumVSLights = 0;
-			m_pMeshes[m]->m_iNumPSLights = 0;
+			m_pMeshes[m]->SetLights(0, NULL, 0, NULL);
 			continue;
 		}
 
@@ -2485,9 +2488,6 @@ void cObject3D::Update( float time )
 
 void cObject3D::Draw()
 {
-	//PE: Moved here , no need to check light or shaders , they will not be used when not visible.
-	//PE: On a normal level we have many not visible object, used for collision/billboards/LOD1/LOD2/custom culling ... so this make a huge FPS improvement.
-	if (!(m_iObjFlags & AGK_OBJECT_VISIBLE)) return;
 
 	CheckLights();
 
@@ -2496,7 +2496,12 @@ void cObject3D::Draw()
 		m_pMeshes[ i ]->CheckShader();
 	}
 
+	//PE: This should REALLY be moved to the very top of this functions , it really slow down everything when its down here!
+	//PE: On a normal level we have many not visible object, used for collision/billboards/LOD1/LOD2/custom culling ... so this "would" make a huge FPS improvement.
+	if (!(m_iObjFlags & AGK_OBJECT_VISIBLE)) return;
+
 	int doneSetup = 0;
+
 	for ( UINT i = 0; i < m_iNumMeshes; i++ )
 	{
 		if ( !m_pMeshes[i]->GetVisible() ) continue;
@@ -2515,7 +2520,7 @@ void cObject3D::Draw()
 
 void cObject3D::DrawShadow()
 {
-	//if ( !(m_iObjFlags & AGK_OBJECT_VISIBLE) ) return; // draw shadow even if object is inivisible //PE: Why ?
+	//if ( !(m_iObjFlags & AGK_OBJECT_VISIBLE) ) return; // draw shadow even if object is inivisible, To be able to draw hidden shadow.
 	if ( !(m_iObjFlags & AGK_OBJECT_CAST_SHADOWS) ) return;
 
 	int doneSetup = 0;

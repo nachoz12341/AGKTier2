@@ -2770,8 +2770,8 @@ namespace AGK
 			static UINT CreateObjectQuad();
 
 			static void CreateObjectFromHeightMap( UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split ); 
-			static void CreateObjectFromHeightMap(UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight );	
-			static UINT CreateObjectFromHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight);
+			static void CreateObjectFromRawHeightMap(UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight );
+			static UINT CreateObjectFromRawHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight);
 			static UINT CreateObjectFromHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split );
 
 			static UINT CreateObjectFromObjectMesh( UINT fromObjID, UINT meshIndex );

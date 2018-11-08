@@ -1470,6 +1470,17 @@ char* agk::GetURLSchemeText()
 	return str;
 }
 
+//****f* Core/Misc/ClearURLSchemeText
+// FUNCTION
+//   Clears the currently stored URL scheme text so you can signal that you have acted upon it. This is not necessary but
+//   can make your code easier by not having to remember that you have dealt with a URL scheme event.
+// SOURCE
+void agk::ClearURLSchemeText()
+//****
+{
+
+}
+
 void agk::GetDeviceName( uString &outString )
 {
 	outString.SetStr( "windows" );
@@ -4579,6 +4590,13 @@ void agk::VibrateDevice( float seconds )
 	// do nothing
 }
 
+//****f* Extras/Clipboard/SetClipboardText
+// FUNCTION
+//   Sets the device clipboard to the specified text, this overwrites anything that was previously in the device clipboard. 
+//   The clipboard is the same as that used by the copy/paste functionality of the device.
+// INPUTS
+//   szText -- The text to copy
+// SOURCE
 void agk::SetClipboardText( const char* szText )
 //****
 {
@@ -4598,6 +4616,11 @@ void agk::SetClipboardText( const char* szText )
 	GlobalFree(hg);
 }
 
+//****f* Extras/Clipboard/GetClipboardText
+// FUNCTION
+//   Gets any text currently held in the device clipboard, the text remains in the clipboard so it can still be used by other apps. 
+//   The clipboard is the same as that used by the copy/paste functionality of the device.
+// SOURCE
 char* agk::GetClipboardText()
 //****
 {
@@ -10339,7 +10362,8 @@ void agk::SetupCloudData( const char* reserved )
 //   or block access yet, this will be prompted in <i>SetupCloudData</i> if applicable. Returns -1 if the user has 
 //   specifically denied access. Returns -2 if the user is not logged in or the device does not have iCloud or 
 //   Google Drive. You can prompt the user to login and enable these when your app first starts, or when they
-//   choose to enable cloud backup in your own app settings.
+//   choose to enable cloud backup in your own app settings. If this command returns -3 on Android then the Google 
+//   cloud data has become corrupted and must be cleared in the Drive settings.
 // SOURCE
 int agk::GetCloudDataAllowed()
 //****

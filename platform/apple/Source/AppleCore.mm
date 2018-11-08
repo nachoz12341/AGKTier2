@@ -1504,6 +1504,12 @@ char* agk::GetURLSchemeText()
 	return str;
 }
 
+void agk::ClearURLSchemeText()
+//****
+{
+	g_sLastURLSchemeText.SetStr("");
+}
+
 void agk::GetDeviceName( uString &outString )
 //****
 {

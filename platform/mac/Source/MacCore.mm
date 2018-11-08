@@ -151,6 +151,8 @@ FILE* AGKfopen( const char *szPath, const char* mode )
 
 namespace AGK
 {
+    GLFWwindow *g_pWindow = 0;
+    
 	bool g_bIsExternal = false;
 	void (*SwapExternal)(void*) = 0;
 	void *g_pSwapParam = 0;
@@ -664,6 +666,12 @@ char* agk::GetURLSchemeText()
 	return str;
 }
 
+void agk::ClearURLSchemeText()
+//****
+{
+
+}
+
 void agk::GetDeviceName( uString &outString )
 //****
 {
@@ -787,7 +795,7 @@ bool agk::ExtractExpansionFile( const char* localFile, const char* expansionFile
 
 void agk::SetWindowTitle( const char *szTitle )
 {
-	glfwSetWindowTitle( szTitle );
+	glfwSetWindowTitle( g_pWindow, szTitle );
 }
 
 bool agk::GetDeviceCanRotate()
@@ -1072,9 +1080,16 @@ void agk::PlatformInitExternal( void* ptr, int width, int height, void(*swap)(vo
 	PlatformInitCommon();
 }
 
+struct egldata
+{
+    GLFWwindow* window;
+};
+
 void agk::PlatformInitGL( void* ptr )
 {
 	g_bIsExternal = false;
+    
+    g_pWindow = ((egldata*)ptr)->window;
     
 	NSWindow *window = [[[NSApplication sharedApplication] windows] objectAtIndex:0];
 	m_iRenderWidth = [[ window contentView ] frame ].size.width;

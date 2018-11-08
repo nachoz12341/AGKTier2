@@ -477,6 +477,25 @@ char* agk::GetURLSchemeText()
 	return str;
 }
 
+void agk::ClearURLSchemeText()
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "ClearLastURIText", "()V" );
+
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method );
+
+	vm->DetachCurrentThread();
+}
+
 void agk::GetDeviceName( uString &outString )
 //****
 {

@@ -157,7 +157,7 @@ namespace AGK
 			void CreateQuad();
 			void CreateFromHeightMap( cImage *pImage, float width, float height, float length, int smoothing, int split );
 			void CreateFromHeightMap( const char *szHeightMap, float width, float height, float length, int smoothing, int split );
-			void CreateFromHeightMap(const char *szHeightMap, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight );
+			void CreateFromRawHeightMap(const char *szHeightMap, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight );
 			void CreateFromHeightMapFromData( const unsigned short *szHeightMap, int imgWidth, int imgHeight, float width, float height, float length, int smoothing, int split );
 			void CreateFromMeshes( int numMeshes, cMesh **pMeshes );
 			void AddMesh( cMesh *pMesh, int updateCollision=1 );
@@ -226,6 +226,10 @@ namespace AGK
 			int GetFogMode() const { return (m_iObjFlags & AGK_OBJECT_USE_FOG) ? 1 : 0; }
 			int GetShadowCastMode() const { return (m_iObjFlags & AGK_OBJECT_CAST_SHADOWS) ? 1 : 0; }
 			int GetShadowReceiveMode() const { return (m_iObjFlags & AGK_OBJECT_RECV_SHADOWS) ? 1 : 0; }
+			int GetColorRed() const;
+			int GetColorGreen() const;
+			int GetColorBlue() const;
+			int GetAlpha() const;
 
 			const char* GetName() { return m_sName.GetStr(); }
 			const char* GetTexture(int index) { if (index >= 0 && index < AGK_OBJECT_MAX_TEXTURES) return m_sTextures[index].GetStr(); else return(""); }

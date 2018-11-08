@@ -1,5 +1,5 @@
 // Common Includes
-#import "core.h"
+#import "Core.h"
 #import "EAGLView.h"
 #include "interpreter.h"
 #include "MediaPlayer/MediaPlayer.h"
@@ -167,6 +167,11 @@ using namespace AGK;
     
     // this also handles user URL schemes, but the command name is from before that
     return agk::FacebookHandleOpenURL(url) > 0;
+}
+
+- ( BOOL ) application: ( UIApplication* ) application continueUserActivity:(NSUserActivity*) userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> *restorableObjects)) restorationHandler
+{
+    return agk::FacebookHandleOpenURL(userActivity.webpageURL) > 0;
 }
 
 - ( void ) application: ( UIApplication* ) application didReceiveLocalNotification: ( UILocalNotification* ) notification 

@@ -88,7 +88,7 @@ namespace AGK
 			cObjectContainer *m_pOpaqueObjects;
 			cObjectContainer *m_pLastOpaque;
 			cObjectContainer *m_pAlphaObjects;
-			cObjectContainer **m_pAlphaObjectsArray;
+			AGKSortValue *m_pAlphaObjectsArray;
 			int m_iNumAlphaObjects;
 
 			UINT m_iLastTotal;

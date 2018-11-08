@@ -579,11 +579,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			AdditionalKeyDown( wParam );
 			if ( wParam > 0 ) agk::KeyDown( wParam );			
 			
-			
+			/*
 			uString sKey;
 			sKey.Format( "Key: %d", wParam );
 			agk::Warning( sKey );
-			
+			*/
+
 			break;
 		}
 

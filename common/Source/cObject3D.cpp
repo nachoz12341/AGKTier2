@@ -523,7 +523,7 @@ void cObject3D::CreateFromHeightMap( const char *szHeightMap, float width, float
 	}
 }
 
-void cObject3D::CreateFromHeightMap(const char *szHeightMap, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight)
+void cObject3D::CreateFromRawHeightMap(const char *szHeightMap, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight)
 {
 	int imgWidth = 0;
 	int imgHeight = 0;
@@ -1695,6 +1695,11 @@ bool cObject3D::GetTransparencyChanged()
 	m_iObjFlags &= ~AGK_OBJECT_TRANSCHANGED;
 	return bResult; 
 }
+
+int cObject3D::GetColorRed() const { return agk::Round(m_Color.x*255); }
+int cObject3D::GetColorGreen() const { return agk::Round(m_Color.y*255); }
+int cObject3D::GetColorBlue() const { return agk::Round(m_Color.z*255); }
+int cObject3D::GetAlpha() const { return agk::Round(m_fAlpha*255); }
 
 UINT cObject3D::GetInScreen() 
 { 

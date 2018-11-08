@@ -39,7 +39,7 @@
 		4AF7D0521BD727050021ED1E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		4AF7D0541BD7270D0021ED1E /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		721285AF167A597500C0661F /* cObjectMgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cObjectMgr.h; path = ../../common/include/cObjectMgr.h; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* AGK Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "AGK Player.app"; path = "AppGameKit Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* AppGameKit Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AppGameKit Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B3D539E132A8691003D1FE4 /* interpreter.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = interpreter.cpp; path = ../interpreter/interpreter.cpp; sourceTree = SOURCE_ROOT; };
 		9B3D539F132A8691003D1FE4 /* interpreter.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = interpreter.h; path = ../interpreter/interpreter.h; sourceTree = SOURCE_ROOT; };
 		9B8B6E4E1360BFC200BEF23D /* Core.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Core.mm; sourceTree = "<group>"; };
@@ -139,7 +139,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* AGK Player.app */,
+				8D1107320486CEB800E47090 /* AppGameKit Player.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -273,7 +273,7 @@
 			name = agk_interpreter;
 			productInstallPath = "$(HOME)/Applications";
 			productName = MacApp;
-			productReference = 8D1107320486CEB800E47090 /* AGK Player.app */;
+			productReference = 8D1107320486CEB800E47090 /* AppGameKit Player.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -382,6 +382,7 @@
 				HEADER_SEARCH_PATHS = (
 					../../bullet,
 					../../bullet/BulletCollision/CollisionShapes,
+					../interpreter,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -428,6 +429,7 @@
 				HEADER_SEARCH_PATHS = (
 					../../bullet,
 					../../bullet/BulletCollision/CollisionShapes,
+					../interpreter,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
@@ -474,6 +476,7 @@
 				HEADER_SEARCH_PATHS = (
 					../../bullet,
 					../../bullet/BulletCollision/CollisionShapes,
+					../interpreter,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";

@@ -2191,7 +2191,7 @@ public class AGKHelper {
 		String pasteData;
 
 		if (!(clipboard.hasPrimaryClip())) return "";
-		if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
+		//if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
 
 		ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
 		pasteData = item.getText().toString();
@@ -2316,6 +2316,11 @@ public class AGKHelper {
 	public static String GetLastURIText()
 	{
 		return (g_sLastURI == null) ? "" : g_sLastURI;
+	}
+
+	public static void ClearLastURIText()
+	{
+		g_sLastURI = null;
 	}
 
 	public static int HasFirebase() { return 1; }
@@ -3233,7 +3238,7 @@ public class AGKHelper {
 					privacyUrl = new URL( m_sAdMobPrivacyPolicy );
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
-					ShowMessage( pAct, "Failed to construct privacy policy URL" );
+					ShowMessage( pAct, "Failed to construct privacy policy URL: " + e.toString() );
 					return;
 				}
 
@@ -4618,6 +4623,7 @@ public class AGKHelper {
 							public void onSuccess(MetadataBuffer metadata) {
 								if ( metadata.getCount() == 0 )
 								{
+									Log.i("CloudData", "Creating CloudVariables folder" );
 									MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
 											.setTitle("CloudVariables")
 											.build();
@@ -4642,8 +4648,9 @@ public class AGKHelper {
 								}
 								else if ( metadata.getCount() > 1 || !metadata.get(0).isFolder() )
 								{
-									ShowMessage(g_pCloudActivity, "Cloud data for this app has become corrupt, please clear the app data in your Drive settings");
-									g_iCloudDataStatus = -2;
+									Log.e( "CloudData", "Found " + metadata.getCount() + " CloudVariables folders, only one must exist, please clear the app data in your Drive settings" );
+									//ShowMessage(g_pCloudActivity, "Cloud data for this app has become corrupt, please clear the app data in your Drive settings");
+									g_iCloudDataStatus = -3;
 								}
 								else {
 									//Log.i("Cloud Data", "Got CloudVariables folder" );

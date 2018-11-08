@@ -13486,5 +13486,107 @@ case AGKI_GETURLSCHEMETEXT_S_0:
     delete [] szReturnStr;
     break;
 }
+case AGKI_SETOBJECTALPHA_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetObjectAlpha( param0, param1 );
+    break;
+}
+case AGKI_GETOBJECTCOLORRED_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetObjectColorRed( param0 );
+    break;
+}
+case AGKI_GETOBJECTCOLORGREEN_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetObjectColorGreen( param0 );
+    break;
+}
+case AGKI_GETOBJECTCOLORBLUE_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetObjectColorBlue( param0 );
+    break;
+}
+case AGKI_GETOBJECTALPHA_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetObjectAlpha( param0 );
+    break;
+}
+case AGKI_CLEARURLSCHEMETEXT_0_0:
+{
+    agk::ClearURLSchemeText( );
+    break;
+}
+case AGKI_EXTRACTZIP_0_S_S_S:
+{
+    const char* param2 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::ExtractZip( param0, param1, param2 );
+    break;
+}
+case AGKI_CREATEOBJECTFROMRAWHEIGHTMAP_L_S_F_F_F_L_L_L_L:
+{
+    int param7 = m_pStack[ --m_iStackPtr ].i;
+    int param6 = m_pStack[ --m_iStackPtr ].i;
+    int param5 = m_pStack[ --m_iStackPtr ].i;
+    int param4 = m_pStack[ --m_iStackPtr ].i;
+    float param3 = m_pStack[ --m_iStackPtr ].f;
+    float param2 = m_pStack[ --m_iStackPtr ].f;
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    m_pStack[ m_iStackPtr++ ].i = agk::CreateObjectFromRawHeightMap( param0, param1, param2, param3, param4, param5, param6, param7 );
+    break;
+}
+case AGKI_CREATEOBJECTFROMRAWHEIGHTMAP_0_L_S_F_F_F_L_L_L_L:
+{
+    int param8 = m_pStack[ --m_iStackPtr ].i;
+    int param7 = m_pStack[ --m_iStackPtr ].i;
+    int param6 = m_pStack[ --m_iStackPtr ].i;
+    int param5 = m_pStack[ --m_iStackPtr ].i;
+    float param4 = m_pStack[ --m_iStackPtr ].f;
+    float param3 = m_pStack[ --m_iStackPtr ].f;
+    float param2 = m_pStack[ --m_iStackPtr ].f;
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::CreateObjectFromRawHeightMap( param0, param1, param2, param3, param4, param5, param6, param7, param8 );
+    break;
+}
+case AGKI_SETOBJECTMESHCOLLISIONMODE_0_L_L_L:
+{
+    int param2 = m_pStack[ --m_iStackPtr ].i;
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetObjectMeshCollisionMode( param0, param1, param2 );
+    break;
+}
+case AGKI_SETOBJECTMESHVISIBLE_0_L_L_L:
+{
+    int param2 = m_pStack[ --m_iStackPtr ].i;
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetObjectMeshVisible( param0, param1, param2 );
+    break;
+}
+case AGKI_GETOBJECTTEXTURENAME_S_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetObjectTextureName( param0, param1 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_GETOBJECTNUMTEXTURES_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetObjectNumTextures( param0 );
+    break;
+}
 
 

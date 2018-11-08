@@ -9941,3 +9941,16 @@ case AGKI_GETURLSCHEMETEXT_S_0:
     delete [] szReturnStr;
     break;
 }
+case AGKI_CLEARURLSCHEMETEXT_0_0:
+{
+    agk::ClearURLSchemeText( );
+    break;
+}
+case AGKI_EXTRACTZIP_0_S_S_S:
+{
+    const char* param2 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::ExtractZip( param0, param1, param2 );
+    break;
+}

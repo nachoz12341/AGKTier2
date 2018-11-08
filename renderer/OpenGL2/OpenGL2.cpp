@@ -474,6 +474,11 @@ bool IsExtensionSupported(const char *extension)
 
 #ifdef AGK_MACOS
 
+    namespace AGK
+    {
+        extern GLFWwindow *g_pWindow;
+    }
+
 	void agk::PlatformDestroyGL ( void )
 	{
 		
@@ -492,7 +497,7 @@ bool IsExtensionSupported(const char *extension)
 		}
 		
 		// display backbuffer
-		glfwSwapBuffers();
+		glfwSwapBuffers(g_pWindow);
 	}
 #endif
 

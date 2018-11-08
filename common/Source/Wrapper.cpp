@@ -27227,7 +27227,7 @@ int agk::CountStringTokens2( const char* str, const char* delimiter )
 //   You can use <i>CountStringTokens2</i> to count the number of tokens in the string.
 // INPUTS
 //   str -- The string to check.
-//   delimiter -- The characters that delimits the string.
+//   delimiter -- The character that delimits the string.
 //   token -- the index of the token to return, starting at 1 for the first token.
 // SOURCE
 char* agk::GetStringToken2( const char* str, const char* delimiter, int token )
@@ -41056,10 +41056,11 @@ void agk::CreateObjectFromHeightMap( UINT objID, const char* szImageFile, float 
 
 //****f* 3D/Objects/CreateObjectFromRawHeightMap
 // FUNCTION
-//   Creates an object from a specified height map, useful for making terrain.
-//   The image should be in raw 16-bit data. If you use extension ".dat" in <i>szImageFile</i> if will expect that this is a
-//   GameGuru 32-bit raw height map and convert that to 16-bit, If you have a 16-bit height map called ".dat" rename it to ".raw".
-//   If you convert a GameGuru height map (m.dat) file, <i>rawWidth</i> and <i>rawHeight</i> should always be set to 1024.
+//   Creates an object from a specified .raw or .dat height map, useful for making terrain.
+//   The file should be in raw 16-bit data. If you use extension ".dat" in <b>szFilename</b> it will expect that this is a
+//   GameGuru 32-bit raw height map and convert that to 16-bit. If the file is not a GameGuru height map then you must 
+//   change the extension to ".raw".
+//   If you convert a GameGuru height map (.dat) file, <b>rawWidth</b> and <b>rawHeight</b> should always be set to 1024.
 //   The object will have a single UV channel with the range 0 to 1 mapped to the entire terrain. If you wish to 
 //   modify this then you can use <i>SetObjectUVOffset</i> and <i>SetObjectUVScale</i>, or use a shader that 
 //   multiplies the UV coordinates by a specified amount. A shader can also be used to create multiple UV channels
@@ -41074,16 +41075,16 @@ void agk::CreateObjectFromHeightMap( UINT objID, const char* szImageFile, float 
 //   Turning on physics for this object will use even more memory and is not recommended on terrains greater than
 //   1024x1024 on any platform.
 // INPUTS
-//   szImageFile -- The filename of the image to use as a height map, PNG preferred, also supports JPEG
+//   szFilename -- The filename of the height map, must end in .raw or .dat
 //   width -- The desired width of the new object in the X direction
 //   height -- The desired height of the new object in the Y direction
 //   length -- The desired length of the new object in the Z direction
 //   smoothing -- The amount of smoothing to apply to the height values, 0=none, 1=one pass, 2=two passes, etc
 //   split -- 1=single mesh, 2=four meshes, 3=nine meshes, 4=sixteen meshes, etc
-//   rawWidth -- The width of the 16-bit. raw height map data.
-//   rawHeight -- The height of the 16-bit. raw height map data.
+//   rawWidth -- The width of the height map data
+//   rawHeight -- The height of the height map data
 // SOURCE
-UINT agk::CreateObjectFromRawHeightMap( const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight)
+UINT agk::CreateObjectFromRawHeightMap( const char* szFilename, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight)
 //****
 {
 	//PE:
@@ -41097,8 +41098,8 @@ UINT agk::CreateObjectFromRawHeightMap( const char* szImageFile, float width, fl
 		return 0;
 	}
 	
-	uString m_szImageFile,ext;
-	m_szImageFile.SetStr(szImageFile);
+	uString m_szImageFile, ext;
+	m_szImageFile.SetStr(szFilename);
 	int pos = m_szImageFile.RevFind('.');
 	if (pos >= 0) {
 		m_szImageFile.SubString(ext, pos + 1);
@@ -41114,17 +41115,18 @@ UINT agk::CreateObjectFromRawHeightMap( const char* szImageFile, float width, fl
 		return 0;
 	}
 
-	CreateObjectFromRawHeightMap(objID, szImageFile, width, height, length, smoothing, split, rawWidth, rawHeight);
+	CreateObjectFromRawHeightMap(objID, szFilename, width, height, length, smoothing, split, rawWidth, rawHeight);
 	return objID;
 }
 
 
 //****f* 3D/Objects/CreateObjectFromRawHeightMap
 // FUNCTION
-//   Creates an object from a specified height map, useful for making terrain.
-//   The image should be in raw 16-bit data. If you use extension ".dat" in <i>szImageFile</i> if will expect that this is a
-//   GameGuru 32-bit raw height map and convert that to 16-bit, If you have a 16-bit height map called ".dat" rename it to ".raw".
-//   If you convert a GameGuru height map (m.dat) file, <i>rawWidth</i> and <i>rawHeight</i> should always be set to 1024.
+//   Creates an object from a specified .raw or .dat height map, useful for making terrain.
+//   The file should be in raw 16-bit data. If you use extension ".dat" in <b>szFilename</b> it will expect that this is a
+//   GameGuru 32-bit raw height map and convert that to 16-bit. If the file is not a GameGuru height map then you must 
+//   change the extension to ".raw".
+//   If you convert a GameGuru height map (.dat) file, <b>rawWidth</b> and <b>rawHeight</b> should always be set to 1024.
 //   The object will have a single UV channel with the range 0 to 1 mapped to the entire terrain. If you wish to 
 //   modify this then you can use <i>SetObjectUVOffset</i> and <i>SetObjectUVScale</i>, or use a shader that 
 //   multiplies the UV coordinates by a specified amount. A shader can also be used to create multiple UV channels
@@ -41140,16 +41142,16 @@ UINT agk::CreateObjectFromRawHeightMap( const char* szImageFile, float width, fl
 //   1024x1024 on any platform.
 // INPUTS
 //   objID -- The ID of the object to create
-//   szImageFile -- The filename of the image to use as a height map, PNG preferred, also supports JPEG
+//   szFilename -- The filename of the height map, must end in .raw or .dat
 //   width -- The desired width of the new object in the X direction
 //   height -- The desired height of the new object in the Y direction
 //   length -- The desired length of the new object in the Z direction
 //   smoothing -- The amount of smoothing to apply to the height values, 0=none, 1=one pass, 2=two passes, etc
 //   split -- 1=single mesh, 2=four meshes, 3=nine meshes, 4=sixteen meshes, etc
-//   rawWidth -- The width of the 16-bit. raw height map data.
-//   rawHeight -- The height of the 16-bit. raw height map data.
+//   rawWidth -- The width of the height map data
+//   rawHeight -- The height of the height map data
 // SOURCE
-void agk::CreateObjectFromRawHeightMap(UINT objID, const char* szImageFile, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight )
+void agk::CreateObjectFromRawHeightMap( UINT objID, const char* szFilename, float width, float height, float length, int smoothing, int split, int rawWidth, int rawHeight )
 //****
 {
 	//PE:
@@ -41164,7 +41166,7 @@ void agk::CreateObjectFromRawHeightMap(UINT objID, const char* szImageFile, floa
 	}
 
 	uString m_szImageFile, ext;
-	m_szImageFile.SetStr(szImageFile);
+	m_szImageFile.SetStr(szFilename);
 	int pos = m_szImageFile.RevFind('.');
 	if (pos >= 0) {
 		m_szImageFile.SubString(ext, pos + 1);
@@ -41192,7 +41194,7 @@ void agk::CreateObjectFromRawHeightMap(UINT objID, const char* szImageFile, floa
 
 	cObject3D *pObject = new cObject3D();
 	pObject->m_iID = objID;
-	pObject->CreateFromHeightMap(szImageFile, width, height, length, smoothing, split, rawWidth, rawHeight );
+	pObject->CreateFromRawHeightMap(szFilename, width, height, length, smoothing, split, rawWidth, rawHeight);
 	m_cObject3DList.AddItem(pObject, objID);
 	m_cObjectMgr.AddObject(pObject);
 }
@@ -46092,6 +46094,31 @@ void agk::SetObjectColor( UINT objID, int red, int green, int blue, int alpha )
 	pObject->SetColor( red, green, blue, alpha );
 }
 
+//****f* 3D/Objects/SetObjectAlpha
+// FUNCTION
+//   Sets the alpha value to use when drawing this object. This is the same alpha value that can be set in <i>SetObjectColor</i>.
+//   Values should be in the range 0-255 but are not limited to it.
+// INPUTS
+//   objID -- The ID of the object to modify.
+//   alpha -- The alpha component of the color.
+// SOURCE
+void agk::SetObjectAlpha( UINT objID, int alpha )
+//****
+{
+	cObject3D *pObject = m_cObject3DList.GetItem( objID );
+	if ( !pObject )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to set alpha for object " );
+		errStr.AppendUInt( objID ).Append( " - object does not exist" );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	pObject->SetAlpha( alpha );
+}
+
 //****f* 3D/Objects/SetObjectColorEmissive
 // FUNCTION
 //   Sets the emissive color to use when drawing this object. Values should be in the range 0-255 but are not limited 
@@ -46786,6 +46813,98 @@ int agk::GetObjectReceiveShadowMode( int objID )
 	}
 
 	return pObject->GetShadowReceiveMode();
+}
+
+//****f* 3D/Shadows/GetObjectColorRed
+// FUNCTION
+//   Returns the current red value of this object's color, as set by <i>SetObjectColor</i>.
+// INPUTS
+//   objID -- The ID of the object to check.
+// SOURCE
+int agk::GetObjectColorRed( int objID )
+//****
+{
+	cObject3D *pObject = m_cObject3DList.GetItem( objID );
+	if ( !pObject )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to GetObjectColorRed for object " );
+		errStr.AppendUInt( objID ).Append( " - object does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pObject->GetColorRed();
+}
+
+//****f* 3D/Shadows/GetObjectColorGreen
+// FUNCTION
+//   Returns the current green value of this object's color, as set by <i>SetObjectColor</i>.
+// INPUTS
+//   objID -- The ID of the object to check.
+// SOURCE
+int agk::GetObjectColorGreen( int objID )
+//****
+{
+	cObject3D *pObject = m_cObject3DList.GetItem( objID );
+	if ( !pObject )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to GetObjectColorGreen for object " );
+		errStr.AppendUInt( objID ).Append( " - object does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pObject->GetColorGreen();
+}
+
+//****f* 3D/Shadows/GetObjectColorBlue
+// FUNCTION
+//   Returns the current blue value of this object's color, as set by <i>SetObjectColor</i>.
+// INPUTS
+//   objID -- The ID of the object to check.
+// SOURCE
+int agk::GetObjectColorBlue( int objID )
+//****
+{
+	cObject3D *pObject = m_cObject3DList.GetItem( objID );
+	if ( !pObject )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to GetObjectColorBlue for object " );
+		errStr.AppendUInt( objID ).Append( " - object does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pObject->GetColorBlue();
+}
+
+//****f* 3D/Shadows/GetObjectAlpha
+// FUNCTION
+//   Returns the current alpha value of this object's color, as set by <i>SetObjectColor</i> or <i>SetObjectAlpha</i>.
+// INPUTS
+//   objID -- The ID of the object to check.
+// SOURCE
+int agk::GetObjectAlpha( int objID )
+//****
+{
+	cObject3D *pObject = m_cObject3DList.GetItem( objID );
+	if ( !pObject )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to GetObjectAlpha for object " );
+		errStr.AppendUInt( objID ).Append( " - object does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pObject->GetAlpha();
 }
 
 //****f* 3D/Objects/GetObjectName

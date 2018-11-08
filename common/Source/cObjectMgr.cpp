@@ -127,12 +127,17 @@ void cObjectMgr::RemoveObject( cObject3D* object )
 		pMember = pMember->m_pNext;
 	}
 
-	for ( int i = 0; i < m_iNumAlphaObjects; i++ )
+	if ( m_pAlphaObjectsArray )
 	{
-		if ( m_pAlphaObjectsArray[ i ] && m_pAlphaObjectsArray[ i ]->GetType() == 1 && m_pAlphaObjectsArray[ i ]->GetObject() == object ) 
+		for ( int i = 0; i < m_iNumAlphaObjects; i++ )
 		{
-			m_pAlphaObjectsArray[ i ] = 0;
-			break;
+			cObjectContainer *pContainer = (cObjectContainer*) m_pAlphaObjectsArray[ i ].ptr;
+			if ( pContainer && pContainer->GetType() == 1 && pContainer->GetObject() == object ) 
+			{
+				m_pAlphaObjectsArray[ i ].iValue = 0xFFFFFFFF;
+				m_pAlphaObjectsArray[ i ].ptr = 0;
+				break;
+			}
 		}
 	}
 
@@ -268,7 +273,7 @@ void cObjectMgr::ResortAll()
 	{
 		if ( m_pAlphaObjectsArray ) delete [] m_pAlphaObjectsArray;
 		m_pAlphaObjectsArray = 0;
-		if ( alphaCount > 0 ) m_pAlphaObjectsArray = new cObjectContainer*[ alphaCount ];
+		if ( alphaCount > 0 ) m_pAlphaObjectsArray = new AGKSortValue[ alphaCount ];
 	}
 
 	m_iNumAlphaObjects = alphaCount;
@@ -279,12 +284,13 @@ void cObjectMgr::ResortAll()
 	cObject3D* tmpobj;
 	while ( pMember )
 	{
-		m_pAlphaObjectsArray[ alphaCount ] = pMember;
+		m_pAlphaObjectsArray[ alphaCount ].ptr = pMember;
+		m_pAlphaObjectsArray[ alphaCount ].iValue = 0;
 
 		if (g_pCurrentCamera) {
-			//PE: Store SqrDist so we dont need to update it while sorting.
 			tmpobj = ((cObject3D*) pMember->GetObject()); 
-			tmpobj->m_fLastSqrDist = tmpobj->posFinal().GetSqrDist(g_pCurrentCamera->posFinal());
+			float dist = -tmpobj->posFinal().GetSqrDist( g_pCurrentCamera->posFinal() ); // negative so it sorts in reverse order
+			m_pAlphaObjectsArray[ alphaCount ].iValue = agk::SortFloatToUINT( dist );
 		}
 
 		alphaCount++;
@@ -293,37 +299,7 @@ void cObjectMgr::ResortAll()
 	}
 
 	// sort transparent objects
-	// todo don't use qsort
-	//PE: Poul , std::sort should be 30% faster, perhaps give that a go :)
-//	if (m_pAlphaObjectsArray && g_pCurrentCamera) qsort(m_pAlphaObjectsArray, m_iNumAlphaObjects, sizeof(cObjectContainer*), cObjectMgr::ContainerCompare);
-	if (m_pAlphaObjectsArray && g_pCurrentCamera) qsort(m_pAlphaObjectsArray, m_iNumAlphaObjects, sizeof(cObjectContainer*), cObjectMgr::ContainerComparePE);
-}
-
-//PE: ContainerCompare is called many many times, so store GetSqrDist so we dont need to do this everytime. It will not change while sorting.
-//PE: With 722 objects, the old sort used 15FPS (difference with sort/nosort), using this we are down to only using 6 FPS for the same sort.
-int cObjectMgr::ContainerComparePE( const void* a, const void* b )
-{
-	float dist1 = ((cObject3D*)(*(cObjectContainer**)a)->GetObject())->m_fLastSqrDist; //PE: used our stored distance.
-	float dist2 = ((cObject3D*)(*(cObjectContainer**)b)->GetObject())->m_fLastSqrDist; //PE: used our stored distance.
-
-	if ( dist2 == dist1 ) return 0;
-	else if ( dist2 < dist1 ) return -1; // b is closer to the camera than a
-	else return 1;
-}
-
-int cObjectMgr::ContainerCompare(const void* a, const void* b)
-{
-	//if ( !g_pCurrentCamera ) return 0; //PE: Already checked before qsort.
-
-	cObject3D* obj1 = (*(cObjectContainer**)a)->GetObject();
-	cObject3D* obj2 = (*(cObjectContainer**)b)->GetObject();
-
-	float dist1 = obj1->posFinal().GetSqrDist( g_pCurrentCamera->posFinal() );
-	float dist2 = obj2->posFinal().GetSqrDist( g_pCurrentCamera->posFinal() );
-
-	if (dist2 == dist1) return 0;
-	else if (dist2 < dist1) return -1; // b is closer to the camera than a
-	else return 1;
+	agk::SortArray( m_pAlphaObjectsArray, m_iNumAlphaObjects );
 }
 
 void cObjectMgr::SetCurrentCamera( cCamera* pCamera )
@@ -348,10 +324,11 @@ void cObjectMgr::DrawAll()
 	{
 		for ( int i = 0 ; i < m_iNumAlphaObjects; i++ )
 		{
-			if ( m_pAlphaObjectsArray[ i ] && m_pAlphaObjectsArray[ i ]->GetType() == 1 )
+			cObjectContainer *pContainer = (cObjectContainer*) m_pAlphaObjectsArray[ i ].ptr;
+			if ( pContainer && pContainer->GetType() == 1 )
 			{
 				m_iLastDrawn++;
-				m_pAlphaObjectsArray[ i ]->GetObject()->Draw();
+				pContainer->GetObject()->Draw();
 			}
 		}
 	}

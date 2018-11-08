@@ -472,9 +472,10 @@
 					../../platform/apple/Source,
 					../../bullet,
 					../../bullet/BulletCollision/CollisionShapes,
+					../interpreter,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = "\"../../platform/apple/Lib/ReleaseLite\"";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
@@ -517,9 +518,10 @@
 					../../platform/apple/Source,
 					../../bullet,
 					../../bullet/BulletCollision/CollisionShapes,
+					../interpreter,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = "\"../../platform/apple/Lib/ReleaseLite\"";
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_LDFLAGS = "-ObjC";

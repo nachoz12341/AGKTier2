@@ -19,7 +19,8 @@
 #endif
 
 #ifdef AGK_MACOS
-	#include "../../platform/mac/GLFW/glfw.h"
+    #include <OpenGL/gl.h>
+	#include "../../platform/mac/GLFW/glfw3.h"
 #endif
 
 #ifdef AGK_LINUX

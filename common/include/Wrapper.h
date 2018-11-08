@@ -918,6 +918,7 @@ namespace AGK
 			static int GetResumed();
 			static int GetResumed2();
 			static char* GetURLSchemeText();
+			static void ClearURLSchemeText();
 			static char* GetDeviceName();
 			static void GetDeviceName( uString &sString );
 			static char* GetDeviceBaseName();
@@ -2940,6 +2941,7 @@ namespace AGK
 			static void SetObjectNormalMapScale( UINT objID, float scaleU, float scaleV );
 			static void SetObjectShader( UINT objID, UINT shaderID );
 			static void SetObjectColor( UINT objID, int red, int green, int blue, int alpha );
+			static void SetObjectAlpha( UINT objID, int alpha );
 			static void SetObjectColorEmissive( UINT objID, int red, int green, int blue );
 			static void SetObjectLightMode( UINT objID, int mode );
 			static void SetObjectScreenCulling( UINT objID, int mode );
@@ -2968,6 +2970,10 @@ namespace AGK
 			static int GetObjectInScreen( UINT objID );
 			static int GetObjectCastShadowMode( int objID );
 			static int GetObjectReceiveShadowMode( int objID );
+			static int GetObjectColorRed( int objID );
+			static int GetObjectColorGreen( int objID );
+			static int GetObjectColorBlue( int objID );
+			static int GetObjectAlpha( int objID );
 
 			static char* GetObjectName( UINT objID );
 			

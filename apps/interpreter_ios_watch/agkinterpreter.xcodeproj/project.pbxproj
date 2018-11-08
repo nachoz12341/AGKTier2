@@ -67,6 +67,11 @@
 		4ABD90A41AB88A4400ADB1BA /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABD90A31AB88A4400ADB1BA /* AdSupport.framework */; };
 		4ABD90A61AB88FCF00ADB1BA /* Chartboost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABD90A51AB88FCF00ADB1BA /* Chartboost.framework */; };
 		4ABD90AC1AB890EB00ADB1BA /* libAGKiOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABD90AB1AB890EB00ADB1BA /* libAGKiOS.a */; };
+		4AF55AC52188C331004FDC97 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF55AC42188C331004FDC97 /* JavaScriptCore.framework */; };
+		4AF55AC72188C358004FDC97 /* SafariServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF55AC62188C357004FDC97 /* SafariServices.framework */; };
+		4AF55AC92188C3E6004FDC97 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF55AC82188C3E6004FDC97 /* WebKit.framework */; };
+		4AF55ACB2188C416004FDC97 /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF55ACA2188C415004FDC97 /* PersonalizedAdConsent.framework */; };
+		4AF55ACD2188C43C004FDC97 /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4AF55ACC2188C43B004FDC97 /* PersonalizedAdConsent.bundle */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
 		9B0A5AAF13269BF4006B5FB6 /* interpreter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A5AAD13269BF4006B5FB6 /* interpreter.cpp */; };
@@ -197,6 +202,11 @@
 		4ABD90A51AB88FCF00ADB1BA /* Chartboost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Chartboost.framework; path = "../../platform/apple/Source/Social Plugins/Chartboost.framework"; sourceTree = "<group>"; };
 		4ABD90AB1AB890EB00ADB1BA /* libAGKiOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libAGKiOS.a; path = ../../platform/apple/Lib/Release/libAGKiOS.a; sourceTree = "<group>"; };
 		4AD751D41D81B231001DE9C0 /* AppGameKit Player.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "AppGameKit Player.entitlements"; sourceTree = "<group>"; };
+		4AF55AC42188C331004FDC97 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		4AF55AC62188C357004FDC97 /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
+		4AF55AC82188C3E6004FDC97 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		4AF55ACA2188C415004FDC97 /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
+		4AF55ACC2188C43B004FDC97 /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
 		726A37B215B8DA0D002F8919 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		72EF411814632D6400C96B0A /* UntitledViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UntitledViewController.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* agkinterpreter-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "agkinterpreter-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -255,6 +265,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AF55AC92188C3E6004FDC97 /* WebKit.framework in Frameworks */,
+				4AF55AC72188C358004FDC97 /* SafariServices.framework in Frameworks */,
+				4AF55AC52188C331004FDC97 /* JavaScriptCore.framework in Frameworks */,
 				4A58BA83206AAE480038F2F0 /* ARKit.framework in Frameworks */,
 				4A58BA80206AAE330038F2F0 /* nanopb.framework in Frameworks */,
 				4A73C8A51F97B5A1008A4EEE /* WatchConnectivity.framework in Frameworks */,
@@ -282,6 +295,7 @@
 				4A0A41261D9EA6B90065F425 /* FirebaseInstanceID.framework in Frameworks */,
 				D8C10A48161211B900665788 /* CoreMedia.framework in Frameworks */,
 				D823630F16120226008BD7C0 /* MediaPlayer.framework in Frameworks */,
+				4AF55ACB2188C416004FDC97 /* PersonalizedAdConsent.framework in Frameworks */,
 				D854AEE31546FC8A00651682 /* SystemConfiguration.framework in Frameworks */,
 				D854AEE11546FC8100651682 /* MessageUI.framework in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
@@ -362,6 +376,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4AF55ACC2188C43B004FDC97 /* PersonalizedAdConsent.bundle */,
 				4A44D4661FBC8DA40074C59C /* Default-375w-812h@3x.png */,
 				4A6879F21EB0F81A00281DB2 /* Default-414w-736h@3x.png */,
 				4A6879F31EB0F81A00281DB2 /* Default-568h@2x.png */,
@@ -390,6 +405,10 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AF55ACA2188C415004FDC97 /* PersonalizedAdConsent.framework */,
+				4AF55AC82188C3E6004FDC97 /* WebKit.framework */,
+				4AF55AC62188C357004FDC97 /* SafariServices.framework */,
+				4AF55AC42188C331004FDC97 /* JavaScriptCore.framework */,
 				4A58BA82206AAE480038F2F0 /* ARKit.framework */,
 				4A73C8A41F97B5A1008A4EEE /* WatchConnectivity.framework */,
 				4A73C8A21F97B4F7008A4EEE /* WatchKit.framework */,
@@ -650,6 +669,7 @@
 				4A6879FB1EB0F81A00281DB2 /* Default-414w-736h@3x.png in Resources */,
 				72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */,
 				4A687A031EB0F81A00281DB2 /* Default@2x.png in Resources */,
+				4AF55ACD2188C43C004FDC97 /* PersonalizedAdConsent.bundle in Resources */,
 				4A687A011EB0F81A00281DB2 /* Default-Portrait@2x~ipad.png in Resources */,
 				4A0A41141D9EA1920065F425 /* GoogleService-Info.plist in Resources */,
 			);
@@ -759,9 +779,10 @@
 					../../platform/apple/Source,
 					../../bullet,
 					../../bullet/BulletCollision/CollisionShapes,
+					../interpreter,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
 					../../platform/apple/Lib/Debug,
 					../../platform/apple/Lib/Release,
@@ -772,7 +793,7 @@
 				PRODUCT_NAME = "AppGameKit Player";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
-				VALID_ARCHS = "armv7 arm64 i386 x86_64";
+				VALID_ARCHS = "armv7 arm64";
 			};
 			name = Debug;
 		};
@@ -807,9 +828,10 @@
 					../../platform/apple/Source,
 					../../bullet,
 					../../bullet/BulletCollision/CollisionShapes,
+					../interpreter,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = "\"../../platform/apple/Lib/Release\"";
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_LDFLAGS = "-ObjC";
@@ -818,7 +840,7 @@
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = "armv7 arm64 i386 x86_64";
+				VALID_ARCHS = "armv7 arm64";
 			};
 			name = Release;
 		};
@@ -868,6 +890,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				IBSC_MODULE = Watch_Extension;
 				INFOPLIST_FILE = Watch/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thegamecreators.agk2player.watchkitapp;
@@ -920,6 +943,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				IBSC_MODULE = Watch_Extension;
 				INFOPLIST_FILE = Watch/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thegamecreators.agk2player.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -976,6 +1000,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				INFOPLIST_FILE = "Watch Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1027,6 +1052,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				INFOPLIST_FILE = "Watch Extension/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = com.thegamecreators.agk2player.watchkitapp.watchkitextension;
@@ -1057,7 +1083,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../../platform/apple/Source;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				PREBINDING = NO;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
@@ -1084,7 +1110,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = ../../platform/apple/Source;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PREBINDING = NO;
 				PROVISIONING_PROFILE = "";

@@ -2281,6 +2281,11 @@ public class AGKHelper {
 		return (g_sLastURI == null) ? "" : g_sLastURI;
 	}
 
+	public static void ClearLastURIText()
+	{
+		g_sLastURI = null;
+	}
+
 	public static int HasFirebase() { return 1; }
 
 	public static void SetImmersiveMode( Activity act, int mode ) {

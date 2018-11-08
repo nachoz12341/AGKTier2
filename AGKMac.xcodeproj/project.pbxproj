@@ -259,6 +259,7 @@
 		4AB3064A1BE2B9F000064579 /* CharacterController.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AB306471BE2B9F000064579 /* CharacterController.h */; };
 		4AB3064B1BE2B9F000064579 /* RagDoll.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AB306481BE2B9F000064579 /* RagDoll.h */; };
 		4AB3064C1BE2B9F000064579 /* RagdollBone.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AB306491BE2B9F000064579 /* RagdollBone.h */; };
+		4ABE46312177913300469928 /* libglfw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4ABE46302177913300469928 /* libglfw3.a */; };
 		4AE876B31F1E5594003AD977 /* 3DParticles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4AE876B21F1E5594003AD977 /* 3DParticles.cpp */; };
 		4AE876B51F1E55A3003AD977 /* 3DParticles.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AE876B41F1E55A3003AD977 /* 3DParticles.h */; };
 		4AED52881D20301F00C30495 /* libddhid.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AED52871D20301F00C30495 /* libddhid.a */; };
@@ -1191,7 +1192,6 @@
 		D8A06917134E5A2E005C59DC /* libImages.h in Headers */ = {isa = PBXBuildFile; fileRef = D8A06916134E5A2E005C59DC /* libImages.h */; };
 		D8A5D68E13200C52000446C9 /* cFile.h in Headers */ = {isa = PBXBuildFile; fileRef = D8A5D68D13200C52000446C9 /* cFile.h */; };
 		D8A5D6AD13200D10000446C9 /* cFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D8A5D6AC13200D10000446C9 /* cFile.cpp */; };
-		D8AC74D11384649F007D4CE7 /* libglfw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D8AC74D01384649F007D4CE7 /* libglfw.a */; };
 		D8BC8AE1152121470042EDA1 /* adler32.c in Sources */ = {isa = PBXBuildFile; fileRef = D8BC8ABA152121470042EDA1 /* adler32.c */; };
 		D8BC8AE2152121470042EDA1 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = D8BC8ABB152121470042EDA1 /* compress.c */; };
 		D8BC8AE3152121470042EDA1 /* crc32.c in Sources */ = {isa = PBXBuildFile; fileRef = D8BC8ABC152121470042EDA1 /* crc32.c */; };
@@ -1687,6 +1687,7 @@
 		4AB306471BE2B9F000064579 /* CharacterController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CharacterController.h; path = common/include/CharacterController.h; sourceTree = "<group>"; };
 		4AB306481BE2B9F000064579 /* RagDoll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RagDoll.h; path = common/include/RagDoll.h; sourceTree = "<group>"; };
 		4AB306491BE2B9F000064579 /* RagdollBone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RagdollBone.h; path = common/include/RagdollBone.h; sourceTree = "<group>"; };
+		4ABE46302177913300469928 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = platform/mac/GLFW/libglfw3.a; sourceTree = "<group>"; };
 		4AE876B21F1E5594003AD977 /* 3DParticles.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = 3DParticles.cpp; path = common/Source/3DParticles.cpp; sourceTree = "<group>"; };
 		4AE876B41F1E55A3003AD977 /* 3DParticles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = 3DParticles.h; path = common/include/3DParticles.h; sourceTree = "<group>"; };
 		4AED52871D20301F00C30495 /* libddhid.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libddhid.a; path = platform/mac/DDHidLib/libddhid.a; sourceTree = "<group>"; };
@@ -2634,7 +2635,6 @@
 		D8A06916134E5A2E005C59DC /* libImages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = libImages.h; path = common/Include/libImages.h; sourceTree = "<group>"; };
 		D8A5D68D13200C52000446C9 /* cFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cFile.h; path = common/Include/cFile.h; sourceTree = "<group>"; };
 		D8A5D6AC13200D10000446C9 /* cFile.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = cFile.cpp; path = common/Source/cFile.cpp; sourceTree = "<group>"; };
-		D8AC74D01384649F007D4CE7 /* libglfw.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw.a; path = platform/mac/GLFW/libglfw.a; sourceTree = SOURCE_ROOT; };
 		D8BC8ABA152121470042EDA1 /* adler32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = adler32.c; sourceTree = "<group>"; };
 		D8BC8ABB152121470042EDA1 /* compress.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = compress.c; sourceTree = "<group>"; };
 		D8BC8ABC152121470042EDA1 /* crc32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = crc32.c; sourceTree = "<group>"; };
@@ -2878,7 +2878,7 @@
 				4AF7CA3A1BD7180B0021ED1E /* OpenAL.framework in Frameworks */,
 				4AF7CA381BD718030021ED1E /* CoreFoundation.framework in Frameworks */,
 				4AF7CA361BD717F40021ED1E /* Cocoa.framework in Frameworks */,
-				D8AC74D11384649F007D4CE7 /* libglfw.a in Frameworks */,
+				4ABE46312177913300469928 /* libglfw3.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4576,6 +4576,7 @@
 		D88F5E7C131DC5BA003157CE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4ABE46302177913300469928 /* libglfw3.a */,
 				4AED52871D20301F00C30495 /* libddhid.a */,
 				4AF7CA411BD7182C0021ED1E /* AVFoundation.framework */,
 				4AF7CA3F1BD718230021ED1E /* CoreLocation.framework */,
@@ -4584,7 +4585,6 @@
 				4AF7CA391BD7180B0021ED1E /* OpenAL.framework */,
 				4AF7CA371BD718030021ED1E /* CoreFoundation.framework */,
 				4AF7CA351BD717F40021ED1E /* Cocoa.framework */,
-				D8AC74D01384649F007D4CE7 /* libglfw.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -6462,6 +6462,7 @@
 					platform/mac,
 					platform/mac/DDHidLib,
 					platform/mac/GLFW,
+					"$(PROJECT_DIR)/platform/mac/GLFW",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "-fvisibility=hidden";
@@ -6508,6 +6509,7 @@
 					platform/mac,
 					platform/mac/DDHidLib,
 					platform/mac/GLFW,
+					"$(PROJECT_DIR)/platform/mac/GLFW",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
@@ -6612,6 +6614,7 @@
 					platform/mac,
 					platform/mac/DDHidLib,
 					platform/mac/GLFW,
+					"$(PROJECT_DIR)/platform/mac/GLFW",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;

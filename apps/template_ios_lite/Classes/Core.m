@@ -144,6 +144,11 @@ using namespace AGK;
     return agk::FacebookHandleOpenURL(url) > 0;
 }
 
+- ( BOOL ) application: ( UIApplication* ) application continueUserActivity:(NSUserActivity*) userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> *restorableObjects)) restorationHandler
+{
+    return agk::FacebookHandleOpenURL(userActivity.webpageURL) > 0;
+}
+
 - ( void ) application: ( UIApplication* ) application didReceiveLocalNotification: ( UILocalNotification* ) notification 
 {
     // called when the app receives a local notification

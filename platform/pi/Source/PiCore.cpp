@@ -515,6 +515,12 @@ char* agk::GetURLSchemeText()
 	return str;
 }
 
+void agk::ClearURLSchemeText()
+//****
+{
+
+}
+
 void agk::GetDeviceName( uString &outString )
 //****
 {

@@ -1260,6 +1260,7 @@ void cText::SetSize( float fSize )
 		
 		int pixelSize = agk::Round( m_fOrigSize/m_fVerticalRatio );
 		m_fSize = pixelSize * m_fVerticalRatio;
+
 		AGKSizedFont *pNewFont = m_pFTFont->GetSizedFont( pixelSize );
 		float newScale = m_fFontScale;
 		if ( pNewFont ) newScale = pixelSize / (float) pNewFont->GetSize();

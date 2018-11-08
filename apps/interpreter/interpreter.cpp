@@ -92,7 +92,7 @@ void app::UpdateInterpreterAspect ( void )
 
 		if ( g_pAGKBackdropHelp.pSprite ) 
 		{
-			g_pAGKBackdropHelp.pSprite->SetSize ( 66.667f/fAspect, 100 );
+			g_pAGKBackdropHelp.pSprite->SetSize ( 80.0f/fAspect, 100 );
 			g_pAGKBackdropHelp.pSprite->SetPositionByOffset ( 50, 50 );
 		}
         
@@ -127,8 +127,8 @@ void app::UpdateInterpreterAspect ( void )
 
 		if ( g_pAGKBackdropHelp.pSprite ) 
 		{
-            if ( fAspect < 0.6 ) g_pAGKBackdropHelp.pSprite->SetSize ( 100, 150*fAspect );
-            else g_pAGKBackdropHelp.pSprite->SetSize ( 60/fAspect, 90 );
+            if ( fAspect < 0.75 ) g_pAGKBackdropHelp.pSprite->SetSize ( 100, 125*fAspect );
+            else g_pAGKBackdropHelp.pSprite->SetSize ( 72/fAspect, 90 );
 			g_pAGKBackdropHelp.pSprite->SetPositionByOffset ( 50, 50 );
 		}
 
@@ -330,13 +330,16 @@ void app::DrawBackground()
 		}
 		else
 		{
+/*
+// Apple won't let us have a link, not even the URL text
 			float helpX = g_pAGKBackdropHelp.pSprite->GetXFromWorld( agk::GetPointerX(), agk::GetPointerY() ) / g_pAGKBackdropHelp.pSprite->GetWidth();
 			float helpY = g_pAGKBackdropHelp.pSprite->GetYFromWorld( agk::GetPointerX(), agk::GetPointerY() ) / g_pAGKBackdropHelp.pSprite->GetHeight();
 			if ( helpX > -0.29f && helpX < 0.266f && helpY > 0.398f && helpY < 0.45f )
 			{
 				agk::OpenBrowser( "www.appgamekit.com" );
 			}
-			else 
+			else
+*/
 			{
 				g_iShowingHelp = 0;
 			}

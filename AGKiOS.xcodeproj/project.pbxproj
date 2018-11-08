@@ -6500,7 +6500,7 @@
 					renderer/OpenGLES2,
 				);
 				INSTALL_PATH = /usr/local/lib;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OBJROOT = ./platform/apple/Lib;
 				OTHER_LDFLAGS = (
@@ -6557,7 +6557,7 @@
 					renderer/OpenGLES2,
 				);
 				INSTALL_PATH = /usr/local/lib;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OBJROOT = ./platform/apple/Lib;
 				OTHER_LDFLAGS = (
@@ -6695,7 +6695,7 @@
 					renderer/OpenGLES2,
 				);
 				INSTALL_PATH = /usr/local/lib;
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OBJROOT = ./platform/apple/Lib;
 				OTHER_LDFLAGS = (

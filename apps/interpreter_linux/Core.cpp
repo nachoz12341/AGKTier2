@@ -373,16 +373,9 @@ int main (int argc, char **argv)
 	{
 		uString err = agk::GetLastError();
 		err.Prepend( "Uncaught exception: \n\n" );
-		/*
-		NSString* pString = [ [ NSString alloc ] initWithUTF8String:err.GetStr() ];
-		NSAlert *alert = [[NSAlert alloc] init];
-		[ alert setMessageText: pString ];
-		[ pString release ];
-		[ alert runModal ];
-		[ alert release ];
-		*/
 		done = 1;
 	}
+
 	while (!done && !glfwWindowShouldClose(window))
 	{
 		// call app each frame
@@ -395,14 +388,6 @@ int main (int argc, char **argv)
 		{
 			uString err = agk::GetLastError();
 			err.Prepend( "Uncaught exception: \n\n" );
-			/*
-			NSString* pString = [ [ NSString alloc ] initWithUTF8String:err.GetStr() ];
-			NSAlert *alert = [[NSAlert alloc] init];
-			[ alert setMessageText: pString ];
-			[ pString release ];
-			[ alert runModal ];
-			[ alert release ];
-			*/
 			done = 1;
 		}
 	}

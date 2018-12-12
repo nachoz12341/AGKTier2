@@ -74,6 +74,7 @@ import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -1649,11 +1650,12 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 class RunnableVideo implements Runnable
 {
 	public Activity act;
-	public static AGKSurfaceView video = null;
+	public static volatile AGKSurfaceView video = null;
 	public int action = 0;
 	
 	public String filename = "";
 	public int fileType = 0;
+	public SurfaceHolder pHolder = null;
 	public int m_x,m_y,m_width,m_height;
 	public int tex = 0;
 	public float pos = 0;
@@ -1887,7 +1889,7 @@ class AGKSpeechListener  implements TextToSpeech.OnInitListener, TextToSpeech.On
 // Entry point for all AGK Helper calls
 public class AGKHelper {
 
-	static String g_sLastURI = null;
+	public static String g_sLastURI = null;
 
 	static int m_iGameCenterUsed = 0;
 	static int m_iGameCenterLoggedIn = 0;
@@ -1979,7 +1981,7 @@ public class AGKHelper {
 		String pasteData;
 
 		if (!(clipboard.hasPrimaryClip())) return "";
-		if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
+		//if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
 
 		ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
 		pasteData = item.getText().toString();
@@ -2004,6 +2006,7 @@ public class AGKHelper {
 		
 	public static void OnStart( Activity act )
 	{
+		g_pAct = act;
 		isVisible = 1;
 
 		// resume ad
@@ -2269,24 +2272,24 @@ public class AGKHelper {
 	
 	public static int GetDisplayWidth( Activity act )
 	{
-		//Display display = act.getWindowManager().getDefaultDisplay(); 
-		//return display.getWidth();
-		
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		int screenWidth = displaymetrics.widthPixels;
-		return screenWidth;
+		//DisplayMetrics displaymetrics = new DisplayMetrics();
+		//act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+		//int screenWidth = displaymetrics.widthPixels;
+		//return screenWidth;
+
+		// this works better when showing and hiding the navigation bar
+		return act.getWindow().getDecorView().getWidth();
 	}
 	
 	public static int GetDisplayHeight( Activity act )
 	{
-		//Display display = act.getWindowManager().getDefaultDisplay(); 
-		//return display.getHeight();
-		
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		int screenHeight = displaymetrics.heightPixels;
-		return screenHeight;
+		//DisplayMetrics displaymetrics = new DisplayMetrics();
+		//act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+		//int screenHeight = displaymetrics.heightPixels;
+		//return screenHeight;
+
+		// this works better when showing and hiding the navigation bar
+		return act.getWindow().getDecorView().getHeight();
 	}
 	
 	// Edit box input
@@ -2565,10 +2568,14 @@ public class AGKHelper {
 		g_fVideoVolume = volume;
 		if ( g_fVideoVolume > 99 ) g_fVideoVolume = 99;
 		if ( g_fVideoVolume < 0 ) g_fVideoVolume = 0;
-		if ( RunnableVideo.video == null || RunnableVideo.video.player == null ) return;
-		
-		float log1=(float)(Math.log(100-g_fVideoVolume)/Math.log(100));
-		RunnableVideo.video.player.setVolume( 1-log1, 1-log1 );
+
+		synchronized( videoLock )
+		{
+			if (RunnableVideo.video == null || RunnableVideo.video.player == null) return;
+
+			float log1 = (float) (Math.log(100 - g_fVideoVolume) / Math.log(100));
+			RunnableVideo.video.player.setVolume(1 - log1, 1 - log1);
+		}
 	}
 
 	public static void SetVideoPosition( Activity act, float position )
@@ -2578,6 +2585,12 @@ public class AGKHelper {
 		video.pos = position;
 		video.action = 9;
 		act.runOnUiThread(video);
+	}
+
+	// youtube
+	static void PlayYoutubeVideo( Activity act, String key, String video, int time )
+	{
+
 	}
 
 	// camera to image
@@ -3122,7 +3135,7 @@ public class AGKHelper {
 		intent.putExtra("title", act.getString(R.string.app_name));
 		intent.putExtra("message", message);
 		intent.putExtra("id",id);
-		PendingIntent sender = PendingIntent.getBroadcast(act, id, intent, 0);
+		PendingIntent sender = PendingIntent.getBroadcast(act, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		// Get the AlarmManager service
 		AlarmManager am = (AlarmManager) act.getSystemService(Context.ALARM_SERVICE);
@@ -3132,7 +3145,7 @@ public class AGKHelper {
 	public static void CancelNotification( Activity act, int id )
 	{
 		Intent intent = new Intent(act, NotificationAlarmReceiver.class);
-		PendingIntent sender = PendingIntent.getBroadcast(act, id, intent, 0);
+		PendingIntent sender = PendingIntent.getBroadcast(act, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		// Get the AlarmManager service
 		AlarmManager am = (AlarmManager) act.getSystemService(Context.ALARM_SERVICE);
@@ -3197,6 +3210,7 @@ public class AGKHelper {
 	public static String[] g_sPurchaseProductPrice = new String[MAX_PRODUCTS];
 	public static String[] g_sPurchaseProductDesc = new String[MAX_PRODUCTS];
 	public static int[] g_iPurchaseProductTypes = new int[MAX_PRODUCTS];
+	public static String[] g_sPurchaseProductSignature = new String[MAX_PRODUCTS];
 	public static Activity g_pAct = null;
 	public static final Object iapLock = new Object();
 	public static int g_iIAPStatus = 0;
@@ -3238,9 +3252,7 @@ public class AGKHelper {
 
 		g_iIAPStatus = 1;
 
-		// moved to AGKActivity.java
-		//final AGKPurchasingListener purchasingListener = new AGKPurchasingListener();
-		//PurchasingService.registerListener(act, purchasingListener);
+		// purchase listener is created in OnCreate
 
 		final Set<String> productSkus = new HashSet<String>();
 		for (int i = 0; i < g_iNumProducts; i++) {
@@ -3282,6 +3294,7 @@ public class AGKHelper {
 
 		g_iPurchaseState = 0;
 		g_iPurchaseProductStates[ ID ] = 0;
+		g_sPurchaseProductSignature[ ID ] = "";
 		Log.i("IAB MakePurchase", "Buying " + g_sPurchaseProductNames[ID]);
 
 		PurchasingService.purchase(g_sPurchaseProductNames[ID] );
@@ -3313,6 +3326,15 @@ public class AGKHelper {
 		{
 			if (ID < 0 || ID >= MAX_PRODUCTS || g_sPurchaseProductDesc[ID] == null) return "";
 			return g_sPurchaseProductDesc[ID];
+		}
+	}
+
+	public static String iapGetSignature( int ID )
+	{
+		synchronized (iapLock)
+		{
+			if ( ID < 0 || ID >= MAX_PRODUCTS || g_sPurchaseProductSignature[ID] == null ) return "";
+			return g_sPurchaseProductSignature[ID];
 		}
 	}
 	
@@ -3825,7 +3847,6 @@ public class AGKHelper {
 			input.read(bytes, 0, length);
 			input.close();
 			result = new String( bytes, "UTF-8" );
-			Log.w("Shared Data","Name: " + varName + " Value: " + result);
 		}
 		catch( FileNotFoundException e ) { return defaultValue; }
 		catch( IOException e )
@@ -3898,33 +3919,14 @@ public class AGKHelper {
 		String sExt = "";
 		if ( pos >= 0 ) sExt = sPath.substring(pos+1);
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
 
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_VIEW );
-		target.setDataAndType( Uri.fromFile(dst),sMIME );
-		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+		target.setDataAndType( uri, sMIME );
+		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {
 			act.startActivity(target);
@@ -3954,32 +3956,15 @@ public class AGKHelper {
 		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
 		else sFileName = sPath;
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
 
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
-		target.putExtra(Intent.EXTRA_TITLE, "Share Image");
-		target.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(dst));
+		target.putExtra( Intent.EXTRA_TITLE, "Share Image" );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
+		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
 			act.startActivity(target);
@@ -3995,38 +3980,49 @@ public class AGKHelper {
 		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
 		else sFileName = sPath;
 
-		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-		File dst = new File( DownloadFolder, sFileName );
-
 		File src = new File(sPath);
 
-		//copy to external storage
-		try {
-			InputStream in = new FileInputStream(src);
-			OutputStream out = new FileOutputStream(dst);
-
-			// Transfer bytes from in to out
-			byte[] buf = new byte[1024];
-			int len;
-			while ((len = in.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			in.close();
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
 		target.putExtra(Intent.EXTRA_TITLE, "Share Image And Text");
-		target.putExtra( Intent.EXTRA_STREAM, Uri.fromFile(dst) );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
 		target.putExtra( Intent.EXTRA_TEXT, sText );
+		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
 			act.startActivity(target);
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share images");
+		}
+	}
+
+	public static void ShareFile( Activity act, String sPath )
+	{
+		int pos = sPath.lastIndexOf('/');
+		String sFileName;
+		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
+		else sFileName = sPath;
+
+		// get extension
+		pos = sPath.lastIndexOf('.');
+		String sExt = "";
+		if ( pos >= 0 ) sExt = sPath.substring(pos+1);
+
+		File src = new File(sPath);
+
+		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
+
+		Intent target = new Intent( Intent.ACTION_SEND );
+		target.setDataAndType( uri, sMIME );
+		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
+
+		try {
+			act.startActivity(target);
+		} catch (ActivityNotFoundException e) {
+			ShowMessage(act,"No application found to share file type \"" + sExt + "\"");
 		}
 	}
 

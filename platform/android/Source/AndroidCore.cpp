@@ -4947,6 +4947,34 @@ void cSoundMgr::StopInstance( UINT instance )
 	if ( pSound->m_pNextInst ) pSound->m_pNextInst->m_pPrevInst = pSound;
 }
 
+// youtube videos
+
+void agk::PlayYoutubeVideo( const char* developerKey, const char* videoID, float startTime )
+//****
+{
+	if ( !developerKey || !*developerKey ) return;
+	if ( !videoID || !*videoID ) return;
+
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "PlayYoutubeVideo","(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;I)V" );
+
+	jstring sDeveloperKey = lJNIEnv->NewStringUTF(developerKey);
+	jstring sVideoID = lJNIEnv->NewStringUTF(videoID);
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, sDeveloperKey, sVideoID, (int)(startTime*1000) );
+	lJNIEnv->DeleteLocalRef( sVideoID );
+	lJNIEnv->DeleteLocalRef( sDeveloperKey );
+
+	vm->DetachCurrentThread();
+}
+
 // video commands 
 
 int agk::LoadVideo( const char *szFilename )
@@ -8049,6 +8077,57 @@ void agk::ShareImageAndText( const char* szFilename, const char* szText )
 	vm->DetachCurrentThread();
 }
 
+void agk::ShareFile( const char* szFilename )
+//****
+{
+	uString sPath( szFilename );
+	if ( !GetRealPath( sPath ) )
+	{
+		agk::Error( "Could not find file at the specified path" );
+		return;
+	}
+
+	if ( cFile::ExistsRead( szFilename ) && !cFile::ExistsWrite( szFilename ) ) 
+	{
+		// move file to write folder to avoid APK assets folder
+		cFile cSrcFile;
+		cSrcFile.OpenToRead( szFilename );
+
+		cFile cDstFile;
+		cDstFile.OpenToWrite( szFilename );
+
+		char buf[ 4096 ];
+		do
+		{
+			int written = cSrcFile.ReadData( buf, 4096 );
+			cDstFile.WriteData( buf, written );
+		} while( !cSrcFile.IsEOF() );
+
+		cDstFile.Close();
+		cSrcFile.Close();
+
+		sPath.SetStr( szFilename );
+		agk::PlatformGetFullPathWrite( sPath );
+	}
+
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID shareFile = lJNIEnv->GetStaticMethodID( AGKHelper, "ShareFile", "(Landroid/app/Activity;Ljava/lang/String;)V" );
+
+	jstring filename = lJNIEnv->NewStringUTF(sPath.GetStr());
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, shareFile, lNativeActivity, filename );
+	lJNIEnv->DeleteLocalRef( filename );
+
+	vm->DetachCurrentThread();
+}
+
 void agk::FacebookActivateAppTracking()
 //****
 {
@@ -10119,9 +10198,9 @@ void agk::GameCenterSubmitScore( int iScore, const char* szBoardID )
 	char *szPackage = agk::GetAppPackageName();
 	if ( strcmp(szPackage, "com.thegamecreators.agk_player2") == 0 )
 	{
-		if ( strcmp(szBoardID, "CgkIz4OlxJoaEAIQBg") != 0 )
+		if ( strcmp(szBoardID, "CgkI5Zjo8fsbEAIQBg") != 0 )
 		{
-			agk::Warning( "Using GameCenterSubmitScore when broadcasting must use BoardID CgkIz4OlxJoaEAIQBg for testing, export your app with your Google Play Games ID to use your own leaderboards" );
+			agk::Warning( "Using GameCenterSubmitScore when broadcasting must use BoardID CgkI5Zjo8fsbEAIQBg for testing, export your app with your Google Play Games ID to use your own leaderboards" );
 			return;
 		}
 	}
@@ -10155,9 +10234,9 @@ void agk::GameCenterShowLeaderBoard ( const char* szBoardID )
 	char *szPackage = agk::GetAppPackageName();
 	if ( strcmp(szPackage, "com.thegamecreators.agk_player2") == 0 )
 	{
-		if ( strcmp(szBoardID, "CgkIz4OlxJoaEAIQBg") != 0 )
+		if ( strcmp(szBoardID, "CgkI5Zjo8fsbEAIQBg") != 0 )
 		{
-			agk::Warning( "Using GameCenterShowLeaderBoard when broadcasting must use BoardID CgkIz4OlxJoaEAIQBg for testing, export your app with your Google Play Games ID to use your own leaderboards" );
+			agk::Warning( "Using GameCenterShowLeaderBoard when broadcasting must use BoardID CgkI5Zjo8fsbEAIQBg for testing, export your app with your Google Play Games ID to use your own leaderboards" );
 			return;
 		}
 	}

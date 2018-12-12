@@ -285,7 +285,7 @@ void app::DrawBackground()
 
 	if ( !g_iShowingHelp )
 	{
-#ifndef AGKIOS
+#ifndef AGK_IOS
 		if ( g_pAGKBackdropPower.pSprite ) g_pAGKBackdropPower.pSprite->Draw();
 #endif
 		if ( g_pAGKBackdropHelpIcon.pSprite ) g_pAGKBackdropHelpIcon.pSprite->Draw();
@@ -295,7 +295,7 @@ void app::DrawBackground()
 	{
 		if ( g_iShowingHelp == 0 )
 		{
-#ifndef AGKIOS
+#ifndef AGK_IOS
 			if ( g_pAGKBackdropPower.pSprite->GetHitTest( agk::GetPointerX(), agk::GetPointerY() ) )
 			{
 				// quit app

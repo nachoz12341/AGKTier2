@@ -13,7 +13,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
@@ -33,4 +33,15 @@ dependencies {
     implementation 'com.google.ar:core:1.0.0'
     implementation 'com.google.android.ads.consent:consent-library:1.0.6'
     compile "com.google.firebase:firebase-messaging:15.0.0"
+    implementation 'com.google.api-client:google-api-client:1.23.0'
+    implementation 'com.google.api-client:google-api-client-android:1.23.0'
+    implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
+    implementation files('libs/YouTubeAndroidPlayerAPI.jar')
+}
+
+configurations {
+    all {
+        exclude module: 'httpclient'
+        exclude module: 'commons-logging'
+    }
 }

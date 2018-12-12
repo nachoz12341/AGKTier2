@@ -4098,19 +4098,32 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				JSONString *pTimelineID = (JSONString*) pObjRef->GetElement( "timeline" );
 				int timelineID = pTimelineID->m_sValue.ToInt();
 				JSONNumber *pParentID = (JSONNumber*) pObjRef->GetElement( "parent" );
-				JSONObject* pBoneRef = (JSONObject*) pBoneRefs->GetElement( pParentID->m_iValue );
-				
-				int iBoneTimeline = ((JSONNumber*)pBoneRef->GetElement( "timeline" ))->m_iValue;
-				JSONNumber *pBoneID = (JSONNumber*) ((JSONObject*)pTimeline->GetElement( iBoneTimeline ))->GetElement( "obj" );
-				if ( !pBoneID )
+
+				int parentID = -1;
+				if ( pParentID )
 				{
-					agk::Error( "Failed to load Spriter skeleton, slot parent timeline does not have a bone object" );
-					delete pRoot;
-					for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-					delete [] pFolderFiles;
-					return;
+					JSONObject* pBoneRef = (JSONObject*) pBoneRefs->GetElement( pParentID->m_iValue );
+
+					if ( pBoneRef )
+					{
+						int iBoneTimeline = ((JSONNumber*)pBoneRef->GetElement( "timeline" ))->m_iValue;
+						JSONNumber *pBoneID = (JSONNumber*) ((JSONObject*)pTimeline->GetElement( iBoneTimeline ))->GetElement( "obj" );
+						if ( !pBoneID )
+						{
+							/*
+							agk::Error( "Failed to load Spriter skeleton, slot parent timeline does not have a bone object" );
+							delete pRoot;
+							for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
+							delete [] pFolderFiles;
+							return;
+							*/
+						}
+						else
+						{
+							parentID = pBoneID->m_iValue;
+						}
+					}
 				}
-				int parentID = pBoneID->m_iValue;
 				
 				Anim2DSlot *pAnimSlot = m_pAnimations[ i ].GetAnimForSlotTimeline( timelineID );
 				if ( !pAnimSlot ) continue;
@@ -4134,7 +4147,8 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				// bones can only be stepped
 				pAnimSlot->m_pBones[ k ] = new Anim2DKeyFrameBone();
 				pAnimSlot->m_pBones[ k ]->m_fTime = objtime;
-				pAnimSlot->m_pBones[ k ]->m_pBoneParent = &(m_pBones[ parentID ]);
+				if ( parentID >= 0 ) pAnimSlot->m_pBones[ k ]->m_pBoneParent = &(m_pBones[ parentID ]);
+				else pAnimSlot->m_pBones[ k ]->m_pBoneParent = 0;
 
 				// ZOrder can only be stepped
 				pAnimSlot->m_pZOrder[ k ] = new Anim2DKeyFrameZOrder();
@@ -4145,7 +4159,8 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				{
 					pAnimSlot->m_pBones[ numKeys - 1 ] = new Anim2DKeyFrameBone();
 					pAnimSlot->m_pBones[ numKeys - 1 ]->m_fTime = m_pAnimations[ i ].m_fTime;
-					pAnimSlot->m_pBones[ numKeys - 1 ]->m_pBoneParent = &(m_pBones[ parentID ]);
+					if ( parentID >= 0 ) pAnimSlot->m_pBones[ numKeys - 1 ]->m_pBoneParent = &(m_pBones[ parentID ]);
+					else pAnimSlot->m_pBones[ numKeys - 1 ]->m_pBoneParent = 0;
 
 					pAnimSlot->m_pZOrder[ numKeys - 1 ] = new Anim2DKeyFrameZOrder();
 					pAnimSlot->m_pZOrder[ numKeys - 1 ]->m_fTime = m_pAnimations[ i ].m_fTime;

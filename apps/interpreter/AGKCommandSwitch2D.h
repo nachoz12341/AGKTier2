@@ -9954,3 +9954,25 @@ case AGKI_EXTRACTZIP_0_S_S_S:
     agk::ExtractZip( param0, param1, param2 );
     break;
 }
+case AGKI_GETRAWJOYSTICKNAME_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetRawJoystickName( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_PLAYYOUTUBEVIDEO_0_S_S_F:
+{
+    float param2 = m_pStack[ --m_iStackPtr ].f;
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::PlayYoutubeVideo( param0, param1, param2 );
+    break;
+}
+case AGKI_SHAREFILE_0_S:
+{
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::ShareFile( param0 );
+    break;
+}

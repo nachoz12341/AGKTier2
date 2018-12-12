@@ -18,23 +18,8 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveClient;
-import com.google.android.gms.drive.DriveContents;
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.DriveResourceClient;
-import com.google.android.gms.drive.Metadata;
-import com.google.android.gms.drive.MetadataBuffer;
-import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.events.ChangeEvent;
-import com.google.android.gms.drive.events.ListenerToken;
-import com.google.android.gms.drive.events.OnChangeListener;
-import com.google.android.gms.drive.metadata.SearchableMetadataField;
-import com.google.android.gms.drive.query.Filters;
-import com.google.android.gms.drive.query.Query;
-import com.google.android.gms.drive.query.SearchableField;
+import com.google.android.gms.common.api.Scope;
+
 import com.google.android.gms.games.Games;
 import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.games.achievement.AchievementBuffer;
@@ -45,17 +30,26 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 
+import com.google.api.client.googleapis.extensions.android.gms.auth.*;
+import com.google.api.client.http.ByteArrayContent;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.drive.*;
+
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubeStandalonePlayer;
+
 import android.Manifest;
-import android.annotation.TargetApi;
+import android.accounts.Account;
 import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.SearchableInfo;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.SharedPreferences;
+import android.content.pm.ResolveInfo;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.display.VirtualDisplay;
@@ -63,7 +57,6 @@ import android.location.Location;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.NativeActivity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -77,9 +70,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.lang.Runnable;
 import java.lang.String;
 import java.net.Inet4Address;
@@ -90,6 +80,7 @@ import java.net.NetworkInterface;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -101,7 +92,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -114,15 +104,13 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
-import android.speech.tts.Voice;
+import android.support.annotation.Keep;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
-import android.text.format.Formatter;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.provider.MediaStore;
@@ -130,12 +118,13 @@ import android.provider.Settings.Secure;
 import android.os.Bundle;
 import android.os.Looper;
 
-import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
+
+import com.google.android.vending.expansion.downloader.impl.DownloaderService;
+import com.google.android.vending.expansion.downloader.impl.BroadcastDownloaderClient;
+
+import com.google.api.services.drive.model.FileList;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.thegamecreators.agk_player.iap.*;
 
@@ -187,8 +176,6 @@ import com.google.android.vending.expansion.downloader.*;
 import com.google.ads.consent.*;
 
 import com.thegamecreators.agk_pocket.R;
-
-import static android.content.ClipDescription.MIMETYPE_TEXT_PLAIN;
 
 // Used for agk::Message()
 class RunnableMessage implements Runnable
@@ -662,10 +649,10 @@ class RunnableAd implements Runnable
 	public int offsetY = 0;
 	public String pubID = "";
 	public String rewardpubID = "";
-	public int adType = 0;
 
 	public static int testMode = 0;
 	public static AdView ad = null;
+	public static int adType = 0;
 	public static com.google.android.gms.ads.InterstitialAd interstitial = null;
 	public static RewardedVideoAd rewardAd = null;
 	public static int cached = 0;
@@ -679,7 +666,7 @@ class RunnableAd implements Runnable
 		ll_lp = new WindowManager.LayoutParams();
 		ll_lp.format = PixelFormat.TRANSPARENT;
 		ll_lp.height = -2;
-		ll_lp.width = -2; 
+		ll_lp.width = -2;
 		ll_lp.gravity = 0;
 		ll_lp.x = offsetX;
 		ll_lp.y = offsetY;
@@ -700,7 +687,7 @@ class RunnableAd implements Runnable
 		ll_lp.type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
 		ll_lp.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
 		ll_lp.flags = ll_lp.flags | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-		
+
 		return ll_lp;
 	}
 
@@ -751,6 +738,7 @@ class RunnableAd implements Runnable
 
 					WindowManager wm = (WindowManager) act.getSystemService(Context.WINDOW_SERVICE);
 					WindowManager.LayoutParams layout = makeLayout();
+					if ( adType == 5 ) layout.width = -1;
 					wm.addView(ad, layout);
 
 					AdRequest.Builder request = new AdRequest.Builder();
@@ -781,6 +769,7 @@ class RunnableAd implements Runnable
 			
 				WindowManager wm = (WindowManager) act.getSystemService(Context.WINDOW_SERVICE);
 				WindowManager.LayoutParams layout = makeLayout();
+				if ( adType == 5 ) layout.width = -1;
 				wm.updateViewLayout(ad, layout);
 				
 				break;
@@ -1212,14 +1201,16 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 						return;
 					}
 					String subfilename = filename.substring(index+1);
-					ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
-					if ( expansionFile == null )
+					if ( AGKHelper.g_pExpansionFile == null ) {
+						AGKHelper.g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
+					}
+					if (AGKHelper.g_pExpansionFile == null)
 					{
 						Log.e("Video","Failed to load expansion file");
 						m_filename = "";
 						return;
 					}
-					AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+					AssetFileDescriptor afd = AGKHelper.g_pExpansionFile.getAssetFileDescriptor(subfilename);
 					if ( afd == null )
 					{
 						Log.e("Video","Failed to find video file in expansion file");
@@ -1541,13 +1532,15 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 						return;
 					}
 					String subfilename = m_filename.substring(index+1);
-					ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile( act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
-					if ( expansionFile == null )
+					if ( AGKHelper.g_pExpansionFile == null ) {
+						AGKHelper.g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
+					}
+					if ( AGKHelper.g_pExpansionFile == null )
 					{
 						Log.e("Video","Failed to load expansion file");
 						return;
 					}
-					AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+					AssetFileDescriptor afd = AGKHelper.g_pExpansionFile.getAssetFileDescriptor(subfilename);
 					if ( afd == null )
 					{
 						Log.e("Video","Failed to find video file in expansion file");
@@ -2116,7 +2109,7 @@ public class AGKHelper {
 	static int immersiveMode = 0; // 0 = show nav bar, 1 = hide nav bar
 	static int listenerSet = 0;
 	static Activity g_pImmersiveAct = null;
-	static String g_sLastURI = null;
+	public static String g_sLastURI = null;
 
 	static MediaProjectionManager mMediaProjectionManager = null;
 	static MediaRecorder mMediaRecorder = null;
@@ -2181,7 +2174,7 @@ public class AGKHelper {
 		String pasteData;
 
 		if (!(clipboard.hasPrimaryClip())) return "";
-		if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
+		//if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
 
 		ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
 		pasteData = item.getText().toString();
@@ -2224,9 +2217,42 @@ public class AGKHelper {
 			m_GPSClient.connect();
 		}
 
-		if ( g_CloudRefreshTimer != null && g_CloudRefreshTask != null )
+		if ( g_CloudRefreshTask != null )
 		{
-			g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000);
+			try {
+				g_CloudRefreshTask = new TimerTask() {
+					@Override
+					public void run() {
+						UpdateCloudVariables();
+					}
+				};
+				g_CloudRefreshTimer = new Timer();
+				g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000);
+			}
+			catch( IllegalStateException e ) { Log.e("Cloud Data","Failed to restart Cloud Data thread:"+e.toString()); }
+		}
+
+		if ( mExpansionClient != null )
+		{
+			mExpansionClient.register(act);
+			Intent intent2 = new Intent(act, AGKActivity.class);
+			PendingIntent pIntent = PendingIntent.getActivity(act, 0, intent2, 0);
+			try {
+				int result = DownloaderService.startDownloadServiceIfRequired(act, "default", pIntent, g_sExpansionSalt, g_sExpansionKey);
+				if (DownloaderService.NO_DOWNLOAD_REQUIRED == result) {
+					g_iExpansionState = 3;
+					if ( mExpansionClient != null ) {
+						mExpansionClient.unregister(act);
+						mExpansionClient = null;
+					}
+					Intent downloadIntent = new Intent(act, DownloaderService.class);
+					act.stopService(downloadIntent);
+				}
+			}
+			catch( Exception e )
+			{
+				Log.e( "Expansion Download", "Failed to restart download" );
+			}
 		}
 
 		if (mMediaRecorder != null)
@@ -2239,8 +2265,7 @@ public class AGKHelper {
 		}
 	}
 	
-	public static void OnStop( Activity act )
-	{
+	public static void OnStop( Activity act ) {
 		isVisible = 0;
 
 		// pause ad
@@ -2248,11 +2273,9 @@ public class AGKHelper {
 		run.action = 7;
 		run.act = act;
 		act.runOnUiThread(run);
-		
-		if ( m_GPSClient != null ) 
-		{
-			if ( m_GPSClient.isConnected() ) 
-			{
+
+		if (m_GPSClient != null) {
+			if (m_GPSClient.isConnected()) {
 				LocationServices.FusedLocationApi.removeLocationUpdates(m_GPSClient, m_GPSListener);
 			}
 			m_GPSClient.disconnect();
@@ -2263,7 +2286,7 @@ public class AGKHelper {
 		video.action = 8; // OnContextLost
 		act.runOnUiThread(video);
 
-		if( deviceCamera != null ) deviceCamera.OnContextLost();
+		if (deviceCamera != null) deviceCamera.OnContextLost();
 
 		if (mMediaRecorder != null)
 		{
@@ -2273,7 +2296,17 @@ public class AGKHelper {
 
 		StopSpeaking();
 
-		if (  g_CloudRefreshTimer != null ) g_CloudRefreshTimer.cancel();
+		if (  g_CloudRefreshTask != null )
+		{
+			try {
+				g_CloudRefreshTask.cancel();
+				g_CloudRefreshTimer.cancel();
+				g_CloudRefreshTimer = null;
+			}
+			catch( IllegalStateException e ) { Log.e("Cloud Data","Failed to stop Cloud Data thread:"+e.toString()); }
+		}
+
+		if ( mExpansionClient != null ) mExpansionClient.unregister( act );
 	}
 
 	public static String GetLastURIText()
@@ -2418,12 +2451,12 @@ public class AGKHelper {
 			m_GameCenterLoggedIn = 0;
 		}
 	}
-
+	
 	public static void GameCenterLogin( Activity act )
 	{
 		if ( m_GameClient == null ) return;
-
-		if ( !m_GameClient.isConnected() && !m_GameClient.isConnecting() )
+		
+		if ( !m_GameClient.isConnected() && !m_GameClient.isConnecting() ) 
 		{
 			m_ReconnectGameCenter = 0;
 			GoogleApiAvailability api = GoogleApiAvailability.getInstance();
@@ -2669,42 +2702,30 @@ public class AGKHelper {
 			return "";
 		}
 	}
-
+	
 	public static void SetInputText( Activity act, String text, int cursorpos )
 	{
 		//if ( mTextInput == null ) return;
-		/*
+
 		RunnableKeyboard run = new RunnableKeyboard();
 		run.act = act;
 		run.action = 3;
 		run.text = text;
 		run.cursorpos = cursorpos;
-		act.runOnUiThread( run );*/
-
-		if ( AGKHelper.mTextInput != null )
-		{
-			AGKHelper.mTextInput.setText(text);
-			if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
-		}
+		act.runOnUiThread( run );
 	}
 
 	public static void SetInputTextCursor( Activity act, int cursorpos )
 	{
 		//if ( mTextInput == null ) return;
-		/*
+
 		RunnableKeyboard run = new RunnableKeyboard();
 		run.act = act;
 		run.action = 5;
 		run.cursorpos = cursorpos;
 		act.runOnUiThread( run );
-		*/
-
-		if ( AGKHelper.mTextInput != null )
-		{
-			if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
-		}
 	}
-
+	
 	public static void ShowKeyboard( Activity act, int multiline, int inputType )
 	{
 		//InputMethodManager lInputMethodManager = (InputMethodManager)act.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -2940,6 +2961,21 @@ public class AGKHelper {
 		video.pos = position;
 		video.action = 9;
 		act.runOnUiThread(video);
+	}
+
+	// youtube
+	static void PlayYoutubeVideo( Activity act, String key, String video, int time )
+	{
+
+		Intent intent = YouTubeStandalonePlayer.createVideoIntent(act, key, video, time, true, true);
+
+		List<ResolveInfo> resolveInfo = act.getPackageManager().queryIntentActivities(intent, 0);
+		if (resolveInfo != null && !resolveInfo.isEmpty()) {
+			act.startActivityForResult(intent, 9003);
+		} else {
+			// Could not resolve the intent - must need to install or update the YouTube API service.
+			YouTubeInitializationResult.SERVICE_MISSING.getErrorDialog(act, 1).show();
+		}
 	}
 
 	// camera to image
@@ -3213,7 +3249,7 @@ public class AGKHelper {
 					privacyUrl = new URL( m_sAdMobPrivacyPolicy );
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
-					ShowMessage( pAct, "Failed to construct privacy policy URL" );
+					ShowMessage( pAct, "Failed to construct privacy policy URL: " + e.toString() );
 					return;
 				}
 
@@ -3512,7 +3548,7 @@ public class AGKHelper {
 	{
 		return act.getWindowManager().getDefaultDisplay().getRotation();
 	}
-
+	
 	public static String GetDeviceID(Activity nativeactivityptr)
 	{
 		// This ID will remain constant for this device until a factory reset is performed
@@ -3812,7 +3848,7 @@ public class AGKHelper {
 		
 		//Intent myIntent = new Intent(act, IAPActivity.class);
 		//act.startActivity(myIntent);
-		AGKHelper.mHelper.launchPurchaseFlow(act, g_sPurchaseProductNames[ID], 10001, mPurchaseFinishedListener, "");
+		AGKHelper.mHelper.launchPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
     }
 	
 	public static int iapCheckPurchaseState()
@@ -3856,25 +3892,42 @@ public class AGKHelper {
 	// ******************
 	// Push Notifications
 	// ******************
-
+	
 	public static String GCM_PNRegID = "";
-
+	public static String FCM_Sender_ID = "";
+	
 	public static void setPushNotificationKeys( String key1, String key2 )
 	{
-
+		switch( key1 )
+		{
+			case "SenderID": FCM_Sender_ID = key2;
+		}
 	}
-
+	
 	public static int registerPushNotification( Activity nativeactivityptr )
 	{
-		GCM_PNRegID = FirebaseInstanceId.getInstance().getToken();
-		Log.e( "Push Token", ": " + GCM_PNRegID );
+		if ( FCM_Sender_ID == null || FCM_Sender_ID.equals("") )
+		{
+			ShowMessage( nativeactivityptr, "You must call SetPushNotificationKeys before calling PushNotificationSetup" );
+			return 0;
+		}
 
-		return 1;
+		try
+		{
+			GCM_PNRegID = FirebaseInstanceId.getInstance().getToken(FCM_Sender_ID, "FCM");
+			Log.e( "Push Token", "Token: " + GCM_PNRegID );
+			return 1;
+		}
+		catch( IOException e )
+		{
+			Log.e( "Push Token", "Failed to get push token: " + e.toString() );
+			return 0;
+		}
 	}
-
+	
 	public static String getPNRegID()
 	{
-		if ( GCM_PNRegID == null ) return "";
+		if ( GCM_PNRegID == null ) return "Error";
 		else return GCM_PNRegID;
 	}
 	
@@ -4122,14 +4175,60 @@ public class AGKHelper {
 	// expansion files
 	static int g_iExpansionState = 1; // 1=not found, 2=downloading, 3=found
 	static int g_iExpansionPrevState = -2;
+	static int g_iExpansionError = 0;
 	static int g_iExpansionVersion = 0;
 	static float g_fExpansionProgress = 0;
-	static MyDownloadClient g_pDownloaderClient = null;
-	static IStub g_pDownloaderStub = null;
-	
+	static String g_sExpansionKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqV2cB4Ih8C8mPqzCDrAxe4gatHx6JNx/lC9H3hIhEmnDljeWkQBLqiRFTG4ocOv1YjSMLrxvK3LYaSlGuEzTk+KxHAu3tTJzgtQ1ZcajbeqT8f1Xc+3p6+qMccPrl0DbWAIrRku2f5q0f5XoAkJHGMXmRFjZ56puwW1MYEjy40i7HulWFhj3HmfedopXE06jwjhzZxUda9qCAl0aRUq/TJ6mX6BBVAloBrPNNWitCIj/x18P5ItWpwAVGb3MbZnSFR7BKzmGIUnGYG1ULISWC8evf/zDD0N3lWMUChzd1kPr6/Ok8mfjuMVYd4L+mx5KC/sBazJb7v4h8DNLNgy7qQIDAQAB";
+	static byte[] g_sExpansionSalt = new byte[] { 1, 42, -12, -1, 54, 98, -100, -12, 43, 2, -8, -4, 9, 5, -106, -107, -33, 45, -1, 84 };
+	static DownloaderClient mExpansionClient = null;
+	static ZipResourceFile g_pExpansionFile = null;
+
+	static class DownloaderClient extends BroadcastDownloaderClient {
+
+		public static Activity act;
+
+		@Override
+		public void onDownloadStateChanged(int newState) {
+			if (newState == STATE_COMPLETED) {
+				AGKHelper.g_iExpansionState = 3;
+				if ( mExpansionClient != null ) {
+					mExpansionClient.unregister(act);
+					mExpansionClient = null;
+				}
+				Intent downloadIntent = new Intent(act, DownloaderService.class);
+				act.stopService(downloadIntent);
+			}
+			else
+			{
+				if ( newState >= 15 )
+				{
+					AGKHelper.g_iExpansionState = -1;
+					g_iExpansionError = newState;
+					if ( mExpansionClient != null ) {
+						mExpansionClient.unregister(act);
+						mExpansionClient = null;
+					}
+					Intent downloadIntent = new Intent(act, DownloaderService.class);
+					act.stopService(downloadIntent);
+				}
+				String message = Helpers.getDownloaderStringResourceIDFromState(newState);
+				Log.e( "Expansion Download", message );
+			}
+		}
+
+		@Override
+		public void onDownloadProgress(DownloadProgressInfo progress) {
+			if (progress.mOverallTotal > 0) {
+				// receive the download progress
+				// you can then display the progress in your activity
+				AGKHelper.g_fExpansionProgress = (progress.mOverallProgress / (float) progress.mOverallTotal) * 100;
+			}
+		}
+	}
+
 	public static void setExpansionKey( String key )
 	{
-		MyDownloadService.BASE64_PUBLIC_KEY = key;
+		g_sExpansionKey = key;
 	}
 	
 	public static void SetExpansionVersion(int version)
@@ -4137,10 +4236,10 @@ public class AGKHelper {
 		Log.d("Set Expansion Version", "Version: " + Integer.toString(version));
 		g_iExpansionVersion = version;
 	}
-
+	
 	public static int GetExpansionState(Activity act)
 	{
-		if ( g_iExpansionState == 2 )
+		if ( g_iExpansionState == 2 ) 
 		{
 			// check file progress
 			return 2;
@@ -4151,7 +4250,7 @@ public class AGKHelper {
 			Log.i("Get Expansion State", "State: " + Integer.toString(g_iExpansionState));
 			g_iExpansionPrevState = g_iExpansionState;
 		}
-
+		
 		return g_iExpansionState;
 	}
 
@@ -4166,26 +4265,51 @@ public class AGKHelper {
 		if ( g_iExpansionState == 2 ) return;
 		g_iExpansionState = 2;
 		g_fExpansionProgress = 0;
-		
-		Looper.prepare();
-		
+
+		/*
+		// check if we already have a file
+		String filename = Helpers.getExpansionAPKFileName( act, true, g_iExpansionVersion );
+		File fileForNewFile = new File(Helpers.generateSaveFileName(act, filename));
+		if (fileForNewFile.exists())
+		{
+			g_iExpansionState = 3;
+			return;
+		}
+		*/
+
 		Intent intent2 = new Intent(act, AGKActivity.class);
     	PendingIntent pIntent = PendingIntent.getActivity(act, 0, intent2, 0);
     	
     	try
     	{
-    		int result = DownloaderClientMarshaller.startDownloadServiceIfRequired(act, pIntent, MyDownloadService.class);
-    		if ( DownloaderClientMarshaller.NO_DOWNLOAD_REQUIRED == result )
+    		if ( mExpansionClient == null )
+			{
+				mExpansionClient = new DownloaderClient();
+				mExpansionClient.act = act;
+				mExpansionClient.register( act );
+			}
+
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+			{
+				NotificationManager mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
+				NotificationChannel channel = new NotificationChannel("dts","DTS Downloader", NotificationManager.IMPORTANCE_DEFAULT );
+				channel.setDescription("DTS File Downloader Status");
+				mNotificationManager.createNotificationChannel(channel);
+			}
+
+    		int result = DownloaderService.startDownloadServiceIfRequired(act, "dts", pIntent, g_sExpansionSalt, g_sExpansionKey );
+    		if ( DownloaderService.NO_DOWNLOAD_REQUIRED == result )
     		{
     			g_iExpansionState = 3;
+    			mExpansionClient.unregister( act );
+				mExpansionClient = null;
+				Intent downloadIntent = new Intent(act, DownloaderService.class);
+				act.stopService(downloadIntent);
     			return;
     		}
     		else
     		{
     			Log.d("Expansion File","Check Result: " + result);
-    			if ( g_pDownloaderClient == null ) g_pDownloaderClient = new MyDownloadClient();
-    			g_pDownloaderStub = DownloaderClientMarshaller.CreateStub(g_pDownloaderClient, MyDownloadService.class);
-    			g_pDownloaderStub.connect(act);
     		}
     	}
     	catch( Exception e )
@@ -4211,12 +4335,14 @@ public class AGKHelper {
 		}
 		String subfilename = filename.substring(index+1);
 		try {
-			ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
-			if (expansionFile == null) {
+			if ( g_pExpansionFile == null ) {
+				g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
+			}
+			if (g_pExpansionFile == null) {
 				Log.e("Expansion File", "Failed to load expansion file for GetFileExists");
 				return 0;
 			}
-			AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+			AssetFileDescriptor afd = g_pExpansionFile.getAssetFileDescriptor(subfilename);
 			if (afd == null) {
 				return 0;
 			}
@@ -4235,19 +4361,21 @@ public class AGKHelper {
 		int index = filename.indexOf(':');
 		if ( index < 0 )
 		{
-			Log.e("Expansion File","Invalid file name for expansion file LoadImage: " + filename);
+			Log.e("Expansion File","Invalid file name for expansion file: " + filename);
 			return 0;
 		}
 		String subfilename = filename.substring(index+1);
 		try {
-			ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
-			if (expansionFile == null) {
-				Log.e("Expansion File", "Failed to load expansion file for LoadImage");
+			if ( g_pExpansionFile == null ) {
+				g_pExpansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, g_iExpansionVersion, g_iExpansionVersion);
+			}
+			if (g_pExpansionFile == null) {
+				Log.e("Expansion File", "Failed to load expansion file: " + filename);
 				return 0;
 			}
-			AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+			AssetFileDescriptor afd = g_pExpansionFile.getAssetFileDescriptor(subfilename);
 			if (afd == null) {
-				Log.e("Expansion File", "Failed to find expansion file entry for LoadImage: "+filename);
+				Log.e("Expansion File", "Failed to find expansion file entry: " + filename);
 				return 0;
 			}
 
@@ -4341,15 +4469,15 @@ public class AGKHelper {
 	// Cloud data
 	public static int g_iCloudDataChanged = 0;
 	public static int g_iCloudDataStatus = 0;
+	public static int g_iCloudDataStatusInProgess = 0;
 	public static GoogleSignInClient g_GoogleSignIn = null;
 	public static GoogleSignInAccount g_GoogleAccount = null;
-	public static DriveResourceClient g_DriveResourceClient = null;
-	public static DriveClient g_DriveClient = null;
 	public static Activity g_pCloudActivity = null;
-	public static DriveFolder g_CloudAppFolder = null;
 	public static Date g_CloudLastChecked = null;
 	public static Timer g_CloudRefreshTimer = null;
 	public static TimerTask g_CloudRefreshTask = null;
+	public static Drive g_DriveService = null;
+	public static String g_sCloudAppDatafolder = null;
 
 	public static void SetupCloudData( final Activity act )
 	{
@@ -4359,7 +4487,8 @@ public class AGKHelper {
 		if ( g_GoogleSignIn == null )
 		{
 			GoogleSignInOptions signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-					.requestScopes(Drive.SCOPE_APPFOLDER)
+					.requestScopes(new Scope("https://www.googleapis.com/auth/drive.appdata"))
+					.requestEmail()
 					.build();
 			g_GoogleSignIn = GoogleSignIn.getClient(act, signInOptions);
 		}
@@ -4379,11 +4508,17 @@ public class AGKHelper {
 						try {
 							g_GoogleAccount = task.getResult(ApiException.class);
 							FinishCloudDataSetup( task );
-						} catch (ApiException apiException) {
+						}
+						catch (ApiException apiException)
+						{
 							if (apiException.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_REQUIRED) {
-								Log.w("Google Sign In", "Prompting user to sign in");
+								Log.i("Google Sign In", "Prompting user to sign in");
 								Intent signInIntent = g_GoogleSignIn.getSignInIntent();
 								act.startActivityForResult( signInIntent, 10003 );
+							}
+							else
+							{
+								Log.e("Google Sign In", "Failed to sign in user: " + apiException.toString());
 							}
 						}
 					}
@@ -4392,170 +4527,222 @@ public class AGKHelper {
 		}
 	}
 
-	public static void FinishCloudDataSetup( Task<GoogleSignInAccount> signInTask )
+	public static void UpdateCloudVariables()
 	{
-		if ( g_iCloudDataStatus == 1 ) return;
+		//Log.i("Cloud Data", "Checking cloud files" );
 
-		g_DriveResourceClient = Drive.getDriveResourceClient( g_pCloudActivity, g_GoogleAccount );
-		g_DriveClient = Drive.getDriveClient( g_pCloudActivity, g_GoogleAccount );
-		if ( g_DriveResourceClient == null || g_DriveClient == null )
-		{
-			g_iCloudDataStatus = -1;
+		FileList result;
+		try {
+			result = g_DriveService.files().list()
+					.setSpaces("appDataFolder")
+					.setPageSize(1000)
+					.setFields("files(id, name, modifiedTime)")
+					.setQ("'"+g_sCloudAppDatafolder+"' in parents")
+					.execute();
+		} catch (IOException e) {
+			Log.e("Cloud Data", "Failed to get CloudVariables file list: " + e.toString());
 			return;
 		}
 
-		g_iCloudDataStatus = 1;
+		//Log.i("Cloud Data", "Checking for mofified files, last checked: " + g_CloudLastChecked.toString() );
 
-		if ( g_CloudRefreshTask == null ) {
-			g_CloudRefreshTask = new TimerTask() {
-				@Override
-				public void run() {
-					//Log.i("Cloud Data", "Checking cloud files" );
-					g_DriveClient.requestSync().addOnSuccessListener(new OnSuccessListener<Void>() {
-						@Override
-						public void onSuccess(Void aVoid) {
-							Task<MetadataBuffer> fileList = g_DriveResourceClient.listChildren(g_CloudAppFolder);
-							fileList.addOnSuccessListener(new OnSuccessListener<MetadataBuffer>() {
-								@Override
-								public void onSuccess(MetadataBuffer metadata) {
-									//Log.i("Cloud Data", "Got " + metadata.getCount() + " files" );
+		List<com.google.api.services.drive.model.File> files = result.getFiles();
+		//Log.i("Cloud Data", "Got " + files.size() + " files" );
 
-									// build a map of existing values to check for deleted items
-									Map<String, String> map = new HashMap<String, String>();
-									SharedPreferences sharedPref = g_pCloudActivity.getSharedPreferences("agkclouddatavariables", Context.MODE_PRIVATE);
-									Iterator<String> iter = sharedPref.getAll().keySet().iterator();
-									//Log.i("Cloud Data", "Current variables:");
-									while (iter.hasNext()) {
-										String name = iter.next();
-										//Log.i("Cloud Data", "  - " + name);
-										map.put(name, "0");
-									}
-
-									for (int i = 0; i < metadata.getCount(); i++) {
-										Metadata file = metadata.get(i);
-										final String filename = file.getTitle();
-										map.put(filename, "1"); // item still exists
-
-										if (file.getModifiedDate().after(g_CloudLastChecked)) {
-											Task<DriveContents> contentsTask = g_DriveResourceClient.openFile(file.getDriveId().asDriveFile(), DriveFile.MODE_READ_ONLY);
-											contentsTask.addOnSuccessListener(new OnSuccessListener<DriveContents>() {
-												@Override
-												public void onSuccess(DriveContents driveContents) {
-													try {
-														BufferedReader reader = new BufferedReader(new InputStreamReader(driveContents.getInputStream()));
-														String value = reader.readLine();
-														SharedPreferences sharedPref = g_pCloudActivity.getSharedPreferences("agkclouddatavariables", Context.MODE_PRIVATE);
-														SharedPreferences.Editor edit = sharedPref.edit();
-														edit.putString(filename, value);
-														edit.apply();
-														g_iCloudDataChanged = 1;
-														//Log.i("Cloud Data", "Updated file: " + filename);
-													} catch (IOException e) {
-														Log.w("Cloud Data", "Failed to read changed file: " + filename);
-													}
-												}
-											}).addOnFailureListener(new OnFailureListener() {
-												@Override
-												public void onFailure(@NonNull Exception e) {
-													Log.w("Cloud Data", "Failed to get file contents: " + filename);
-												}
-											});
-										}
-									}
-									g_CloudLastChecked = Calendar.getInstance().getTime();
-
-									// delete any missing values
-									Iterator<String> iter2 = sharedPref.getAll().keySet().iterator();
-									SharedPreferences.Editor edit = sharedPref.edit();
-									while (iter2.hasNext()) {
-										String name = iter2.next();
-										String present = map.get(name);
-										if (present.equals("0")) {
-											//Log.i("Cloud Data", "Removed file: " + name);
-											edit.remove(name);
-										}
-									}
-									edit.apply();
-								}
-							}).addOnFailureListener(new OnFailureListener() {
-								@Override
-								public void onFailure(@NonNull Exception e) {
-									Log.w("Cloud Data", "Failed to get app folder file list");
-								}
-							});
-						}
-					});
-				}
-			};
+		// build a map of existing values to check for deleted items
+		Map<String, String> map = new HashMap<String, String>();
+		SharedPreferences sharedPref = g_pCloudActivity.getSharedPreferences("agkclouddatavariables", Context.MODE_PRIVATE);
+		Iterator<String> iter = sharedPref.getAll().keySet().iterator();
+		//Log.i("Cloud Data", "Current variables:");
+		while (iter.hasNext()) {
+			String name = iter.next();
+			//Log.i("Cloud Data", "  - " + name);
+			map.put(name, "0");
 		}
 
-		Task<DriveFolder> appFolder = g_DriveResourceClient.getAppFolder();
-		appFolder.addOnSuccessListener(new OnSuccessListener<DriveFolder>() {
-			@Override
-			public void onSuccess(DriveFolder driveFolder) {
-				//Log.i("Cloud Data", "Got app folder" );
-				final DriveFolder finalDriveFolder = driveFolder;
-
-				Query query = new Query.Builder()
-						.addFilter(Filters.eq(SearchableField.TITLE, "CloudVariables"))
-						.build();
-
-				g_DriveResourceClient.queryChildren(driveFolder, query)
-						.addOnSuccessListener(new OnSuccessListener<MetadataBuffer>() {
-							@Override
-							public void onSuccess(MetadataBuffer metadata) {
-								if ( metadata.getCount() == 0 )
-								{
-									MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-											.setTitle("CloudVariables")
-											.build();
-
-									g_DriveResourceClient.createFolder( finalDriveFolder, changeSet )
-											.addOnSuccessListener(new OnSuccessListener<DriveFolder>() {
-												@Override
-												public void onSuccess(DriveFolder driveFolder) {
-													//Log.i("Cloud Data", "Created CloudVariables folder" );
-													g_CloudAppFolder = driveFolder;
-													g_CloudRefreshTimer = new Timer();
-													g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000);
-												}
-											})
-											.addOnFailureListener(new OnFailureListener() {
-												@Override
-												public void onFailure(@NonNull Exception e) {
-													Log.e("Cloud Data", "Failed to create CloudVariables folder" );
-													g_iCloudDataStatus = -2;
-												}
-											});
-								}
-								else if ( metadata.getCount() > 1 || !metadata.get(0).isFolder() )
-								{
-									ShowMessage(g_pCloudActivity, "Cloud data for this app has become corrupt, please clear the app data in your Drive settings");
-									g_iCloudDataStatus = -2;
-								}
-								else {
-									//Log.i("Cloud Data", "Got CloudVariables folder" );
-									g_CloudAppFolder = metadata.get(0).getDriveId().asDriveFolder();
-									g_CloudRefreshTimer = new Timer();
-									g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000);
-								}
-							}
-						})
-						.addOnFailureListener(new OnFailureListener() {
-							@Override
-							public void onFailure(@NonNull Exception e) {
-								Log.e("Cloud Data", "Failed to query app folder for CloudVariables folder" );
-								g_iCloudDataStatus = -2;
-							}
-						});
+		for (int i = 0; i < files.size(); i++) {
+			com.google.api.services.drive.model.File file = files.get(i);
+			final String filename = file.getName();
+			if ( map.get(filename) != null && map.get(filename).equals("1") )
+			{
+				// duplicate
 			}
-		}).addOnFailureListener(new OnFailureListener() {
-			@Override
-			public void onFailure(@NonNull Exception e) {
-				Log.e("Cloud Data", "Failed to get app data folder");
-				g_iCloudDataStatus = -2;
+			map.put(filename, "1"); // item still exists
+			//Log.i("Cloud Data", "  - " + filename);
+
+			SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+			Date fileModified;
+			try { fileModified = formatter.parse( file.getModifiedTime().toString() ); }
+			catch( ParseException e ) {
+				Log.w( "Cloud Date", "Failed to parse file modified date: " + e.toString() );
+				continue;
 			}
-		});
+
+			//Log.i("Cloud Data", "  File: " + filename + ", Modified: " + fileModified.toString() );
+
+			int modified = 0;
+			if (fileModified.after(g_CloudLastChecked)) {
+				InputStream fileInputStream;
+				try {
+					fileInputStream = g_DriveService.files().get(file.getId())
+							.executeMediaAsInputStream();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
+					String value = reader.readLine();
+					SharedPreferences.Editor edit = sharedPref.edit();
+					edit.putString(filename, value);
+					edit.apply();
+					modified = 1;
+					//Log.i("Cloud Data", "  Updated file: " + filename);
+				}
+				catch( IOException e ) {
+					Log.w( "Cloud Data", "Failed to read file: " + file.getName() + ": " + e.toString() );
+					continue;
+				}
+			}
+
+			if ( modified > 0 ) g_iCloudDataChanged = 1;
+		}
+		g_CloudLastChecked = Calendar.getInstance().getTime();
+
+		// delete any missing values
+		Iterator<String> iter2 = sharedPref.getAll().keySet().iterator();
+		SharedPreferences.Editor edit = sharedPref.edit();
+		while (iter2.hasNext()) {
+			String name = iter2.next();
+			String present = map.get(name);
+			if (present != null && present.equals("0")) {
+				//Log.i("Cloud Data", "Removed file: " + name);
+				edit.remove(name);
+			}
+		}
+		edit.apply();
+	}
+
+	public static void FinishCloudDataSetup( Task<GoogleSignInAccount> signInTask )
+	{
+		Log.i("Cloud Data", "Finishing cloud data setup");
+		if ( g_iCloudDataStatusInProgess == 1 || g_iCloudDataStatus == 1 ) return;
+		g_iCloudDataStatusInProgess = 1;
+
+		Log.i("Cloud Data", "Finishing cloud data setup2");
+
+		List<String> permissions = new ArrayList<String>();
+		permissions.add("https://www.googleapis.com/auth/drive.appdata");
+		GoogleAccountCredential accountCredential = GoogleAccountCredential.usingOAuth2( g_pCloudActivity, permissions );
+		Account account = g_GoogleAccount.getAccount();
+		if ( account == null )
+		{
+			Log.e( "Cloud Data", "Account is null" );
+			g_iCloudDataStatusInProgess = 0;
+			g_iCloudDataStatus = -1;
+			return;
+		}
+		accountCredential.setSelectedAccount( account );
+
+		NetHttpTransport HTTP_TRANSPORT = new com.google.api.client.http.javanet.NetHttpTransport();
+		if ( HTTP_TRANSPORT == null )
+		{
+			g_iCloudDataStatusInProgess = 0;
+			g_iCloudDataStatus = -2;
+			Log.e( "Cloud Data", "Failed to get NetHttpTransport" );
+			return;
+		}
+
+		g_DriveService = new Drive.Builder( HTTP_TRANSPORT, JacksonFactory.getDefaultInstance(), accountCredential )
+				.setApplicationName( g_pCloudActivity.getPackageName() )
+				.build();
+		if ( g_DriveService == null )
+		{
+			Log.e( "Cloud Data", "Drive service is null" );
+			g_iCloudDataStatusInProgess = 0;
+			g_iCloudDataStatus = -2;
+			return;
+		}
+
+		Thread enumFiles = new Thread() {
+			@Override
+			public void run() {
+				FileList result;
+				try {
+					// Print the names and IDs for up to 10 files.
+					result = g_DriveService.files().list()
+							.setSpaces("appDataFolder")
+							.setPageSize(10)
+							.setQ("name='CloudVariables'")
+							.setFields("nextPageToken, files(id, name)")
+							.execute();
+				} catch (IOException e) {
+					Log.e("Cloud Data", "Failed to get file list: " + e.toString());
+					g_iCloudDataStatusInProgess = 0;
+					g_iCloudDataStatus = -2;
+					return;
+				}
+
+				List<com.google.api.services.drive.model.File> files = result.getFiles();
+				boolean create = true;
+				if ( files != null && !files.isEmpty() )
+				{
+					if ( files.size() > 1 )
+					{
+						Log.e( "Cloud Data", "Found " + files.size() + " CloudVariables folders, only one must exist, please clear the app data in your Drive settings" );
+						g_iCloudDataStatus = -3;
+						g_iCloudDataStatusInProgess = 0;
+						return;
+					}
+
+					Log.i("Cloud Data", "Found CloudVariables folder");
+					g_sCloudAppDatafolder = files.get(0).getId();
+					create = false;
+					/*
+					for (int i = 1; i < files.size(); i++ ) {
+						try{ g_DriveService.files().delete(files.get(i).getId()).execute(); }
+						catch (IOException e) { Log.e( "Cloud Data", "Failed to delete duplicate CloudVariables folder: " + e.toString() ); }
+					}
+					*/
+				}
+
+				if ( create )
+				{
+					com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
+					fileMetadata.setName("CloudVariables");
+					fileMetadata.setMimeType("application/vnd.google-apps.folder");
+					fileMetadata.setParents(Collections.singletonList("appDataFolder"));
+
+					try {
+						com.google.api.services.drive.model.File file = g_DriveService.files().create(fileMetadata)
+								.setFields("id")
+								.execute();
+						Log.i("Cloud Data", "Created CloudVariables folder");
+						g_sCloudAppDatafolder = file.getId();
+					}
+					catch( IOException e )
+					{
+						Log.e("Cloud Data", "Failed to create CloudVariables folder: " + e.toString());
+						g_iCloudDataStatusInProgess = 0;
+						g_iCloudDataStatus = -2;
+						return;
+					}
+				}
+
+				if ( g_CloudRefreshTask == null ) {
+					try {
+						g_CloudRefreshTask = new TimerTask() {
+							@Override
+							public void run() {
+								UpdateCloudVariables();
+							}
+						};
+						g_CloudRefreshTimer = new Timer();
+						g_CloudRefreshTimer.schedule(g_CloudRefreshTask, 0, 60000);
+					} catch (IllegalStateException e) {
+						Log.e("Cloud Data", "Failed to start Cloud Data thread:" + e.toString());
+					}
+				}
+				g_iCloudDataStatusInProgess = 0;
+				g_iCloudDataStatus = 1;
+			}
+		};
+		enumFiles.start();
 	}
 
 	public static int GetCloudDataAllowed( Activity act )
@@ -4570,7 +4757,7 @@ public class AGKHelper {
 
 	public static String GetCloudDataVariable( Activity act, String varName, String defaultValue )
 	{
-		if ( g_DriveResourceClient == null ) return defaultValue;
+		if ( g_DriveService == null || g_iCloudDataStatus != 1 ) return defaultValue;
 		g_iCloudDataChanged = 0;
 
 		varName = varName.replace("/","_");
@@ -4589,7 +4776,7 @@ public class AGKHelper {
 
 	public static void SetCloudDataVariable( Activity act, String varName, final String varValue )
 	{
-		if ( g_DriveResourceClient == null ) return;
+		if ( g_DriveService == null || g_iCloudDataStatus != 1 ) return;
 
 		varName = varName.replace("/","_");
 		varName = varName.replace("\\","_");
@@ -4608,130 +4795,79 @@ public class AGKHelper {
 		edit.apply();
 
 		// write drive file
-		if ( g_DriveResourceClient == null || g_CloudAppFolder == null ) return;
+		if ( g_DriveService == null || g_iCloudDataStatus != 1 ) return;
 
-		//Log.i( "Cloud Data", "Setting cloud variable: " + varName );
-		Query query = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, varName)).build();
-		Task<MetadataBuffer> fileQuery = g_DriveResourceClient.queryChildren( g_CloudAppFolder, query );
-		fileQuery.addOnSuccessListener(new OnSuccessListener<MetadataBuffer>() {
+		final String finalVarName = varName;
+		final String finalVarValue = varValue;
+
+		//Log.i( "Cloud Data", "Set cloud variable: " + finalVarName );
+
+		Thread updateFile = new Thread() {
 			@Override
-			public void onSuccess(MetadataBuffer metadata) {
-				if ( metadata.getCount() == 0 )
-				{
-					//Log.i( "Cloud Data", "File doesn't exist yet: " + finalVarname );
-					// add file
-					Task<DriveContents> createContentsTask = g_DriveResourceClient.createContents();
-					createContentsTask.addOnSuccessListener(new OnSuccessListener<DriveContents>() {
-						@Override
-						public void onSuccess(DriveContents driveContents) {
-							//Log.i( "Cloud Data", "Created contents: " + finalVarname );
-							OutputStream outputStream = driveContents.getOutputStream();
-							try
-							{
-								Writer writer = new OutputStreamWriter(outputStream);
-								writer.write(varValue);
-								writer.flush();
-								writer.close();
-							}
-							catch( IOException e )
-							{
-								Log.w( "Cloud Data", "Failed to write new file: " + finalVarname + " error: " + e.toString() );
-								return;
-							}
+			public void run() {
+				FileList result;
+				try {
+					result = g_DriveService.files().list()
+							.setSpaces("appDataFolder")
+							.setPageSize(10)
+							.setFields("files(id)")
+							.setQ("'"+g_sCloudAppDatafolder+"' in parents and name='"+finalVarName+"'")
+							.execute();
+				} catch (IOException e) {
+					Log.e("Cloud Data", "Failed to get file ID for update: " + e.toString());
+					return;
+				}
 
-							MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-									.setTitle(finalVarname)
-									.setMimeType("text/plain")
-									.build();
+				List<com.google.api.services.drive.model.File> files = result.getFiles();
+				if ( files == null || files.isEmpty() ) {
+					// create file
+					com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
+					fileMetadata.setName(finalVarName);
+					fileMetadata.setParents( Collections.singletonList(g_sCloudAppDatafolder) );
+					ByteArrayContent fileContent = new ByteArrayContent("text/plain", finalVarValue.getBytes());
+					try {
+						com.google.api.services.drive.model.File file = g_DriveService.files().create(fileMetadata, fileContent)
+								.setFields("id")
+								.execute();
+					} catch (IOException e) {
+						Log.w("Cloud Data", "Failed to write new variable: " + finalVarName + ": " + e.toString());
+						return;
+					}
 
-							//Log.i( "Cloud Data", "Creating file task: " + finalVarname );
-							Task<DriveFile> fileTask = g_DriveResourceClient.createFile( g_CloudAppFolder, changeSet, driveContents );
-							/*
-							fileTask.addOnSuccessListener(new OnSuccessListener<DriveFile>() {
-								@Override
-								public void onSuccess(DriveFile driveFile) {
-									Log.i( "Cloud Data", "Created file: " + finalVarname );
-								}
-							}).addOnFailureListener(new OnFailureListener() {
-								@Override
-								public void onFailure(@NonNull Exception e) {
-									Log.i( "Cloud Data", "Failed to create file: " + finalVarname + ", " + e.toString() );
-								}
-							});
-							*/
-							g_DriveClient.requestSync();
-						}
-					}).addOnFailureListener(new OnFailureListener() {
-						@Override
-						public void onFailure(@NonNull Exception e) {
-							Log.w( "Cloud Data", "Failed to create file contents: " + finalVarname );
-						}
-					});
+					//Log.i( "Cloud Data", "Created cloud variable: " + finalVarName );
 				}
 				else
 				{
-					//Log.i( "Cloud Data", "File already exists, updating: " + finalVarname );
-
-					if ( metadata.getCount() > 1 )
+					com.google.api.services.drive.model.File file = files.get(0);
+					String fileID = file.getId();
+					com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
+					ByteArrayContent fileContent = new ByteArrayContent("text/plain", finalVarValue.getBytes());
+					try { g_DriveService.files().update(fileID, fileMetadata, fileContent).execute(); }
+					catch( IOException e )
 					{
-						Log.i("Cloud Data", "More than one drive file matches filename, deleting extras: " + finalVarname );
-						for( int i = 1; i < metadata.getCount(); i++ )
-						{
-							g_DriveResourceClient.delete( metadata.get(i).getDriveId().asDriveResource() );
-						}
+						Log.w("Cloud Data", "Failed to update file: "+finalVarName+": " + e.toString());
 					}
 
-					// update file
-					Metadata data = metadata.get(0);
-					DriveId driveID = data.getDriveId();
-					Task<DriveContents> contentsTask = g_DriveResourceClient.openFile(driveID.asDriveFile(), DriveFile.MODE_WRITE_ONLY);
-					contentsTask.addOnSuccessListener(new OnSuccessListener<DriveContents>() {
-						@Override
-						public void onSuccess(DriveContents driveContents) {
-							//Log.i( "Cloud Data", "Got file contents: " + finalVarname );
-							OutputStream outputStream = driveContents.getOutputStream();
-							try {
-								Writer writer = new OutputStreamWriter(outputStream);
-								writer.write(varValue);
-								writer.flush();
-								writer.close();
-							}
-							catch( IOException e )
-							{
-								Log.w( "Cloud Data", "Failed to write file contents: " + finalVarname + ", error: " + e.toString() );
-								return;
-							}
+					//Log.i( "Cloud Data", "Updated cloud variable: " + finalVarName );
 
-							Task<Void> commitTask = g_DriveResourceClient.commitContents( driveContents, null );
-							/*
-							commitTask.addOnSuccessListener(new OnSuccessListener<Void>() {
-								@Override
-								public void onSuccess(Void aVoid) {
-									Log.i( "Cloud Data", "Commit successful" );
-								}
-							}).addOnFailureListener(new OnFailureListener() {
-								@Override
-								public void onFailure(@NonNull Exception e) {
-									Log.i( "Cloud Data", "Commit failed: " + e.toString() );
-								}
-							});
-							*/
-							g_DriveClient.requestSync();
+					for (int i = 1; i < files.size(); i++) {
+						file = files.get(i);
+						fileID = file.getId();
+						try { g_DriveService.files().delete(fileID).execute(); }
+						catch( IOException e )
+						{
+							Log.w("Cloud Data", "Failed to delete duplicate file: "+finalVarName+": " + e.toString());
 						}
-					}).addOnFailureListener(new OnFailureListener() {
-						@Override
-						public void onFailure(@NonNull Exception e) {
-							Log.w( "Cloud Data", "Failed to get file contents for writing: " + finalVarname );
-						}
-					});
+					}
 				}
 			}
-		});
+		};
+		updateFile.start();
 	}
 
 	public static void DeleteCloudDataVariable( Activity act, String varName )
 	{
-		if ( g_DriveResourceClient == null ) return;
+		if ( g_DriveService == null || g_iCloudDataStatus != 1 ) return;
 
 		varName = varName.replace("/","_");
 		varName = varName.replace("\\","_");
@@ -4749,25 +4885,41 @@ public class AGKHelper {
 		edit.apply();
 
 		// delete drive file
-		if ( g_DriveResourceClient == null || g_CloudAppFolder == null ) return;
+		if ( g_DriveService == null || g_iCloudDataStatus != 1 ) return;
 
-		Query query = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, varName)).build();
-		Task<MetadataBuffer> fileQuery = g_DriveResourceClient.queryChildren( g_CloudAppFolder, query );
-		fileQuery.addOnSuccessListener(new OnSuccessListener<MetadataBuffer>() {
+		final String finalVarName = varName;
+
+		Thread deleteFile = new Thread() {
 			@Override
-			public void onSuccess(MetadataBuffer metadata) {
-				if ( metadata.getCount() > 1 )
-				{
-					//Log.i("Cloud Data", "More than one drive files match delete filename" );
+			public void run() {
+				FileList result;
+				try {
+					result = g_DriveService.files().list()
+							.setSpaces("appDataFolder")
+							.setPageSize(10)
+							.setFields("files(id)")
+							.setQ("'"+g_sCloudAppDatafolder+"' in parents and name='"+finalVarName+"'")
+							.execute();
+				} catch (IOException e) {
+					Log.e("Cloud Data", "Failed to get file ID for deletion: " + e.toString());
+					return;
 				}
 
-				for( int i = 0; i < metadata.getCount(); i++ ) {
-					Metadata data = metadata.get(i);
-					DriveId driveID = data.getDriveId();
-					g_DriveResourceClient.delete(driveID.asDriveResource());
+				//Log.i( "Cloud Data", "Deleted cloud variable: " + finalVarName );
+
+				List<com.google.api.services.drive.model.File> files = result.getFiles();
+				for (int i = 0; i < files.size(); i++) {
+					com.google.api.services.drive.model.File file = files.get(i);
+					final String fileID = file.getId();
+					try { g_DriveService.files().delete(fileID).execute(); }
+					catch( IOException e )
+					{
+						Log.w("Cloud Data", "Failed to delete file: "+finalVarName+": " + e.toString());
+					}
 				}
 			}
-		});
+		};
+		deleteFile.start();
 	}
 
 	// Shared variables
@@ -5050,8 +5202,37 @@ public class AGKHelper {
 		}
 	}
 
+	public static void ShareFile( Activity act, String sPath )
+	{
+		int pos = sPath.lastIndexOf('/');
+		String sFileName;
+		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
+		else sFileName = sPath;
+
+		// get extension
+		pos = sPath.lastIndexOf('.');
+		String sExt = "";
+		if ( pos >= 0 ) sExt = sPath.substring(pos+1);
+
+		File src = new File(sPath);
+
+		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
+
+		Intent target = new Intent( Intent.ACTION_SEND );
+		target.setDataAndType( uri, sMIME );
+		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
+
+		try {
+			act.startActivity(target);
+		} catch (ActivityNotFoundException e) {
+			ShowMessage(act,"No application found to share file type \"" + sExt + "\"");
+		}
+	}
+
 	public static String GetExternalDir()
 	{
 		return Environment.getExternalStorageDirectory().getAbsolutePath();
 	}
 }
+

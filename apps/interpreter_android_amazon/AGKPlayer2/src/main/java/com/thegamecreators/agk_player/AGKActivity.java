@@ -30,6 +30,9 @@ public class AGKActivity extends NativeActivity
             Uri data = intent.getData();
             if ( data != null ) AGKHelper.g_sLastURI = data.toString();
         }
+
+        final AGKPurchasingListener purchasingListener = new AGKPurchasingListener();
+        PurchasingService.registerListener(this, purchasingListener);
     }
 
     @Override

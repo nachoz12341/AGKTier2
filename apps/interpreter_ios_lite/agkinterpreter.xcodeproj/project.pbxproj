@@ -37,6 +37,7 @@
 		4A952B151FA00CFE006F2215 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A952B141FA00CFE006F2215 /* WatchConnectivity.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A9CA4B61999276E00DBDE8A /* ProgramData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A9CA4B51999276E00DBDE8A /* ProgramData.cpp */; };
 		4AA68F9C1BB1DA7A003CF336 /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AA68F9B1BB1DA7A003CF336 /* GoogleMobileAds.framework */; };
+		4AAAB70B21C048B9003BE3C8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AAAB70A21C048B8003BE3C8 /* WebKit.framework */; };
 		4AB6381020CADF9A007F0A18 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380E20CADBF1007F0A18 /* Security.framework */; };
 		4AB6381220CAE01E007F0A18 /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6381120CAE01E007F0A18 /* PersonalizedAdConsent.framework */; };
 		4AB6381420CAE036007F0A18 /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4AB6381320CAE036007F0A18 /* PersonalizedAdConsent.bundle */; };
@@ -97,6 +98,7 @@
 		4A952B141FA00CFE006F2215 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		4A9CA4B51999276E00DBDE8A /* ProgramData.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = ProgramData.cpp; path = ../../interpreter/ProgramData.cpp; sourceTree = "<group>"; };
 		4AA68F9B1BB1DA7A003CF336 /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = "../../platform/apple/Source/Social Plugins/GoogleMobileAds.framework"; sourceTree = "<group>"; };
+		4AAAB70A21C048B8003BE3C8 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		4AB6380E20CADBF1007F0A18 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		4AB6381120CAE01E007F0A18 /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
 		4AB6381320CAE036007F0A18 /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AAAB70B21C048B9003BE3C8 /* WebKit.framework in Frameworks */,
 				4AB6381220CAE01E007F0A18 /* PersonalizedAdConsent.framework in Frameworks */,
 				4AB6381020CADF9A007F0A18 /* Security.framework in Frameworks */,
 				4A58BA6B206AA9B50038F2F0 /* ARKit.framework in Frameworks */,
@@ -268,6 +271,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AAAB70A21C048B8003BE3C8 /* WebKit.framework */,
 				4AB6381120CAE01E007F0A18 /* PersonalizedAdConsent.framework */,
 				4AB6380E20CADBF1007F0A18 /* Security.framework */,
 				4A58BA6A206AA9B40038F2F0 /* ARKit.framework */,

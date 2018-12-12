@@ -1967,6 +1967,7 @@ BOOL __stdcall InputEnumCallback( LPCDIDEVICEINSTANCE device, void* ptr )
 		}
 
 		cJoystick *pJoystick = new cJoystick( pDevice );
+		pJoystick->SetName( device->tszProductName );
 
 		pDevice->EnumObjects( InputEnumObjectsCallback, pDevice, DIDFT_ALL );
 		pDevice->SetDataFormat( &c_dfDIJoystick2 );
@@ -2001,7 +2002,8 @@ UINT STDCALL DirectInputEnumThread( void *pParams )
 			if ( iIndex >= AGK_NUM_JOYSTICKS ) return 0;
 
 			cJoystick *pJoystick = new cJoystick( (void*) i, 1 );
-
+			pJoystick->SetName( "XInput Device" );
+			
 			pJoysticks[ iIndex ] = pJoystick;
 		}
 	}
@@ -5863,6 +5865,30 @@ void cSoundMgr::PlatformResumeInstances( UINT iID )
 }
 */
 
+//****f* Video/Youtube/PlayYoutubeVideo
+// FUNCTION
+//   Plays the specified Youtube video in a separate window above your app. For Android you must enable the Youtube 
+//   Data API v3 in the Google Cloud Console for your app, and create an API key for it in the credentials section. 
+//   You can create a key specifically for use with the Youtube API, or you can use an unrestricted key that can be 
+//   used by multiple APIs. The videoID is the string that follows the ?v= part of a Youtube URL, e.g. "eLIgxYHCgWA". 
+//   You can also specify a start time to start playing the video from part way through instead of starting from the 
+//   beginning. The time is specified in seconds and accepts decimal values to represent fractions of a second.<br/>
+//   <br/>
+//   On Windows, Mac, and Linux this command will open the default browser to play the Youtube video. The developer 
+//   key field is only required on Android.
+// INPUTS
+//   developerKey -- The API key credential created in the Google Cloud Console for the Youtube Data API v3.
+//   videoID -- The ID of the video, e.g. eLIgxYHCgWA
+//   startTime -- The seek time in seconds from which to start playing the video
+// SOURCE
+void agk::PlayYoutubeVideo( const char* developerKey, const char* videoID, float startTime )
+//****
+{
+	uString sURL;
+	sURL.Format( "https://www.youtube.com/watch?v=%s&t=%d", videoID, (int)startTime );
+	OpenBrowser( sURL );
+}
+
 // video commands 
 
 //****f* Video/General/LoadVideo
@@ -9628,6 +9654,21 @@ void agk::ShareImage( const char* szFilename )
 //   szText -- The text to share
 // SOURCE
 void agk::ShareImageAndText( const char* szFilename, const char* szText )
+//****
+{
+
+}
+
+//****f* Core/External Apps/ShareFile
+// FUNCTION
+//   Sends the given file to the operating system which will then ask the user how they want to share it, 
+//   e.g. through email, NFC, etc. The file can be in your read or write folder, or you can 
+//   use a "raw:" path to load from anywhere, you should provide the filename as if you were loading the 
+//   file. This only works on iOS and Android.
+// INPUTS
+//   szFilename -- The path to the file to share
+// SOURCE
+void agk::ShareFile( const char* szFilename )
 //****
 {
 

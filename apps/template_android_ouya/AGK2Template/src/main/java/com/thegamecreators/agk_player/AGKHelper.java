@@ -274,7 +274,7 @@ class RunnableKeyboard implements Runnable
 
 class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, MediaPlayer.OnCompletionListener
 {
-	public MediaPlayer player = null;
+	public volatile MediaPlayer player = null;
 	public Activity act;
 	public SurfaceHolder pHolder = null;
 	public SurfaceTexture pTexture = null;
@@ -283,7 +283,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 	public int m_y = 0;
 	public int m_width = 1;
 	public int m_height = 1;
-	public String m_filename = "";
+	public volatile String m_filename = "";
 	public int m_filetype = 0;
 
 	public int prepared = 0;
@@ -293,9 +293,13 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 	public int completed = 0;
 
 	public int isDisplayed = 0;
-	public int videoWidth = 0;
-	public int videoHeight = 0;
-	public int videoDuration = 0;
+	public volatile int videoWidth = 0;
+	public volatile int videoHeight = 0;
+	public volatile int videoDuration = 0;
+	public volatile int viewAdded = 0;
+	public volatile int shouldRemoveView = 0;
+
+	public float U1, U2, V1, V2;
 
 	public static WindowManager.LayoutParams makeLayout(int x, int y, int width, int height)
 	{
@@ -335,12 +339,19 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 		m_filename = filename;
 		m_filetype = type;
+		U1 = 0;
+		V1 = 0;
+		U2 = 1;
+		V2 = 1;
 
 		if ( player != null )
 		{
-			player.reset();
-			player.release();
-			player = null;
+			synchronized( AGKHelper.videoLock )
+			{
+				player.reset();
+				player.release();
+				player = null;
+			}
 
 			StopVideo();
 		}
@@ -382,11 +393,24 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 					if ( index < 0 )
 					{
 						Log.e("Load Video","Invalid file name for expansion file");
+						m_filename = "";
 						return;
 					}
 					String subfilename = filename.substring(index+1);
-					ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile( act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
+					ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile(act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
+					if ( expansionFile == null )
+					{
+						Log.e("Video","Failed to load expansion file");
+						m_filename = "";
+						return;
+					}
 					AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+					if ( afd == null )
+					{
+						Log.e("Video","Failed to find video file in expansion file");
+						m_filename = "";
+						return;
+					}
 					metaRetriever.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(), afd.getLength());
 					tempPlayer.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(), afd.getLength());
 					afd.close();
@@ -396,6 +420,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 				default:
 				{
 					Log.e("Video","Unrecognised file type");
+					m_filename = "";
 					return;
 				}
 			}
@@ -477,21 +502,26 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		m_filetype = 0;
 		paused = 0;
 
-		if ( isDisplayed == 1 )
+		if ( viewAdded == 1 )
 		{
+			shouldRemoveView = 0;
 			WindowManager wm = (WindowManager) act.getSystemService(Context.WINDOW_SERVICE);
 			wm.removeView(this);
 			isDisplayed = 0;
 		}
+		else shouldRemoveView = 1;
 
-		if ( pTexture != null )
+		synchronized( AGKHelper.videoLock )
 		{
-			pTexture = null;
-			player.reset();
-			player.release();
-			player = null;
+			if ( pTexture != null ) pTexture = null;
+			iLastTex = 0;
+			if ( player != null )
+			{
+				player.reset();
+				player.release();
+				player = null;
+			}
 		}
-		iLastTex = 0;
 	}
 
 	public void PlayVideo()
@@ -511,11 +541,12 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 		if ( pTexture != null )
 		{
-			Log.e("Video","Cannot play to screen whilst the video is playing to a texture");
+			Log.e("Video", "Cannot play to screen whilst the video is playing to a texture");
 			AGKHelper.ShowMessage(act,"Cannot play video to screen whilst the video is playing to a texture");
 		}
 		else
 		{
+			shouldRemoveView = 0;
 			if (isDisplayed == 0) {
 				WindowManager wm = (WindowManager) act.getSystemService(Context.WINDOW_SERVICE);
 				WindowManager.LayoutParams layout = makeLayout(m_x, m_y, m_width, m_height);
@@ -527,7 +558,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 	public void PlayVideoToTexture(int tex)
 	{
-		Log.i("Video", "Play Video");
+		Log.i("Video","Play Video To Image");
 		if ( m_filename.equals("") || m_filename.equals("Error") ) return;
 
 		if ( player != null )
@@ -584,7 +615,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 	public void PauseVideo()
 	{
-		Log.i("Video", "Pause Video");
+		Log.i("Video","Pause Video");
 		if ( m_filename.equals("") || m_filename.equals("Error") ) return;
 
 		paused = 1;
@@ -598,48 +629,63 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		Log.i("Video","Stop Video");
 		paused = 0;
 
-		if ( isDisplayed == 1 )
+		if ( viewAdded == 1 )
 		{
+			shouldRemoveView = 0;
 			WindowManager wm = (WindowManager) act.getSystemService(Context.WINDOW_SERVICE);
 			wm.removeView(this);
 			isDisplayed = 0;
+			viewAdded = 0;
 		}
+		else shouldRemoveView = 1;
 
-		if ( pTexture != null )
+		synchronized( AGKHelper.videoLock )
 		{
-			pTexture = null;
-			player.reset();
-			player.release();
-			player = null;
+			if ( pTexture != null ) pTexture = null;
+			iLastTex = 0;
+			if ( player != null )
+			{
+				player.reset();
+				player.release();
+				player = null;
+			}
 		}
-		iLastTex = 0;
 	}
 
 	public void UpdateVideo()
 	{
-		if ( pTexture == null ) return;
-		if ( Build.VERSION.SDK_INT < 14 ) return;
+		synchronized( AGKHelper.videoLock )
+		{
+			if (pTexture == null) return;
+			if (Build.VERSION.SDK_INT < 14) return;
 
-		try
-		{
-			pTexture.updateTexImage();
-		}
-		catch( RuntimeException e )
-		{
-			Log.e( "Video", "Failed to update video texture: " + e.toString() );
+			try
+			{
+				pTexture.updateTexImage();
+				float matrix[] = new float[16];
+				pTexture.getTransformMatrix(matrix);
+				U1 = matrix[12];
+				V1 = matrix[5] + matrix[13];
+				U2 = matrix[0] + matrix[12];
+				V2 = matrix[13];
+			}
+			catch( RuntimeException e )
+			{
+				Log.e( "Video", "Failed to update video texture: " + e.toString() );
+			}
 		}
 	}
 
 	public void SetDimensions( int x, int y, int width, int height )
 	{
-		Log.i("Video", "Set Dimensions X:" + x + " Y:" + y + " Width:" + width + " Height:" + height);
+		Log.i("Video","Set Dimensions X:"+x+" Y:"+y+" Width:"+width+" Height:"+height);
 
 		m_x = x;
 		m_y = y;
 		m_width = width;
 		m_height = height;
 
-		if ( isDisplayed == 1 && pHolder != null )
+		if ( viewAdded == 1 && pHolder != null )
 		{
 			WindowManager wm = (WindowManager) act.getSystemService(Context.WINDOW_SERVICE);
 			WindowManager.LayoutParams layout = makeLayout(m_x,m_y,m_width,m_height);
@@ -683,7 +729,18 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 					}
 					String subfilename = m_filename.substring(index+1);
 					ZipResourceFile expansionFile = APKExpansionSupport.getAPKExpansionZipFile( act, AGKHelper.g_iExpansionVersion, AGKHelper.g_iExpansionVersion);
+					if ( expansionFile == null )
+					{
+						Log.e("Video","Failed to load expansion file");
+						return;
+					}
 					AssetFileDescriptor afd = expansionFile.getAssetFileDescriptor(subfilename);
+					if ( afd == null )
+					{
+						Log.e("Video","Failed to find video file in expansion file");
+						m_filename = "";
+						return;
+					}
 					newplayer.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(), afd.getLength());
 					afd.close();
 					*/
@@ -702,7 +759,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 				if ( Build.VERSION.SDK_INT >= 14 ) newplayer.setSurface(new Surface(pTexture));
 				else
 				{
-					Log.e("Video","Playing video to texture is not supported on this device");
+					Log.e("Video", "Playing video to texture is not supported on this device");
 					AGKHelper.ShowMessage(act,"Playing video to texture is not supported on this device");
 				}
 			}
@@ -747,7 +804,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 	public void surfaceDestroyed(SurfaceHolder holder)
 	{
-		Log.i("Video", "surface destroyed");
+		Log.i("Video","surface destroyed");
 		pHolder = null;
 
 		if ( player != null )
@@ -768,6 +825,29 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		Log.i("Video", "Surface changed");
 	}
 
+	@Override
+	public void onAttachedToWindow()
+	{
+		viewAdded = 1;
+		super.onAttachedToWindow();
+
+		if ( shouldRemoveView == 1 )
+		{
+			shouldRemoveView = 0;
+			WindowManager wm = (WindowManager) act.getSystemService(Context.WINDOW_SERVICE);
+			wm.removeView(this);
+			isDisplayed = 0;
+			viewAdded = 0;
+		}
+	}
+
+	@Override
+	public void onDetachedFromWindow()
+	{
+		shouldRemoveView = 0;
+		super.onDetachedFromWindow();
+	}
+
 	public void onCompletion(MediaPlayer mp)
 	{
 		Log.i("Video","Completed");
@@ -778,8 +858,12 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 	public void OnContextLost()
 	{
-		if ( pTexture != null )
-		{
+		synchronized( AGKHelper.videoLock ) {
+			if (pTexture != null) {
+				pTexture = null;
+			}
+			iLastTex = 0;
+
 			if (player != null) {
 				if (completed == 0) pausePos = player.getCurrentPosition();
 				else pausePos = -1;
@@ -787,17 +871,14 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 				player.release();
 				player = null;
 			}
-
-			pTexture = null;
 		}
-		iLastTex = 0;
 	}
 }
 
 class RunnableVideo implements Runnable
 {
 	public Activity act;
-	public static AGKSurfaceView video = null;
+	public static volatile AGKSurfaceView video = null;
 	public int action = 0;
 	
 	public String filename = "";
@@ -1003,7 +1084,7 @@ class AGKSpeechListener  implements TextToSpeech.OnInitListener, TextToSpeech.On
 public class AGKHelper {
 	
 	public static Activity g_pAct = null;
-	static String g_sLastURI = null;
+	public static String g_sLastURI = null;
 
 	// screen recording
 	static MediaProjectionManager mMediaProjectionManager = null;
@@ -1069,7 +1150,7 @@ public class AGKHelper {
 		String pasteData;
 
 		if (!(clipboard.hasPrimaryClip())) return "";
-		if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
+		//if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) return "";
 
 		ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
 		pasteData = item.getText().toString();
@@ -1170,7 +1251,7 @@ public class AGKHelper {
 	}
 	
 	// GameCenter
-	static int m_GameCenterLoggedIn = 0;
+	static int m_GameCenterLoggedIn = -1;
 	
 	public static int GetGameCenterExists( Activity act )
 	{
@@ -1313,24 +1394,24 @@ public class AGKHelper {
 	
 	public static int GetDisplayWidth( Activity act )
 	{
-		//Display display = act.getWindowManager().getDefaultDisplay(); 
-		//return display.getWidth();
-		
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		int screenWidth = displaymetrics.widthPixels;
-		return screenWidth;
+		//DisplayMetrics displaymetrics = new DisplayMetrics();
+		//act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+		//int screenWidth = displaymetrics.widthPixels;
+		//return screenWidth;
+
+		// this works better when showing and hiding the navigation bar
+		return act.getWindow().getDecorView().getWidth();
 	}
 	
 	public static int GetDisplayHeight( Activity act )
 	{
-		//Display display = act.getWindowManager().getDefaultDisplay(); 
-		//return display.getHeight();
-		
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		int screenHeight = displaymetrics.heightPixels;
-		return screenHeight;
+		//DisplayMetrics displaymetrics = new DisplayMetrics();
+		//act.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+		//int screenHeight = displaymetrics.heightPixels;
+		//return screenHeight;
+
+		// this works better when showing and hiding the navigation bar
+		return act.getWindow().getDecorView().getHeight();
 	}
 	
 	// Edit box input
@@ -1469,12 +1550,12 @@ public class AGKHelper {
 	
 	public static int hasStartedVideo = 0;
 	public static int videoLoaded = 0;
-	public static Object videoLock = new Object(); 
+	public static final Object videoLock = new Object(); 
 	public static float g_fVideoVolume = 100; 
 	
 	public static void LoadVideo( Activity act, String filename, int type )
 	{
-		Log.w("Video","Load Video");
+		Log.i("Video","Load Video");
 		RunnableVideo video = new RunnableVideo();
 		video.act = act;
 		video.action = 1;
@@ -1486,7 +1567,7 @@ public class AGKHelper {
 	
 	public static void SetVideoDimensions( Activity act, int x, int y, int width, int height )
 	{
-		Log.w("Video","Set Dimensions");
+		Log.i("Video","Set Dimensions");
 		RunnableVideo video = new RunnableVideo();
 		video.act = act;
 		video.action = 2;
@@ -1587,15 +1668,36 @@ public class AGKHelper {
 		return 0;
 	}
 	
+	public static float GetVideoTextureValue( Activity act, int value )
+	{
+		if ( RunnableVideo.video == null ) return 0;
+		if ( RunnableVideo.video.m_filename.equals("Error") ) return 0;
+		if ( RunnableVideo.video.m_filename.equals("") ) return 0;
+
+		switch(value)
+		{
+			case 1: return RunnableVideo.video.U1;
+			case 2: return RunnableVideo.video.V1;
+			case 3: return RunnableVideo.video.U2;
+			case 4: return RunnableVideo.video.V2;
+		}
+
+		return 0;
+	}
+
 	public static void SetVideoVolume( float volume )
 	{
 		g_fVideoVolume = volume;
 		if ( g_fVideoVolume > 99 ) g_fVideoVolume = 99;
 		if ( g_fVideoVolume < 0 ) g_fVideoVolume = 0;
-		if ( RunnableVideo.video == null || RunnableVideo.video.player == null ) return;
 		
-		float log1=(float)(Math.log(100-g_fVideoVolume)/Math.log(100));
-		RunnableVideo.video.player.setVolume( 1-log1, 1-log1 );
+		synchronized( videoLock )
+		{
+			if ( RunnableVideo.video == null || RunnableVideo.video.player == null ) return;
+		
+			float log1=(float)(Math.log(100-g_fVideoVolume)/Math.log(100));
+			RunnableVideo.video.player.setVolume( 1-log1, 1-log1 );
+		}
 	}
 
 	public static void SetVideoPosition( Activity act, float position )
@@ -1605,6 +1707,12 @@ public class AGKHelper {
 		video.pos = position;
 		video.action = 9;
 		act.runOnUiThread(video);
+	}
+
+	// youtube
+	static void PlayYoutubeVideo( Activity act, String key, String video, int time )
+	{
+
 	}
 
 	// camera to image
@@ -1814,6 +1922,11 @@ public class AGKHelper {
 
 	// adverts
 	public static void SetAdMobTestMode( int mode ) {}
+	public static void LoadAdMobConsentStatus( Activity act, String publisherID, String privacyPolicy ) {}
+	public static int GetAdMobConsentStatus( Activity act ) { return 0; }
+	public static void RequestAdMobConsent( Activity act ) {}
+	public static void OverrideAdMobConsent( Activity act, int mode ) {}
+	public static void OverrideChartboostConsent( Activity act, int mode ) {}
 	public static void CreateAd(Activity act, String publisherID, int horz, int vert, int offsetX, int offsetY, int type) {}
 	public static void CacheFullscreenAd(Activity act, String publisherID) {}
 	public static void CreateFullscreenAd(Activity act, String publisherID) {}
@@ -1846,6 +1959,11 @@ public class AGKHelper {
 		return 0;
 	}
 
+	public static void SetOrientation( Activity act, int orien )
+	{
+		act.setRequestedOrientation( orien );
+	}
+
 	// local notifications
 	public static void SetNotification( Activity act, int id, int unixtime, String message )
 	{
@@ -1855,11 +1973,6 @@ public class AGKHelper {
 	public static void CancelNotification( Activity act, int id )
 	{
 
-	}
-	
-	public static void SetOrientation( Activity act, int orien )
-	{
-		act.setRequestedOrientation( orien );
 	}
 	
 	public static int GetOrientation( Activity act )
@@ -2233,6 +2346,11 @@ public class AGKHelper {
 		return "";
 	}
 	
+	public static String iapGetSignature( int ID )
+	{
+		return "";
+	}
+
 	// ******************
 	// Push Notifications
 	// ******************
@@ -2244,7 +2362,7 @@ public class AGKHelper {
 	
 	public static int registerPushNotification( Activity nativeactivityptr )
 	{
-		ShowMessage(nativeactivityptr,"Invalid command called, Push Notifcations are not enabled with the lite player");
+		ShowMessage(nativeactivityptr,"Push notifications are not supported with Ouya devices");
 		return 0;
 	}
 	
@@ -2481,6 +2599,10 @@ public class AGKHelper {
 		return 0;
 	}
 
+	public static int GetExpansionFileExists(Activity act, String filename) { return 0; }
+
+	public static int ExtractExpansionFileImage(Activity act, String filename, String newPath ) { return 0; }
+
 	// permissions
 	static String[] g_sPermissions = { "WriteExternal", "Location", "Camera", "RecordAudio" };
 	static String[] g_sPermissionsReal = { Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -2697,7 +2819,6 @@ public class AGKHelper {
 			input.read(bytes, 0, length);
 			input.close();
 			result = new String( bytes, "UTF-8" );
-			Log.w("Shared Data","Name: " + varName + " Value: " + result);
 		}
 		catch( FileNotFoundException e ) { return defaultValue; }
 		catch( IOException e )
@@ -2899,6 +3020,53 @@ public class AGKHelper {
 			act.startActivity(target);
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share images");
+		}
+	}
+
+	public static void ShareFile( Activity  act, String sPath )
+	{
+		int pos = sPath.lastIndexOf('/');
+		String sFileName;
+		if ( pos >= 0 ) sFileName = sPath.substring(pos+1);
+		else sFileName = sPath;
+
+		// get extension
+		pos = sPath.lastIndexOf('.');
+		String sExt = "";
+		if ( pos >= 0 ) sExt = sPath.substring(pos+1);
+
+		File DownloadFolder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+		File dst = new File( DownloadFolder, sFileName );
+
+		File src = new File(sPath);
+
+		//copy to external storage
+		try {
+			InputStream in = new FileInputStream(src);
+			OutputStream out = new FileOutputStream(dst);
+
+			// Transfer bytes from in to out
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			in.close();
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
+
+		Intent target = new Intent( Intent.ACTION_SEND );
+		target.setDataAndType( Uri.fromFile(dst),sMIME );
+		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+
+		try {
+			act.startActivity(target);
+		} catch (ActivityNotFoundException e) {
+			ShowMessage(act,"No application found for sharing file type \"" + sExt + "\"");
 		}
 	}
 

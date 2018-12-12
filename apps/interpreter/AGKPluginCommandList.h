@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1984;
+int g_iNumAGKFunctions = 1987;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -804,6 +804,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETRAWJOYSTICKBUTTONSTATE_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetRawJoystickButtonState) },
 	{"GETRAWJOYSTICKCONNECTED_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetRawJoystickConnected) },
 	{"GETRAWJOYSTICKEXISTS_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetRawJoystickExists) },
+	{"GETRAWJOYSTICKNAME_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::GetRawJoystickName) },
 	{"GETRAWJOYSTICKPOV_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetRawJoystickPOV) },
 	{"GETRAWJOYSTICKRX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickRX) },
 	{"GETRAWJOYSTICKRY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetRawJoystickRY) },
@@ -1227,6 +1228,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"PLAYTWEENTEXT_0_L_L_F", (AGKVoidFunc) (void(*)(UINT,UINT,float)) (agk::PlayTweenText) },
 	{"PLAYVIDEOTOIMAGE_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::PlayVideoToImage) },
 	{"PLAYVIDEO_0_0", (AGKVoidFunc) (void(*)()) (agk::PlayVideo) },
+	{"PLAYYOUTUBEVIDEO_0_S_S_F", (AGKVoidFunc) (void(*)(const char*,const char*,float)) (agk::PlayYoutubeVideo) },
 	{"PLUGINERROR_0_S", (AGKVoidFunc) (void(*)(const char *)) (agk::PluginError) },
 	{"POW_F_F_F", (AGKVoidFunc) (float(*)(float,float)) (agk::Pow) },
 	{"PRINTC_0_F", (AGKVoidFunc) (void(*)(float)) (agk::PrintC) },
@@ -1888,6 +1890,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SHA1_S_S", (AGKVoidFunc) (char*(*)(const char*)) (agk::Sha1) },
 	{"SHA256_S_S", (AGKVoidFunc) (char*(*)(const char*)) (agk::Sha256) },
 	{"SHA512_S_S", (AGKVoidFunc) (char*(*)(const char*)) (agk::Sha512) },
+	{"SHAREFILE_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::ShareFile) },
 	{"SHAREIMAGEANDTEXT_0_S_S", (AGKVoidFunc) (void(*)(const char*,const char*)) (agk::ShareImageAndText) },
 	{"SHAREIMAGE_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::ShareImage) },
 	{"SHARETEXT_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::ShareText) },

@@ -50,6 +50,7 @@
 		4A99D5DC19742964009F84CC /* icon-120.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A99D5D419742964009F84CC /* icon-120.png */; };
 		4A99D5DE19742964009F84CC /* icon-152.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A99D5D619742964009F84CC /* icon-152.png */; };
 		4A9D50791996814400473873 /* ProgramData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A9D50781996814400473873 /* ProgramData.cpp */; };
+		4AAAB70D21C048DA003BE3C8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AAAB70C21C048DA003BE3C8 /* WebKit.framework */; };
 		4AEF10BA1FB3D55200BBCB21 /* libAGKCompiler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AEF10B91FB3D55200BBCB21 /* libAGKCompiler.a */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
@@ -119,6 +120,7 @@
 		4A99D5D419742964009F84CC /* icon-120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon-120.png"; sourceTree = "<group>"; };
 		4A99D5D619742964009F84CC /* icon-152.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "icon-152.png"; sourceTree = "<group>"; };
 		4A9D50781996814400473873 /* ProgramData.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = ProgramData.cpp; path = ../../interpreter/ProgramData.cpp; sourceTree = "<group>"; };
+		4AAAB70C21C048DA003BE3C8 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		4AEF10B91FB3D55200BBCB21 /* libAGKCompiler.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libAGKCompiler.a; path = ../../CompilerNew/ios/Final/libAGKCompiler.a; sourceTree = "<group>"; };
 		726A37B215B8DA0D002F8919 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		72EF411814632D6400C96B0A /* UntitledViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UntitledViewController.xib; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AAAB70D21C048DA003BE3C8 /* WebKit.framework in Frameworks */,
 				4A58BA77206AAD8F0038F2F0 /* ARKit.framework in Frameworks */,
 				4A952B131FA00CE2006F2215 /* WatchConnectivity.framework in Frameworks */,
 				4A5FF6F81F6C301400BFF8C8 /* ReplayKit.framework in Frameworks */,
@@ -301,6 +304,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AAAB70C21C048DA003BE3C8 /* WebKit.framework */,
 				4A58BA76206AAD8E0038F2F0 /* ARKit.framework */,
 				4AEF10B91FB3D55200BBCB21 /* libAGKCompiler.a */,
 				4A952B121FA00CE2006F2215 /* WatchConnectivity.framework */,

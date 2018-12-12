@@ -346,11 +346,11 @@ int main (int argc, char **argv)
     glfwSetCharCallback( window, char_callback );
     glfwSetWindowCloseCallback( window, close_callback );
     glfwSetWindowFocusCallback( window, focus_callback );
-	
+    
 	// initialise graphics API for app
     agk::SetExtraAGKPlayerAssetsMode ( 2 );
-		
-	// call app begin
+    
+    // call app begin
 	int done = 0;
 	try
 	{

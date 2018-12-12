@@ -45,6 +45,7 @@
 		4A88FF8919EC4E7A00982F31 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A88FF8819EC4E7A00982F31 /* FacebookSDK.framework */; };
 		4A952B131FA00CE2006F2215 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A952B121FA00CE2006F2215 /* WatchConnectivity.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A9D50791996814400473873 /* ProgramData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A9D50781996814400473873 /* ProgramData.cpp */; };
+		4AAAB70921C04875003BE3C8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AAAB70821C04875003BE3C8 /* WebKit.framework */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
 		9B0A5AAF13269BF4006B5FB6 /* interpreter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A5AAD13269BF4006B5FB6 /* interpreter.cpp */; };
@@ -106,6 +107,7 @@
 		4A88FF8819EC4E7A00982F31 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = "../../platform/apple/Source/Social Plugins/FacebookSDK/FacebookSDK.framework"; sourceTree = "<group>"; };
 		4A952B121FA00CE2006F2215 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		4A9D50781996814400473873 /* ProgramData.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = ProgramData.cpp; path = ../../interpreter/ProgramData.cpp; sourceTree = "<group>"; };
+		4AAAB70821C04875003BE3C8 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		726A37B215B8DA0D002F8919 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		72EF411814632D6400C96B0A /* UntitledViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UntitledViewController.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* agkinterpreter-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "agkinterpreter-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AAAB70921C04875003BE3C8 /* WebKit.framework in Frameworks */,
 				4A58BA69206AA5950038F2F0 /* ARKit.framework in Frameworks */,
 				4A952B131FA00CE2006F2215 /* WatchConnectivity.framework in Frameworks */,
 				4A5FF6F81F6C301400BFF8C8 /* ReplayKit.framework in Frameworks */,
@@ -279,6 +282,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AAAB70821C04875003BE3C8 /* WebKit.framework */,
 				4A58BA68206AA5940038F2F0 /* ARKit.framework */,
 				4A952B121FA00CE2006F2215 /* WatchConnectivity.framework */,
 				4A5FF6F71F6C301400BFF8C8 /* ReplayKit.framework */,

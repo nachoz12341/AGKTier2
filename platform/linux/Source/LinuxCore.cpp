@@ -1000,6 +1000,7 @@ void agk::PlatformInitCommon()
 					delete m_pJoystick[ index ];				
 				}
 				m_pJoystick[ index ] = new cJoystick( strdup(devPath) );
+				m_pJoystick[ index ]->SetName( name );
 				
 				m_pJoystick[ index ]->m_iDeviceType = open(devPath, O_RDWR|O_NONBLOCK);
 				if (m_pJoystick[ index ]->m_iDeviceType == -1) {
@@ -2687,6 +2688,16 @@ void cSoundMgr::StopInstance( UINT instance )
 	m_pUsedSounds = pSound;
 
 	if ( pSound->m_pNextInst ) pSound->m_pNextInst->m_pPrevInst = pSound;
+}
+
+// youtube videos
+
+void agk::PlayYoutubeVideo( const char* developerKey, const char* videoID, float startTime )
+//****
+{
+	uString sURL;
+	sURL.Format( "https://www.youtube.com/watch?v=%s&t=%d", videoID, (int)startTime );
+	OpenBrowser( sURL );
 }
 
 // video commands
@@ -4712,6 +4723,12 @@ void agk::ShareImage( const char* szFilename )
 }
 
 void agk::ShareImageAndText( const char* szFilename, const char* szText )
+{
+
+}
+
+void agk::ShareFile( const char* szFilename )
+//****
 {
 
 }

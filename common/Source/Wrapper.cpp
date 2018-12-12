@@ -14,6 +14,11 @@
 
 extern unsigned int libImageTrialWatermark[];
 
+extern "C" void AGKError( const char* msg )
+{
+	agk::Error( msg );
+}
+
 // Namespace
 namespace AGK
 {
@@ -3422,6 +3427,7 @@ void agk::StepPhysics( float time )
 void agk::Update( float time )
 //****
 {
+	cImage::UpdateGifImages();
 	Update2D( time );
 	Update3D( time );
 }
@@ -31045,6 +31051,36 @@ int agk::GetRawJoystickConnected( UINT index )
 	}
 
 	return m_pJoystick[ index ]->GetConnected();
+}
+
+//****f* Input-Raw/Joysticks/GetRawJoystickName
+// FUNCTION
+//   Returns the name of the joystick as discovered by the operating system, currently only works on Windows and Linux.
+//   In Tier 2 the string is encoded in UTF-8, and must be deleted with agk::DeleteString when you are done with it.
+// INPUTS
+//   index -- The ID of the joystick to check.
+// SOURCE
+char* agk::GetRawJoystickName( UINT index )
+//****
+{
+	index--;
+	if ( index >= AGK_NUM_JOYSTICKS ) 
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Invalid joystick index, valid range is 1-8" );
+#endif
+		return 0;
+	}
+
+	if ( !m_pJoystick[ index ] )
+	{
+		return 0;
+	}
+
+	const char* name = m_pJoystick[ index ]->GetName();
+	char *str = new char[ strlen(name) + 1 ];
+	strcpy( str, name );
+	return str;
 }
 
 //****f* Input-Raw/Joysticks/GetRawJoystickX

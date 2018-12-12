@@ -152,6 +152,7 @@ FILE* AGKfopen( const char *szPath, const char* mode )
 namespace AGK
 {
     GLFWwindow *g_pWindow = 0;
+    float g_fWindowTimer = 0;
     
 	bool g_bIsExternal = false;
 	void (*SwapExternal)(void*) = 0;
@@ -1092,14 +1093,15 @@ void agk::PlatformInitGL( void* ptr )
     g_pWindow = ((egldata*)ptr)->window;
     
 	NSWindow *window = [[[NSApplication sharedApplication] windows] objectAtIndex:0];
-	m_iRenderWidth = [[ window contentView ] frame ].size.width;
-	m_iRenderHeight = [[ window contentView ] frame ].size.height;
+	m_iRealDeviceWidth = [[ window contentView ] frame ].size.width;
+	m_iRealDeviceHeight = [[ window contentView ] frame ].size.height;
+    
+    glfwGetFramebufferSize( g_pWindow, &m_iRenderWidth, &m_iRenderHeight );
 	cCamera::UpdateAllAspectRatio( m_iRenderWidth/(float)m_iRenderHeight );
-	
-	m_iRealDeviceWidth = m_iRenderWidth;
-	m_iRealDeviceHeight = m_iRenderHeight;
-
+    
 	PlatformInitCommon();
+    
+    g_fWindowTimer = agk::Timer() + 0.5;
 }
 
 void agk::PlatformInitConsole()
@@ -1227,13 +1229,12 @@ int agk::GetDevicePlatform()
 void agk::PlatformUpdateDeviceSize()
 {
 	NSWindow *window = [[[NSApplication sharedApplication] windows] objectAtIndex:0];
-	m_iRenderWidth = [[ window contentView ] frame ].size.width;
-	m_iRenderHeight = [[ window contentView ] frame ].size.height;
+	m_iRealDeviceWidth = [[ window contentView ] frame ].size.width;
+	m_iRealDeviceHeight = [[ window contentView ] frame ].size.height;
+    
+    glfwGetFramebufferSize( g_pWindow, &m_iRenderWidth, &m_iRenderHeight );
 	cCamera::UpdateAllAspectRatio( m_iRenderWidth/(float)m_iRenderHeight );
-    
-    m_iRealDeviceWidth = m_iRenderWidth;
-	m_iRealDeviceHeight = m_iRenderHeight;
-    
+        
     /*
     //capture
     if ( mCaptureView )
@@ -1275,7 +1276,17 @@ void agk::CompositionChanged()
 
 void agk::PlatformSync()
 {
-	if ( !g_bIsExternal ) PlatformSwap();
+	if ( !g_bIsExternal )
+    {
+        if ( g_fWindowTimer > 0 && agk::Timer() > g_fWindowTimer )
+        {
+            int winX, winY;
+            glfwGetWindowPos(g_pWindow, &winX, &winY );
+            glfwSetWindowPos(g_pWindow, winX, winY+1);
+            g_fWindowTimer = 0;
+        }
+        PlatformSwap();
+    }
 	else 
 	{
 		if ( SwapExternal ) SwapExternal( g_pSwapParam );
@@ -2967,6 +2978,16 @@ void cSoundMgr::StopInstance( UINT instance )
 	m_pUsedSounds = pSound;
 	
 	if ( pSound->m_pNextInst ) pSound->m_pNextInst->m_pPrevInst = pSound;
+}
+
+// youtube videos
+
+void agk::PlayYoutubeVideo( const char* developerKey, const char* videoID, float startTime )
+//****
+{
+	uString sURL;
+	sURL.Format( "https://www.youtube.com/watch?v=%s&t=%d", videoID, (int)startTime );
+	OpenBrowser( sURL );
 }
 
 
@@ -5039,6 +5060,12 @@ void agk::ShareImage( const char* szFilename )
 }
 
 void agk::ShareImageAndText( const char* szFilename, const char* szText )
+{
+
+}
+
+void agk::ShareFile( const char* szFilename )
+//****
 {
 
 }

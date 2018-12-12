@@ -1929,6 +1929,7 @@ namespace AGK
 			static void CompleteRawJoystickDetection();
 			static int GetRawJoystickExists( UINT index );
 			static int GetRawJoystickConnected( UINT index );
+			static char* GetRawJoystickName( UINT index );
 			static float GetRawJoystickX( UINT index );
 			static float GetRawJoystickY( UINT index );
 			static float GetRawJoystickZ( UINT index );
@@ -2353,6 +2354,7 @@ namespace AGK
 			static void ShareText( const char* szText );
 			static void ShareImage( const char* szFilename );
 			static void ShareImageAndText( const char* szFilename, const char* szText );
+			static void ShareFile( const char* szFilename );
 		
 			// string commands
 			static char* Str( int value );
@@ -2494,6 +2496,9 @@ namespace AGK
 			// internal social functions
             static void SocialPluginsSetup ( void );
             static void SocialPluginsDestroy ( void );
+
+			// youtube
+			static void PlayYoutubeVideo( const char* developerKey, const char* videoID, float startTime );
 
 			// video commands
 			static int LoadVideo( const char *szFilename );

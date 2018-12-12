@@ -139,6 +139,7 @@ namespace AGK
 			int m_iDeviceType;
 
 			int m_iConnected;
+			uString m_sName;
 
 			float m_fX;
 			float m_fY;
@@ -173,6 +174,8 @@ namespace AGK
 			static void DetectJoysticks();
 
 			int GetConnected() { return m_iConnected; }
+			const char* GetName() { return m_sName.GetStr(); }
+			void SetName( const char* name ) { m_sName.SetStr( name ); }
 
 			float GetX();
 			float GetY();

@@ -26,6 +26,9 @@
 #include <net/if.h>
 
 #import <ARKit/ARKit.h>
+#import <WebKit/WKWebView.h>
+#import <WebKit/WKWebViewConfiguration.h>
+#import <WebKit/WKNavigationDelegate.h>
 
 extern unsigned char libImageAscii[];
 extern unsigned char libImageAsciiExt[];
@@ -96,6 +99,7 @@ namespace AGK
 {   
     UIViewController *g_pViewController = 0;
 	UIView *g_pMainWindow = 0;
+    WKWebView *youtubeView = 0;
 	
     float m_fDeviceScale = 1.0f;
 	int g_iImmersiveMode = 0;
@@ -2167,6 +2171,14 @@ void agk::UpdatePtr( void *ptr )
     
     agk::SetVideoDimensions(m_fVideoX, m_fVideoY, m_fVideoWidth, m_fVideoHeight);
     
+    if( youtubeView )
+    {
+        int width = g_pViewController.view.frame.size.width;
+        int height = g_pViewController.view.frame.size.height;
+        [youtubeView setFrame:CGRectMake(0,0,width,height)];
+        [youtubeView evaluateJavaScript:@"player.setSize(window.innerWidth, window.innerHeight-50);" completionHandler:nil];
+    }
+    
     agk::ClearScreen();
 }
 
@@ -4023,6 +4035,122 @@ void cSoundMgr::StopInstance( UINT instance )
 	m_pUsedSounds = pSound;
 	
 	if ( pSound->m_pNextInst ) pSound->m_pNextInst->m_pPrevInst = pSound;
+}
+
+// youtube videos
+@interface YoutubeDelegate : NSObject <WKNavigationDelegate>
+{
+@public
+    
+}
+- (void)notifyDelegateOfYouTubeCallbackUrl: (NSURL *) url;
+@end
+
+@implementation YoutubeDelegate
+
+- (void)notifyDelegateOfYouTubeCallbackUrl: (NSURL *) url {
+    NSString *action = url.host;
+    
+    if ([action isEqual:@"back"])
+    {
+        if ( youtubeView )
+        {
+            [youtubeView removeFromSuperview];
+            [youtubeView release];
+            youtubeView = nil;
+        }
+        [g_pViewController setActive];
+    }
+}
+
+- (void)webView:(WKWebView *)webView
+decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction
+decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
+{
+    NSURL *url = [navigationAction request].URL;
+    if ( [url.scheme isEqual:@"ytplayer"] )
+    {
+        [self notifyDelegateOfYouTubeCallbackUrl:url];
+        decisionHandler( WKNavigationActionPolicyCancel );
+    }
+    else
+    {
+        decisionHandler( WKNavigationActionPolicyAllow );
+    }
+}
+
+@end
+
+namespace AGK
+{
+    YoutubeDelegate *youtubeDelegate = nil;
+    
+    const char* szYoutubeFormat = "<html><head><style>\n\
+    body { margin: 0; width:100%%; height:100%%;  background-color:#000000; }\n\
+    html { width:100%%; height:100%%; background-color:#000000; }\n\
+    </style>\n\
+    <meta name=\"viewport\" content=\"initial-scale=1.0\"/>\n\
+    </head>\n\
+    <body>\n\
+    <div style=\"text-align:center;width:100%%;height:50px;background-color:#2D2D2D;color:#969696;font-family:Arial,sans-serif;font-size:34px;padding-top:8px\" onclick=\"window.location.href='ytplayer://back'\">Back</div>\n\
+    <div id=\"player\"></div>\n\
+    \n\
+    <script src=\"https://www.youtube.com/iframe_api\"></script>\n\
+    <script>\n\
+    var player;\n\
+    function onYouTubeIframeAPIReady() {\n\
+    player = new YT.Player('player', {height:'100%%',\n\
+    width:'100%%',\n\
+    videoId:'%s',\n\
+    playerVars:{\n\
+    autoplay: 0,\n\
+    playsinline: 0,\n\
+    rel: 0,\n\
+    start: %d \n\
+    },\n\
+    events:{'onReady': onReady, 'onStateChange': onStateChange}\n\
+    });\n\
+    player.setSize(window.innerWidth, window.innerHeight-50);\n\
+    }\n\
+    \n\
+    function onReady(event) {\n\
+    //event.target.playVideo();\n\
+    }\n\
+    \n\
+    function onStateChange(event) {\n\
+    //event.data\n\
+    }\n\
+    \n\
+    window.onresize = function() {\n\
+    player.setSize(window.innerWidth, window.innerHeight-50);\n\
+    }\n\
+    </script>\n\
+    </body>\n\
+    </html>";
+}
+
+void agk::PlayYoutubeVideo( const char* developerKey, const char* videoID, float startTime )
+//****
+{
+    if ( !youtubeDelegate ) youtubeDelegate = [[YoutubeDelegate alloc] init];
+    
+    NSString *sYoutubeHTML = [NSString stringWithFormat:[NSString stringWithUTF8String:szYoutubeFormat], videoID, (int)startTime];
+    
+    WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+    config.allowsInlineMediaPlayback = NO;
+    config.mediaPlaybackRequiresUserAction = NO;
+    config.requiresUserActionForMediaPlayback = NO;
+    config.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone;
+    int width = g_pViewController.view.frame.size.width;
+    int height = g_pViewController.view.frame.size.height;
+    youtubeView = [[WKWebView alloc] initWithFrame:CGRectMake(0, 0, width,height) configuration: config];
+    youtubeView.navigationDelegate = youtubeDelegate;
+    youtubeView.scrollView.scrollEnabled = NO;
+    youtubeView.scrollView.bounces = NO;
+    youtubeView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+    [ youtubeView loadHTMLString:sYoutubeHTML baseURL:[NSURL URLWithString:@"about:blank"] ];
+    [ g_pViewController setInactive ];
+    [ g_pViewController.view addSubview: youtubeView ];
 }
 
 // video commands
@@ -6254,6 +6382,43 @@ void agk::ShareImageAndText( const char* szFilename, const char* szText )
 
 	NSString *message   = [NSString stringWithUTF8String:szText];
     NSArray *postItems  = @[image,message];
+    
+    UIActivityViewController *activityVc = [[UIActivityViewController alloc] initWithActivityItems:postItems applicationActivities:nil];
+    
+    [activityVc setCompletionHandler:^(NSString *actType, BOOL completed){ [g_pViewController setActive]; }];
+    
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && [activityVc respondsToSelector:@selector(popoverPresentationController)] )
+    {
+        UIPopoverController *popup = [[UIPopoverController alloc] initWithContentViewController:activityVc];
+        
+        [popup presentPopoverFromRect:CGRectMake(g_pViewController.view.frame.size.width/2, g_pViewController.view.frame.size.height/4, 0, 0)
+                               inView:[UIApplication sharedApplication].keyWindow.rootViewController.view permittedArrowDirections:UIPopoverArrowDirectionUnknown animated:YES];
+        [g_pViewController setInactive];
+    }
+    else
+    {
+        [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:activityVc animated:YES completion:nil];
+        [g_pViewController setInactive];
+    }
+    
+    [activityVc release];
+}
+
+void agk::ShareFile( const char* szFilename )
+//****
+{
+	uString sPath( szFilename );
+    if ( !GetRealPath( sPath ) )
+	{
+		uString err; err.Format( "Could not find file at path: %s", szFilename );
+		agk::Error( err );
+		return;
+	}
+    
+    NSString *filePath = [NSString stringWithUTF8String:sPath.GetStr()];
+    NSURL *file = [NSURL fileURLWithPath:filePath];
+	NSMutableArray *postItems = [NSMutableArray array];
+	[postItems addObject:file];
     
     UIActivityViewController *activityVc = [[UIActivityViewController alloc] initWithActivityItems:postItems applicationActivities:nil];
     

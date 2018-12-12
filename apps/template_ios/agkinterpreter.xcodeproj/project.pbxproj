@@ -189,10 +189,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AB6380920CAD7CD007F0A18 /* WebKit.framework in Frameworks */,
 				4A769D4C20DAB84900843C60 /* JavaScriptCore.framework in Frameworks */,
 				4A769D4A20DAB83D00843C60 /* SafariServices.framework in Frameworks */,
 				4AB6380B20CAD82B007F0A18 /* PersonalizedAdConsent.framework in Frameworks */,
-				4AB6380920CAD7CD007F0A18 /* WebKit.framework in Frameworks */,
 				4A58BA8F206AAF0D0038F2F0 /* ARKit.framework in Frameworks */,
 				4A952B171FA00D1C006F2215 /* WatchConnectivity.framework in Frameworks */,
 				4A5FF6FC1F6C306200BFF8C8 /* ReplayKit.framework in Frameworks */,

@@ -758,6 +758,8 @@ cCondition ImageCacher::pCondition;
 cSpinLock ImageCacher::pLock;
 ImageCacher* cImage::g_pCachingThread = 0;
 
+cImage* cImage::g_pAllGifImages = 0;
+
 UINT cImage::iCurrTexture[8] = { 0,0,0,0,0,0,0,0 };
 int cImage::g_iAlphaColThreshold = 128;
 cImage* cImage::g_pAllImages = 0;
@@ -814,6 +816,14 @@ void cImage::Reset()
 	m_pCompressedPixelData = 0;
 	m_iCompressedLength = 0;
 	m_iCompressed = 0;
+
+	m_pGifFrames = 0;
+	m_iGifNumFrames = 0;
+	m_iGifCurrFrame = 0;
+	m_iGifFramesArraySize = 0;
+	m_fGifTime = 0;
+	m_pPrevGifImage = 0;
+	m_pNextGifImage = 0;
 
 	if ( g_pAllImages ) g_pAllImages->m_pPrevImage = this;
 	m_pPrevImage = 0;
@@ -965,6 +975,7 @@ void cImage::LoadFromData( int width, int height, unsigned int *bits, int format
 	m_iMinFilter = agk::m_iDefaultMinFilter;
 	m_iMagFilter = agk::m_iDefaultMagFilter;
 	m_bMipmapped = agk::m_bGenerateMipmaps;
+	if ( m_pGifFrames ) m_bMipmapped = false;
 	if ( format == 2 ) m_bMipmapped = false;
 
 	int texMaxSize = GetMaxTextureSize();
@@ -1229,6 +1240,14 @@ cImage::~cImage()
 		m_pCurrentTextObjects = 0;
 	}
 
+	// delete gif frames
+	if ( m_pGifFrames )
+	{
+		for( int i = 0; i < m_iGifNumFrames; i++ ) delete m_pGifFrames[ i ];
+		delete [] m_pGifFrames;
+		m_pGifFrames = 0;
+	}
+
 	// delete font letter images
 	if ( m_pLetterImages )
 	{
@@ -1272,10 +1291,14 @@ cImage::~cImage()
 	if ( m_pCompressedPixelData ) delete [] m_pCompressedPixelData;
 
 	// remove from global list
-	//m_cAllImages.RemoveItem( m_iCreated );
 	if ( m_pPrevImage ) m_pPrevImage->m_pNextImage = m_pNextImage;
 	else g_pAllImages = m_pNextImage;
 	if ( m_pNextImage ) m_pNextImage->m_pPrevImage = m_pPrevImage;
+
+	// remove from GIF images list, if applicable
+	if ( m_pPrevGifImage ) m_pPrevGifImage->m_pNextGifImage = m_pNextGifImage;
+	else if ( g_pAllGifImages == this ) g_pAllGifImages = m_pNextGifImage;
+	if ( m_pNextGifImage ) m_pNextGifImage->m_pPrevGifImage = m_pPrevGifImage;
 }
 
 void cImage::OverrideTexture( UINT texID, int width, int height )
@@ -1457,6 +1480,50 @@ void cImage::SaveAllImages()
 	}
 
 	g_iLosingContext = 0;
+}
+
+void cImage::UpdateGifImages()
+{
+	float currTime = agk::Timer();
+	cImage *pGifImage = g_pAllGifImages;
+	while( pGifImage )
+	{
+		pGifImage->UpdateGifImage();
+		pGifImage = pGifImage->m_pNextGifImage;
+	}
+}
+
+void cImage::UpdateGifImage()
+{
+	if ( m_iGifNumFrames <= 1 ) return;
+
+	if ( m_fGifTime == 0 ) 
+	{
+		m_fGifTime = agk::Timer();
+		return;
+	}
+	
+	float currTime = agk::Timer();
+	int nextFrame = m_iGifCurrFrame + 1;
+	if ( nextFrame >= m_iGifNumFrames ) nextFrame = 0;
+	if ( m_fGifTime + m_pGifFrames[m_iGifCurrFrame]->fDelay < currTime || m_fGifTime-0.1f > currTime ) // currTime may return to 0 at any time due to ResetTimer()
+	{
+		// extract new frame
+		if ( m_pGifFrames[ nextFrame ]->pData )
+		{
+			unsigned long realSize = m_iOrigWidth * m_iOrigHeight * 4;
+			unsigned char* pNewData = new unsigned char[ realSize ];
+			uncompress( pNewData, &realSize, m_pGifFrames[nextFrame]->pData, m_pGifFrames[nextFrame]->iCompressedSize );
+
+			LoadFromData( m_iOrigWidth, m_iOrigHeight, (unsigned int*)pNewData );
+			delete [] pNewData;
+
+			SetCompressedPixelData( 0, 0 );
+		}
+
+		m_iGifCurrFrame = nextFrame;
+		m_fGifTime = currTime;
+	}
 }
 
 void cImage::CreateColorImage( UINT red, UINT green, UINT blue, UINT alpha )
@@ -3630,15 +3697,34 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 //	DWORD dwScreen = dwRowBytes * cyScreen;
 
 	UINT *bits = new UINT[ cxScreen * cyScreen ];
-	for ( int i = 0; i < cxScreen * cyScreen; i++ ) bits[i] = 0;
+	if ( pGif->SColorMap )
+	{
+		GifColorType* pColor = pGif->SColorMap->Colors + pGif->SBackGroundColor;
+		UINT color = (((((0xff << 8) | pColor->Red) << 8) | pColor->Green) << 8) | pColor->Blue;
+		for ( int i = 0; i < cxScreen * cyScreen; i++ ) bits[i] = color;
+	}
+	else
+	{
+		for ( int i = 0; i < cxScreen * cyScreen; i++ ) bits[i] = 0;
+	}
 	bool bFound = false;
 
 	const int InterlacedOffset[] = { 0, 4, 2, 1 }; 
 	const int InterlacedJumps[] = { 8, 8, 4, 2 };  
 
+	m_pGifFrames = new cGifFrame*[ 4 ];
+	m_iGifFramesArraySize = 4;
+	m_iGifNumFrames = 0;
+	m_iGifCurrFrame = 0;
+
+	if ( g_pAllGifImages ) g_pAllGifImages->m_pPrevGifImage = this;
+	m_pPrevGifImage = 0;
+	m_pNextGifImage = g_pAllGifImages;
+	g_pAllGifImages = this;
+
 	GifRecordType RecordType;
 	GifByteType *pExtension;
-//	int delay = 10;     // Default to 100 msec
+	int delay = 10;     // Default to 100 msec
 	int dispose = 0;
 	int transparent = -1;
 	do 
@@ -3670,6 +3756,14 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 
 				bFound = true;
 
+				if ( dispose == 2 )
+				{
+					// fill with background color
+					GifColorType* pColor = pColorTable + pGif->SBackGroundColor;
+					UINT color = (((((0xff << 8) | pColor->Red) << 8) | pColor->Green) << 8) | pColor->Blue;
+					for ( int i = 0; i < cxScreen * cyScreen; i++ ) bits[i] = color;
+				}
+
 				int Width = pGif->Image.Width;
 				int Height = pGif->Image.Height;
 				GifPixelType *pLine = new unsigned char[ Width ];
@@ -3685,10 +3779,11 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 								return false;
 							}
 
+							UINT index = (y+i)*cxScreen + x;
 							for ( int j = 0; j < Width; j++ )
 							{
 								unsigned char b = *(pLine + j);
-								if (b != transparent)
+								if (transparent < 0 || b != transparent)
 								{
 									// Translate to 24-bit RGB value if not transparent
 									GifColorType* pColor = pColorTable + b;
@@ -3697,9 +3792,10 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 									UINT blue = pColor->Red;
 									UINT alpha = 0xff;
 
-									UINT index = (y+i)*Width + x + j;
 									bits[ index ] = (((((alpha << 8) | red) << 8) | green) << 8) | blue;
 								}
+								
+								index++;
 							}
 						}
 					}
@@ -3714,10 +3810,11 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 							return false;
 						}
 						
+						UINT index = (y+i)*cxScreen + x;
 						for ( int j = 0; j < Width; j++ )
 						{
 							unsigned char b = *(pLine + j);
-							if (b != transparent)
+							if (transparent < 0 || b != transparent)
 							{
 								// Translate to 24-bit RGB value if not transparent
 								GifColorType* pColor = pColorTable + b;
@@ -3726,12 +3823,49 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 								UINT blue = pColor->Red;
 								UINT alpha = 0xff;
 
-								UINT index = (y+i)*Width + x + j;
+								
 								bits[ index ] = (((((alpha << 8) | red) << 8) | green) << 8) | blue;
 							}
+							
+							index++;
 						}
 					}
 				}
+
+				if ( m_iGifNumFrames == m_iGifFramesArraySize )
+				{
+					int newSize = m_iGifFramesArraySize * 3 / 2;
+					cGifFrame ** newFrames = new cGifFrame*[ newSize ];
+					for( int i = 0; i < m_iGifNumFrames; i++ ) newFrames[ i ] = m_pGifFrames[ i ];
+					delete [] m_pGifFrames;
+					m_pGifFrames = newFrames;
+					m_iGifFramesArraySize = newSize;
+				}
+
+				cGifFrame *pNewFrame = new cGifFrame();
+
+				uLong upperBound = compressBound( cxScreen * cyScreen * 4 );
+				unsigned char *tempbuf = new unsigned char[ upperBound ];
+				int err = compress2( tempbuf, &upperBound, (unsigned char*)bits, cxScreen * cyScreen * 4, 1 );
+				if ( err == Z_OK )
+				{
+					pNewFrame->pData = new unsigned char[ upperBound ];
+					memcpy(pNewFrame->pData, tempbuf, upperBound );
+					delete [] tempbuf;
+					pNewFrame->iCompressedSize = (UINT) upperBound;
+				}
+
+				pNewFrame->fDelay = delay / 100.0f;
+
+				if ( m_iGifNumFrames == 0 ) 
+				{
+					unsigned int* bits2 = new unsigned int[ cxScreen * cyScreen ];
+					for ( int i = 0; i < cxScreen * cyScreen; i++ ) bits2[i] = bits[i];
+					*pData = (unsigned char*)bits2;
+				}
+
+				m_pGifFrames[ m_iGifNumFrames ] = pNewFrame;
+				m_iGifNumFrames++;
 			}
 			break;
 		case EXTENSION_RECORD_TYPE:
@@ -3743,33 +3877,33 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
             int bNetscapeExt = 0;
 			switch (ExtCode)
 			{
-			case COMMENT_EXT_FUNC_CODE:
-				break;
-			case GRAPHICS_EXT_FUNC_CODE:
-			{
-				//ASSERT( pExtension[0] == 4 );
-				// 
-				int flag = pExtension[1];
-				//delay  = MAKEWORD(pExtension[2], pExtension[3]);
-				transparent = (flag & 1) ? pExtension[4] : -1;
-				dispose = (flag >> 2) & 7;
+				case COMMENT_EXT_FUNC_CODE:
+					break;
+				case GRAPHICS_EXT_FUNC_CODE:
+				{
+					//ASSERT( pExtension[0] == 4 );
+					// 
+					int flag = pExtension[1];
+					delay  = (pExtension[2] & 0xFF) | ((pExtension[3] & 0xFF) << 8);
+					transparent = (flag & 1) ? pExtension[4] : -1;
+					dispose = (flag >> 2) & 7;
 
-				break;
-			}
-			case PLAINTEXT_EXT_FUNC_CODE:
-				break;
-			case APPLICATION_EXT_FUNC_CODE:
-            {
-//				ASSERT( pExtension );
-//                if (memcmp(pExtension, szNetscape20ext, szNetscape20ext[0]) == 0)
-                {
-//                    bNetscapeExt = TRUE;
-                }
-				break;
-            }
-			default:
-				//TRACE("pExtension record of unknown type");
-				break;
+					break;
+				}
+				case PLAINTEXT_EXT_FUNC_CODE:
+					break;
+				case APPLICATION_EXT_FUNC_CODE:
+				{
+	  				//ASSERT( pExtension );
+	                //if (memcmp(pExtension, szNetscape20ext, szNetscape20ext[0]) == 0)
+					{
+	                    //bNetscapeExt = TRUE;
+					}
+					break;
+				}
+				default:
+					//TRACE("pExtension record of unknown type");
+					break;
 			}
 			
 			do
@@ -3800,15 +3934,15 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 			break;
 		}
 	}
-	while (RecordType != TERMINATE_RECORD_TYPE && RecordType != IMAGE_DESC_RECORD_TYPE);
+	while (RecordType != TERMINATE_RECORD_TYPE /*&& RecordType != IMAGE_DESC_RECORD_TYPE*/);
+
+	delete [] bits;
 
 	if ( !bFound ) 
 	{
 		agk::Warning( "Failed to parse gif image" );
 		return false;
 	}
-
-	*pData = (unsigned char*) bits;
 
 	DGifCloseFile( pGif );
 

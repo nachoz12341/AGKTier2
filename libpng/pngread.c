@@ -14,6 +14,8 @@
  * read a PNG file or stream.
  */
 
+void AGKError( const char* msg );
+
 #include "pngpriv.h"
 
 #ifdef PNG_READ_SUPPORTED
@@ -329,6 +331,13 @@ png_read_info(png_structp png_ptr, png_infop info_ptr)
       else if (chunk_name == png_iTXt)
          png_handle_iTXt(png_ptr, info_ptr, length);
 #endif
+
+	  // Apple's CgBI header
+	  else if (chunk_name == PNG_CHUNK(67, 103, 66, 73) )
+	  {
+	     AGKError( "Cannot load Apple's proprietary CgBI PNGs" );
+		 png_error( png_ptr, "encountered CgBI PNG" );
+	  }
 
       else
          png_handle_unknown(png_ptr, info_ptr, length);
@@ -932,7 +941,7 @@ png_read_end(png_structp png_ptr, png_infop info_ptr)
          png_handle_iTXt(png_ptr, info_ptr, length);
 #endif
 
-      else
+	  else
          png_handle_unknown(png_ptr, info_ptr, length);
    } while (!(png_ptr->mode & PNG_HAVE_IEND));
 }

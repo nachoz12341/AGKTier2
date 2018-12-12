@@ -155,7 +155,10 @@ public class LicenseChecker implements ServiceConnection {
                                     Context.BIND_AUTO_CREATE);
 
                     if (bindResult) {
-                        mPendingChecks.offer(validator);
+                        if ( !mPendingChecks.offer(validator) )
+                        {
+                            Log.e(TAG, "Failed to add license validator to queue");
+                        }
                     } else {
                         Log.e(TAG, "Could not bind to service.");
                         handleServiceConnectionError(validator);
@@ -166,13 +169,17 @@ public class LicenseChecker implements ServiceConnection {
                     e.printStackTrace();
                 }
             } else {
-                mPendingChecks.offer(validator);
+                if ( !mPendingChecks.offer(validator) )
+                {
+                    Log.e(TAG, "Failed to add license validator to queue");
+                }
                 runChecks();
             }
         }
     }
 
     private void runChecks() {
+        Log.i(TAG, "Running Checks");
         LicenseValidator validator;
         while ((validator = mPendingChecks.poll()) != null) {
             try {
@@ -274,7 +281,9 @@ public class LicenseChecker implements ServiceConnection {
     }
 
     public synchronized void onServiceConnected(ComponentName name, IBinder service) {
+        Log.i(TAG, "License Service Connected");
         mService = ILicensingService.Stub.asInterface(service);
+        if ( mService == null ) Log.e(TAG, "Service is still null");
         runChecks();
     }
 
@@ -284,6 +293,16 @@ public class LicenseChecker implements ServiceConnection {
         // If there are any checks in progress, the timeouts will handle them.
         Log.w(TAG, "Service unexpectedly disconnected.");
         mService = null;
+    }
+
+    public synchronized void onBindingDied( ComponentName name )
+    {
+        Log.e(TAG, "Binding died");
+    }
+
+    public synchronized void onNullBinding( ComponentName name )
+    {
+        Log.e(TAG, "Null binding");
     }
 
     /**
@@ -302,8 +321,10 @@ public class LicenseChecker implements ServiceConnection {
 
     /** Unbinds service if necessary and removes reference to it. */
     private void cleanupService() {
+        Log.i(TAG, "Cleaning up service");
         if (mService != null) {
             try {
+                Log.i(TAG, "Unbinding service");
                 mContext.unbindService(this);
             } catch (IllegalArgumentException e) {
                 // Somehow we've already been unbound. This is a non-fatal
@@ -323,6 +344,7 @@ public class LicenseChecker implements ServiceConnection {
      * license check or when the user exits the application.
      */
     public synchronized void onDestroy() {
+        Log.i(TAG, "OnDestroy");
         cleanupService();
         mHandler.getLooper().quit();
     }

@@ -2744,6 +2744,16 @@ void cSoundMgr::StopInstance( UINT instance )
 	if ( pSound->m_pNextInst ) pSound->m_pNextInst->m_pPrevInst = pSound;
 }
 
+// youtube videos
+
+void agk::PlayYoutubeVideo( const char* developerKey, const char* videoID, float startTime )
+//****
+{
+	uString sURL;
+	sURL.Format( "https://www.youtube.com/watch?v=%s&t=%d", videoID, (int)startTime );
+	OpenBrowser( sURL );
+}
+
 // video commands
 int agk::LoadVideo( const char *szFilename )
 //****
@@ -4855,6 +4865,12 @@ void agk::ShareImage( const char* szFilename )
 }
 
 void agk::ShareImageAndText( const char* szFilename, const char* szText )
+{
+
+}
+
+void agk::ShareFile( const char* szFilename )
+//****
 {
 
 }

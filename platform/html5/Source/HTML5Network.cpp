@@ -23,108 +23,30 @@ int agk::PlatformGetIPv6( uString &sIP, int *iInterface )
 // UDPManager
 //*********************
 
-UDPManager::UDPManager( UINT port )
+UDPManager::UDPManager( const char* szIP, UINT listenPort )
 {
-	/*
-	if ( port == 0 ) port = 65535;
-	if ( port > 65535 ) port = 65535;
-	m_port = port;
 	
-	m_socket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
-	if ( m_socket == INVALID_SOCKET ) 
-	{
-		agk::Warning( "Failed to create UDP socket" );
-		return;
-	}
-	
-	sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons( m_port );
-	addr.sin_addr.s_addr = INADDR_ANY;
-	if ( bind( m_socket, (sockaddr*) &addr, sizeof(addr) ) == SOCKET_ERROR )
-	{
-		close( m_socket );
-		m_socket = INVALID_SOCKET;
-		agk::Warning( "Failed to bind UDP socket" );
-		return;
-	}
-	*/
 }
 
 UDPManager::~UDPManager()
 {
-	/*
-	if ( m_socket != INVALID_SOCKET )
-	{
-		close( m_socket );
-		m_socket = INVALID_SOCKET;
-	}
-	*/
+
 }
 
-bool UDPManager::SendPacket( const char *IP, const AGKPacket *packet )
+bool UDPManager::SendPacket( const char *IP, UINT port, const AGKPacket *packet )
 {
-	/*
-	if ( m_socket == INVALID_SOCKET )
-	{
-		agk::Error( "Tried to send UDP packet on an uninitialised socket" );
-		return false;
-	}
-	
-	if ( !IP ) return false;
-	if ( !packet ) return false;
-	
-	sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons( m_port );
-	addr.sin_addr.s_addr = inet_addr( IP );
-	int length = sizeof( addr );
-	int result = sendto( m_socket, packet->GetBuffer(), packet->GetPos(), 0, (sockaddr*)&addr, length );
-	if ( result == 0 || result == SOCKET_ERROR ) return false;
-	return true;
-	*/
 	return false;
 }
 
-bool UDPManager::RecvPacket( char *fromIP, AGKPacket *packet )
+bool UDPManager::RecvPacket( char *fromIP, int *fromPort, AGKPacket *packet )
 {
-	/*
-	if ( m_socket == INVALID_SOCKET )
-	{
-		agk::Error( "Tried to send UDP packet on an uninitialised socket" );
-		return false;
-	}
-	
-	if ( !fromIP ) return false;
-	if ( !packet ) return false;
-	
-	unsigned long waiting = 0;
-	if ( ioctl( m_socket, FIONREAD, &waiting ) == SOCKET_ERROR )
-	{
-		agk::Warning( "Failed to get receivable bytes on socket" );
-		return false;
-	}
-	
-	if ( waiting == 0 ) return false;
-	
-	sockaddr_in addr;
-	socklen_t length = sizeof(addr);
-	int result = recvfrom( m_socket, packet->GetRaw(), AGK_NET_PACKET_SIZE, 0, (sockaddr*)&addr, &length );
-	if ( result == SOCKET_ERROR )
-	{
-		agk::Warning( "Failed to receive UDP packet" );
-		return false;
-	}
-	
-	if ( result > 0 ) 
-	{
-		packet->SetPos( 0 );
-		strcpy( fromIP, inet_ntoa( addr.sin_addr ) );
-	}
-*/
-	return true;
+	return false;
 }
 
+bool UDPManager::PacketReady()
+{
+	return false;
+}
 
 //*********************
 // AGKSocket

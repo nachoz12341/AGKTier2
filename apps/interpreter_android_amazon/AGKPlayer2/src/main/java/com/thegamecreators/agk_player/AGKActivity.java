@@ -5,17 +5,22 @@ import android.app.Activity;
 import android.app.NativeActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.hardware.display.DisplayManager;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.amazon.device.iap.PurchasingService;
 import com.thegamecreators.agk_player.iap.AGKPurchasingListener;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class AGKActivity extends NativeActivity
 {
@@ -46,71 +51,122 @@ public class AGKActivity extends NativeActivity
     @Override
     public void onActivityResult( int requestCode, int resultCode, Intent data )
     {
-        if (requestCode == 10002) {
-            if (resultCode != Activity.RESULT_OK) {
-                Log.i("MediaProjection", "User cancelled");
-                return;
-            }
-            if ( Build.VERSION.SDK_INT >= 21 ) {
-                Log.i("MediaProjection", "Starting screen capture");
+        switch( requestCode )
+        {
+            case 10002: { // screen recording
+                if (resultCode != Activity.RESULT_OK) {
+                    Log.i("MediaProjection", "User cancelled");
+                    return;
+                }
+                if (Build.VERSION.SDK_INT >= 21) {
+                    Log.i("MediaProjection", "Starting screen capture");
 
-                int width = AGKHelper.g_pAct.getWindow().getDecorView().getWidth();
-                int height = AGKHelper.g_pAct.getWindow().getDecorView().getHeight();
-                if ( width > height )
+                    int width = AGKHelper.g_pAct.getWindow().getDecorView().getWidth();
+                    int height = AGKHelper.g_pAct.getWindow().getDecorView().getHeight();
+                    if (width > height) {
+                        if (width > 1280) width = 1280;
+                        if (height > 720) height = 720;
+                    } else {
+                        if (width > 720) width = 720;
+                        if (height > 1280) height = 1280;
+                    }
+                    int audioSource = 0;
+                    if (AGKHelper.g_iScreenRecordMic == 1) {
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                            audioSource = MediaRecorder.AudioSource.MIC;
+                        } else {
+                            Log.w("Screen Recording", "The app does not have the RECORD_AUDIO permission, video will have no audio");
+                        }
+                    }
+
+                    AGKHelper.mMediaRecorder = new MediaRecorder();
+                    if (audioSource > 0) AGKHelper.mMediaRecorder.setAudioSource(audioSource);
+                    AGKHelper.mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+                    AGKHelper.mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                    AGKHelper.mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+                    if (audioSource > 0) {
+                        AGKHelper.mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+                        AGKHelper.mMediaRecorder.setAudioEncodingBitRate(96000);
+                        AGKHelper.mMediaRecorder.setAudioSamplingRate(44100);
+                    }
+                    AGKHelper.mMediaRecorder.setVideoEncodingBitRate(2048 * 1000);
+                    AGKHelper.mMediaRecorder.setVideoFrameRate(30);
+                    AGKHelper.mMediaRecorder.setVideoSize(width, height);
+                    AGKHelper.mMediaRecorder.setOutputFile(AGKHelper.g_sScreenRecordFile);
+                    try {
+                        AGKHelper.mMediaRecorder.prepare();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        AGKHelper.mMediaRecorder.release();
+                        AGKHelper.mMediaRecorder = null;
+                        return;
+                    }
+
+                    DisplayMetrics metrics = AGKHelper.g_pAct.getResources().getDisplayMetrics();
+                    AGKHelper.mMediaProjection = AGKHelper.mMediaProjectionManager.getMediaProjection(resultCode, data);
+                    Log.i("MediaProjection", "Setting up a VirtualDisplay: " + width + "x" + height + " (" + metrics.densityDpi + ")");
+                    AGKHelper.mVirtualDisplay = AGKHelper.mMediaProjection.createVirtualDisplay("ScreenCapture",
+                            width, height, metrics.densityDpi,
+                            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                            AGKHelper.mMediaRecorder.getSurface(), null, null);
+                    AGKHelper.mMediaRecorder.start();
+                }
+            }
+            break;
+            case 9004: // capture camera image
+            {
+                if ( resultCode == RESULT_OK )
                 {
-                    if ( width > 1280 ) width = 1280;
-                    if ( height > 720 ) height = 720;
+                    if (data != null && data.getExtras() != null) {
+                        Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
+                        try {
+                            FileOutputStream out = new FileOutputStream(AGKHelper.sCameraSavePath);
+                            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out);
+                            Log.w("Camera Image", "Saved image to: " + AGKHelper.sCameraSavePath);
+                            AGKHelper.iCapturingImage = 2;
+                            return;
+                        }
+                        catch( IOException e )
+                        {
+                            Log.e("Camera Image", "Failed to save image: "+e.toString() );
+                        }
+                    }
+                    AGKHelper.iCapturingImage = 0;
                 }
                 else
                 {
-                    if ( width > 720 ) width = 720;
-                    if ( height > 1280 ) height = 1280;
+                    Log.e("Camera Image", "User cancelled capture image" );
+                    AGKHelper.iCapturingImage = 0;
                 }
-                int audioSource = 0;
-                if ( AGKHelper.g_iScreenRecordMic == 1 ) {
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                        audioSource = MediaRecorder.AudioSource.MIC;
-                    }
-                    else
-                    {
-                        Log.w( "Screen Recording", "The app does not have the RECORD_AUDIO permission, video will have no audio" );
-                    }
-                }
-
-                AGKHelper.mMediaRecorder = new MediaRecorder();
-                if ( audioSource > 0 ) AGKHelper.mMediaRecorder.setAudioSource(audioSource);
-                AGKHelper.mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-                AGKHelper.mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                AGKHelper.mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-                if ( audioSource > 0 )
+                break;
+            }
+            case 9005: // choose image
+            {
+                if ( resultCode == RESULT_OK )
                 {
-                    AGKHelper.mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                    AGKHelper.mMediaRecorder.setAudioEncodingBitRate(96000);
-                    AGKHelper.mMediaRecorder.setAudioSamplingRate(44100);
+                    if (data != null) {
+                        Uri uri = data.getData();
+                        try {
+                            Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                            FileOutputStream out = new FileOutputStream(AGKHelper.sChosenImagePath);
+                            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out);
+                            Log.w("Choose Image", "Saved image to: " + AGKHelper.sChosenImagePath);
+                            AGKHelper.iChoosingImage = 2;
+                            return;
+                        }
+                        catch( IOException e )
+                        {
+                            Log.e("Choose Image", "Failed to save image: "+e.toString() );
+                        }
+                    }
+                    AGKHelper.iChoosingImage = 0;
                 }
-                AGKHelper.mMediaRecorder.setVideoEncodingBitRate(2048 * 1000);
-                AGKHelper.mMediaRecorder.setVideoFrameRate(30);
-                AGKHelper.mMediaRecorder.setVideoSize(width, height);
-                AGKHelper.mMediaRecorder.setOutputFile(AGKHelper.g_sScreenRecordFile);
-                try {
-                    AGKHelper.mMediaRecorder.prepare();
-                }
-                catch( Exception e )
+                else
                 {
-                    e.printStackTrace();
-                    AGKHelper.mMediaRecorder.release();
-                    AGKHelper.mMediaRecorder = null;
-                    return;
+                    Log.e("Choose Image", "User cancelled choose image" );
+                    AGKHelper.iChoosingImage = 0;
                 }
-
-                DisplayMetrics metrics = AGKHelper.g_pAct.getResources().getDisplayMetrics();
-                AGKHelper.mMediaProjection = AGKHelper.mMediaProjectionManager.getMediaProjection(resultCode, data);
-                Log.i("MediaProjection", "Setting up a VirtualDisplay: " + width + "x" + height + " (" + metrics.densityDpi + ")");
-                AGKHelper.mVirtualDisplay = AGKHelper.mMediaProjection.createVirtualDisplay("ScreenCapture",
-                        width, height, metrics.densityDpi,
-                        DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                        AGKHelper.mMediaRecorder.getSurface(), null, null);
-                AGKHelper.mMediaRecorder.start();
+                break;
             }
         }
     }

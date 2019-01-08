@@ -641,6 +641,7 @@ namespace AGK
 			static cHashedList<BroadcastListener> m_cBroadcastListenerList;
 			static cHashedList<AGKSocket> m_cSocketList;
 			static cHashedList<cNetworkListener> m_cSocketListenerList;
+			static cHashedList<UDPManager> m_cUDPListenerList;
 			static cHashedList<cParticleEmitter> m_cParticleEmitterList;
 			static cHashedList<cEditBox> m_cEditBoxList;
 			static cHashedList<ZipFile> m_cZipFileList;
@@ -2303,6 +2304,7 @@ namespace AGK
 			static void AddNetworkMessageFloat( UINT iMsgID, float value );
 			static void AddNetworkMessageString( UINT iMsgID, const char *value );
 			static char* GetNetworkMessageFromIP( UINT iMsgID );
+			static int GetNetworkMessageFromPort( UINT iMsgID );
 			static UINT GetNetworkMessageFromClient( UINT iMsgID );
 			static int GetNetworkMessageInteger( UINT iMsgID );
 			static float GetNetworkMessageFloat( UINT iMsgID );
@@ -2314,6 +2316,13 @@ namespace AGK
 			
 			static void SetNetworkClientUserData( UINT iNetID, UINT client, UINT index, int value );
 			static int GetNetworkClientUserData( UINT iNetID, UINT client, UINT index );
+
+			// UDP
+			static UINT CreateUDPListener( const char* ip, int port );
+			static int CreateUDPListener( UINT listenerID, const char* ip, int port );
+			static void SendUDPNetworkMessage( UINT listenerID, UINT messageID, const char* toIP, int toPort );
+			static UINT GetUDPNetworkMessage( UINT listenerID );
+			static void DeleteUDPListener( UINT listenerID );
 
 			// HTTP commands
 			static UINT CreateHTTPConnection();

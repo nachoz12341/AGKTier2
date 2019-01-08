@@ -89,6 +89,7 @@ namespace AGK
 			uString& ReplaceStr( const char* find, const char* replace, int qty=-1 ); //replaces all instances of "find" with "replace"
 			uString& Upper( ); //converts to upper case
 			uString& Lower( ); //converts to lower case
+			uString& Unescape(); //converts backslash escaped characters to their true values
 
 			int ByteAt( unsigned int index );
 			int CharAt( unsigned int index );

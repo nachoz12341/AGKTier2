@@ -13610,5 +13610,47 @@ case AGKI_SHAREFILE_0_S:
     agk::ShareFile( param0 );
     break;
 }
+case AGKI_GETNETWORKMESSAGEFROMPORT_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetNetworkMessageFromPort( param0 );
+    break;
+}
+case AGKI_CREATEUDPLISTENER_L_S_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    m_pStack[ m_iStackPtr++ ].i = agk::CreateUDPListener( param0, param1 );
+    break;
+}
+case AGKI_CREATEUDPLISTENER_L_L_S_L:
+{
+    int param2 = m_pStack[ --m_iStackPtr ].i;
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::CreateUDPListener( param0, param1, param2 );
+    break;
+}
+case AGKI_SENDUDPNETWORKMESSAGE_0_L_L_S_L:
+{
+    int param3 = m_pStack[ --m_iStackPtr ].i;
+    const char* param2 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SendUDPNetworkMessage( param0, param1, param2, param3 );
+    break;
+}
+case AGKI_GETUDPNETWORKMESSAGE_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetUDPNetworkMessage( param0 );
+    break;
+}
+case AGKI_DELETEUDPLISTENER_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::DeleteUDPListener( param0 );
+    break;
+}
 
 

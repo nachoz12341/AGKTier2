@@ -236,16 +236,20 @@ namespace AGK
 	
 	class UDPManager
 	{
-	protected:
-		int m_socket;
-		UINT m_port;
-		
-	public:
-		UDPManager( UINT port );
-		~UDPManager();
-		
-		bool SendPacket( const char *IP, const AGKPacket *packet ); // does not block
-		bool RecvPacket( char *fromIP, AGKPacket *packet );  // does not block
+		protected:
+			int m_socket;
+			UINT m_port;
+			int m_iIPv6;
+			int m_iValid;
+
+		public:
+			UDPManager( const char* szIP, UINT listenPort );
+			~UDPManager();
+			int IsValid() { return m_iValid; }
+
+			bool SendPacket( const char *IP, UINT port, const AGKPacket *packet ); // does not block
+			bool RecvPacket( char *fromIP, int *fromPort, AGKPacket *packet );  // does not block
+			bool PacketReady();  // does not block
 	};
 
 	// wil listen for new connections until stopped

@@ -244,8 +244,9 @@ namespace AGK
 
 		public:
 			uString sFromIP;
+			int iFromPort;
 			
-			cNetworkMessage() { m_iToClientID = 0; m_iFromClientID = 0; m_pNext = 0; m_iSize = 0; }
+			cNetworkMessage() { m_iToClientID = 0; m_iFromClientID = 0; m_pNext = 0; m_iSize = 0; iFromPort = 0; }
 			~cNetworkMessage() { };
 
 			void CopyMessage( cNetworkMessage *pOther );

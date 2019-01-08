@@ -198,6 +198,7 @@ namespace AGK
     cImage *m_pCaptureImage = 0;
 
 	// default screen size
+    int g_iIsAGKFullscreen = 0;
 	int g_iDefaultWidth = 0;
 	int g_iDefaultHeight = 0;
 	
@@ -505,17 +506,8 @@ void cFileEntry::InitFileList()
 
 void agk::SetWindowPosition( int x, int y )
 {
-	NSWindow *window = [[[NSApplication sharedApplication] windows] objectAtIndex:0];
-
-	// don't change position on a fullscreen window
-	if ( (window.styleMask & NSFullScreenWindowMask) != 0 ) return;
-    
-    NSScreen *mainScreen = [NSScreen mainScreen];
-
-    int newY = mainScreen.frame.size.height - window.frame.size.height - y;
-    NSRect windowRect = NSMakeRect(x,newY,window.frame.size.width,window.frame.size.height);
-        
-    [window setFrame:windowRect display:YES animate:NO];
+    if ( !g_pWindow ) return;
+    glfwSetWindowPos( g_pWindow, x, y );
 }
 
 void agk::SetWindowSize( int width, int height, int fullscreen )
@@ -525,91 +517,95 @@ void agk::SetWindowSize( int width, int height, int fullscreen )
 
 void agk::SetWindowSize( int width, int height, int fullscreen, int allowOverSized )
 {
-	NSWindow *window = [[[NSApplication sharedApplication] windows] objectAtIndex:0];
+    if ( !g_pWindow ) return;
+    
+    // GLFW fullscreen is not the same as Mac fullscreen (green button)
+    // must turn off Mac fullscreen if it is being used
+    NSWindow *window = [[[NSApplication sharedApplication] windows] objectAtIndex:0];
+    if ( (window.styleMask & NSFullScreenWindowMask) != 0 )
+    {
+        [ window toggleFullScreen:nil ];
+    }
     
     if ( g_iDefaultWidth == 0 ) g_iDefaultWidth = agk::GetDeviceWidth();
     if ( g_iDefaultHeight == 0 ) g_iDefaultHeight = agk::GetDeviceHeight();
     
+    if ( width < 0 ) width = 0;
+    if ( height < 0 ) height = 0;
+    
+    if ( width == 0 ) width = g_iDefaultWidth;
+    if ( height == 0 ) height = g_iDefaultHeight;
+    
+    if ( allowOverSized == 0 )
+    {
+        if ( width > agk::GetMaxDeviceWidth() ) width = agk::GetMaxDeviceWidth();
+        if ( height > agk::GetMaxDeviceHeight() ) height = agk::GetMaxDeviceHeight();
+    }
+    
+    static int oldX = 0;
+    static int oldY = 0;
+    
     if ( fullscreen )
     {
-        //[[NSApplication sharedApplication] setPresentationOptions:NSApplicationPresentationFullScreen];
-        [ window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary ];
+        if ( g_iIsAGKFullscreen ) return;
+        g_iIsAGKFullscreen = 1;
         
-        if ( (window.styleMask & NSFullScreenWindowMask) == 0 )
-        {
-            // if resize style is not set then full screen window becomes corrupted
-            [window setStyleMask:[window styleMask] | NSResizableWindowMask];
-            [ window toggleFullScreen:nil ];
+        int nmonitors, i;
+        int wx, wy, ww, wh;
+        int mx, my, mw, mh;
+        int overlap, bestoverlap;
+        GLFWmonitor *bestmonitor;
+        GLFWmonitor **monitors;
+        const GLFWvidmode *mode;
+        
+        bestoverlap = 0;
+        bestmonitor = NULL;
+        
+        glfwGetWindowPos(g_pWindow, &wx, &wy);
+        oldX = wx; oldY = wy;
+        glfwGetWindowSize(g_pWindow, &ww, &wh);
+        monitors = glfwGetMonitors(&nmonitors);
+        
+        for (i = 0; i < nmonitors; i++) {
+            mode = glfwGetVideoMode(monitors[i]);
+            glfwGetMonitorPos(monitors[i], &mx, &my);
+            mw = mode->width;
+            mh = mode->height;
+            
+            int mini = wx + ww < mx + mw ? wx + ww : mx + mw;
+            int maxi = wx > mx ? wx : mx;
+            
+            overlap = mini - maxi;
+            if ( overlap < 0 ) overlap = 0;
+            
+            mini = wy + wh < my + mh ? wy + wh : my + mh;
+            maxi = wy > my ? wy : my;
+            
+            int overlap2 = mini - maxi;
+            if ( overlap2 < 0 ) overlap2 = 0;
+            
+            overlap *= overlap2;
+            
+            if (bestoverlap < overlap) {
+                bestoverlap = overlap;
+                bestmonitor = monitors[i];
+            }
         }
+        
+        mode = glfwGetVideoMode(bestmonitor);
+        glfwSetWindowMonitor( g_pWindow, bestmonitor, 0, 0, mode->width, mode->height, mode->refreshRate );
     }
     else
     {
-        if ( (window.styleMask & NSFullScreenWindowMask) != 0 )
+        if ( !g_iIsAGKFullscreen )
         {
-            [ window toggleFullScreen:nil ];
-            if ( (m_bAGKFlags & AGK_FLAG_CAN_RESIZE) == 0 )
-            {
-                // restore resizable style to user specified value
-                [window setStyleMask:[window styleMask] & ~NSResizableWindowMask];
-            }
+            glfwSetWindowSize( g_pWindow, width, height );
         }
-
-        [ window setCollectionBehavior:NSWindowCollectionBehaviorDefault ];
-        //[[NSApplication sharedApplication] setPresentationOptions:NSApplicationPresentationDefault];
-        
-        NSScreen *mainScreen = [NSScreen mainScreen];
-        NSRect screenRect = [mainScreen visibleFrame];
-
-		if ( width < 0 ) width = 0;
-		if ( height < 0 ) height = 0;
-
-		if ( width == 0 ) width = g_iDefaultWidth;
-		if ( height == 0 ) height = g_iDefaultHeight;
-
-		if ( width == 0 ) width = agk::GetMaxDeviceWidth();
-		if ( height == 0 ) height = agk::GetMaxDeviceHeight();
-        
-        if ( allowOverSized == 0 )
+        else
         {
-			float appAspect = width / (float) height;
-			float windowAspect = (screenRect.size.width-15) / (float) (screenRect.size.height-25);
-	        
-			if ( appAspect > windowAspect )
-			{
-				if ( width > screenRect.size.width-15 )
-				{
-					float ratio = (screenRect.size.width-15) / (float)width;
-					width = screenRect.size.width-15;
-					height = (int) height*ratio;
-				}
-			}
-			else
-			{
-				if ( height > screenRect.size.height-25 )
-				{
-					float ratio = (screenRect.size.height-25) / (float)height;
-					height = screenRect.size.height-25;
-					width = (int) width*ratio;
-				}
-			}
-		}
-        
-        NSWindow *window = [[[NSApplication sharedApplication] windows] objectAtIndex:0];
-        
-//        int x = (screenRect.size.width-width)/2;
-//        int y = (screenRect.size.height-height)/2;
-        //y += mainScreen.frame.size.height - screenRect.size.height;
-        
-        int oldY = mainScreen.frame.size.height - window.frame.size.height - window.frame.origin.y;
-        
-        NSRect windowRect = [window frameRectForContentRect:NSMakeRect(window.frame.origin.x,window.frame.origin.y,width,height)];
-        windowRect.origin.x = window.frame.origin.x;
-        windowRect.origin.y = mainScreen.frame.size.height - windowRect.size.height - oldY;
-        
-        [window setFrame:windowRect display:YES animate:NO];
-        
-//        glfwSetWindowSize(width, height);
-        //glfwSetWindowPos(x, y);
+            g_iIsAGKFullscreen = 0;
+            glfwSetWindowMonitor( g_pWindow, NULL, oldX, oldY, width, height, 0 );
+        }
     }
 }
 
@@ -1194,7 +1190,7 @@ int agk::GetMaxDeviceWidth()
 //****
 {
     NSScreen *mainScreen = [NSScreen mainScreen];
-    NSRect screenRect = [mainScreen frame];
+    NSRect screenRect = [mainScreen convertRectToBacking:mainScreen.frame];
 	return screenRect.size.width;
 }
 
@@ -1202,7 +1198,7 @@ int agk::GetMaxDeviceHeight()
 //****
 {
     NSScreen *mainScreen = [NSScreen mainScreen];
-    NSRect screenRect = [mainScreen frame];
+    NSRect screenRect = [mainScreen convertRectToBacking:mainScreen.frame];
 	return screenRect.size.height;
 }
 

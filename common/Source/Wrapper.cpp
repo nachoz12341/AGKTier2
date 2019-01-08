@@ -229,6 +229,7 @@ cHashedList<cHTTPConnection> agk::m_cHTTPList(32);
 cHashedList<BroadcastListener> agk::m_cBroadcastListenerList(16);
 cHashedList<AGKSocket> agk::m_cSocketList(64);
 cHashedList<cNetworkListener> agk::m_cSocketListenerList(64);
+cHashedList<UDPManager> agk::m_cUDPListenerList(32);
 cHashedList<cParticleEmitter> agk::m_cParticleEmitterList(64);
 cHashedList<cEditBox> agk::m_cEditBoxList(64);
 cHashedList<ZipFile> agk::m_cZipFileList(16);
@@ -733,6 +734,14 @@ void agk::MasterReset()
 		pSocketListener = m_cSocketListenerList.GetNext();
 	}
 	m_cSocketListenerList.ClearAll();
+
+	UDPManager *pUDPListener = m_cUDPListenerList.GetFirst();
+	while ( pUDPListener )
+	{
+		delete pUDPListener;		
+		pUDPListener = m_cUDPListenerList.GetNext();
+	}
+	m_cUDPListenerList.ClearAll();
 
 	cParticleEmitter *pEmitter = m_cParticleEmitterList.GetFirst();
 	while ( pEmitter )
@@ -2146,6 +2155,14 @@ void agk::CleanUp()
 		pSocketListener = m_cSocketListenerList.GetNext();
 	}
 	m_cSocketListenerList.ClearAll();
+
+	UDPManager *pUDPListener = m_cUDPListenerList.GetFirst();
+	while ( pUDPListener )
+	{
+		delete pUDPListener;		
+		pUDPListener = m_cUDPListenerList.GetNext();
+	}
+	m_cUDPListenerList.ClearAll();
 
 	PlatformCleanUp();
 }
@@ -27730,8 +27747,13 @@ UINT agk::GetBroadcastMessage( UINT iID )
 	UINT fromPort;
 	char fromIP[ 65 ];
 	cNetworkMessage *pMsg = new cNetworkMessage();
-	if ( !pListener->GetPacket( *pMsg, fromPort, fromIP ) ) return 0;
+	if ( !pListener->GetPacket( *pMsg, fromPort, fromIP ) ) 
+	{
+		delete pMsg;
+		return 0;
+	}
 	pMsg->sFromIP.SetStr( fromIP );
+	pMsg->iFromPort = fromPort;
 	
 	UINT iMsgID = m_cNetMessageList.GetFreeID();
 	m_cNetMessageList.AddItem( pMsg, iMsgID );
@@ -29305,7 +29327,7 @@ void agk::AddNetworkMessageString( UINT iMsgID, const char *value )
 
 //****f* Multiplayer/Messages/GetNetworkMessageFromIP
 // FUNCTION
-//   Returns the IP that sent this message. Only applicable to messages received from broadcast listeners,
+//   Returns the IP that sent this message. Only applicable to messages received from UDP and broadcast listeners,
 //   network messages will return an empty string for this function. It will also return an empty string for 
 //   messages created using <i>CreateNetworkMessage</i>. This could be an IPv4 or IPv6 address.
 // INPUTS
@@ -29340,10 +29362,35 @@ char* agk::GetNetworkMessageFromIP( UINT iMsgID )
 	return szString;
 }
 
+//****f* Multiplayer/Messages/GetNetworkMessageFromPort
+// FUNCTION
+//   Returns the source port that was used by this message. Only applicable to messages received from UDP 
+//   and broadcast listeners, network messages will return 0 for this function. It will also return 0 for 
+//   messages created using <i>CreateNetworkMessage</i>. This will be in the range 0 to 65535.
+// INPUTS
+//   iMsgID -- The ID of the message to read.
+// SOURCE
+int agk::GetNetworkMessageFromPort( UINT iMsgID )
+//****
+{
+	cNetworkMessage *pMsg = m_cNetMessageList.GetItem( iMsgID );
+	if ( !pMsg )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to get message port, Message ID %d does not exist", iMsgID );
+		agk::Error( err );
+#endif
+		return 0;
+	}
+
+	return pMsg->iFromPort;
+}
+
 //****f* Multiplayer/Messages/GetNetworkMessageFromClient
 // FUNCTION
 //   Returns the client ID that sent this message. Only applicable to messages received from networks,
-//   broadcast listener messages will return 0 for this function. It will also return 0 for messages 
+//   broadcast listener and USP messages will return 0 for this function. It will also return 0 for messages 
 //   created using <i>CreateNetworkMessage</i>.
 // INPUTS
 //   iMsgID -- The ID of the message to read.
@@ -29506,7 +29553,7 @@ void agk::SendNetworkMessage( UINT iNetID, UINT toClient, UINT iMsgID )
 	{
 #ifdef _AGK_ERROR_CHECK
 		uString err;
-		err.Format( "Failed to send network message, message %d does not exist", iNetID );
+		err.Format( "Failed to send network message, message %d does not exist", iMsgID );
 		agk::Error( err );
 #endif
 		return;
@@ -29602,6 +29649,168 @@ int agk::GetNetworkClientUserData( UINT iNetID, UINT client, UINT index )
 
 	return pNetwork->GetClientUserData( client, index );
 }
+
+//****f* Multiplayer/UDP/CreateUDPListener
+// FUNCTION
+//   Creates a UDP listener that will recieve UDP packets on the specified IP and port. The port value must
+//   be in the range 1 to 65535, although values below 1024 are likely to be protected by the operating system.
+//   If the port is already occupied then this command will fail and return 0. The IP address may be an IPv4 or 
+//   IPv6 address, and can be used to bind to a single incomming network connection when a device has more than 
+//   one IP. To bind to any IP address use the IP address "anyip4" or "anyip6". A single UDP listener can listen
+//   on either an IPv4 or an IPv6 address, but not both at the same time. To listen on both you should create
+//   two listeners, one for IPv4 and one for IPv6, in this case they may both use the same port. This command
+//   will return the ID of the listener that you can use to reference it in future commands.
+// INPUTS
+//   ip -- The local IP address to bind to.
+//   port -- The local port to bind to.
+// SOURCE
+UINT agk::CreateUDPListener( const char* ip, int port )
+//****
+{
+	if ( port < 1 || port > 65535 )
+	{
+		agk::Error( "Failed to create UDP listener, port must be between 1 and 65535" );
+		return 0;
+	}
+
+	UINT ID = m_cUDPListenerList.GetFreeID();
+	UDPManager *pListener = new UDPManager( ip, port );
+	if ( !pListener->IsValid() )
+	{
+		agk::Error( "Failed to create UDP listener" );
+		return 0;
+	}
+	m_cUDPListenerList.AddItem( pListener, ID );
+	return ID;
+}
+
+//****f* Multiplayer/UDP/CreateUDPListener
+// FUNCTION
+//   Creates a UDP listener that will recieve UDP packets on the specified IP and port. The port value must
+//   be in the range 1 to 65535, although values below 1024 are likely to be protected by the operating system.
+//   If the port is already occupied then this command will fail and return 0. The IP address may be an IPv4 or 
+//   IPv6 address, and can be used to bind to a single incomming network connection when a device has more than 
+//   one IP. To bind to any IP address use the IP address "anyip4" or "anyip6". A single UDP listener can listen
+//   on either an IPv4 or an IPv6 address, but not both at the same time. To listen on both you should create
+//   two listeners, one for IPv4 and one for IPv6, in this case they may both use the same port. This command
+//   will return the ID of the listener that you can use to reference it in future commands.
+// INPUTS
+//   listenerID -- The ID to use to reference this listener in future.
+//   ip -- The local IP address to bind to.
+//   port -- The local port to bind to.
+// SOURCE
+int agk::CreateUDPListener( UINT listenerID, const char* ip, int port )
+//****
+{
+	if ( port < 1 || port > 65535 )
+	{
+		agk::Error( "Failed to create UDP listener, port must be between 1 and 65535" );
+		return 0;
+	}
+
+	UDPManager *pListener = m_cUDPListenerList.GetItem( listenerID );
+	if ( pListener )
+	{
+		uString err; err.Format( "Failed to create UDP listener, a listener with ID %d already exists", listenerID );
+		agk::Error( err );
+		return 0;
+	}
+
+	pListener = new UDPManager( ip, port );
+	if ( !pListener->IsValid() )
+	{
+		agk::Error( "Failed to create UDP listener" );
+		return 0;
+	}
+	m_cUDPListenerList.AddItem( pListener, listenerID );
+	return listenerID;
+}
+
+//****f* Multiplayer/UDP/SendUDPNetworkMessage
+// FUNCTION
+//   Sends a network message created with <i>CreateNetworkMessage</i> to the specified remote IP and port.
+//   You must specify a UDP listener to use as the source IP and port. This function will delete the 
+//   specified message ID.
+// INPUTS
+//   listenerID -- The ID of the listener to use as the source ip and port
+//   messageID -- The ID of the network message to send
+//   toIP -- The IP address to send the message to
+//   toPort -- The port to send the message to
+// SOURCE
+void agk::SendUDPNetworkMessage( UINT listenerID, UINT messageID, const char* toIP, int toPort )
+//****
+{
+	UDPManager *pListener = m_cUDPListenerList.GetItem( listenerID );
+	if ( !pListener )
+	{
+		uString err; err.Format( "Failed to send UDP message, listener %d does not exist", listenerID );
+		agk::Error( err );
+		return;
+	}
+
+	cNetworkMessage *pMsg = m_cNetMessageList.GetItem( messageID );
+	if ( !pMsg )
+	{
+		uString err; err.Format( "Failed to send UDP message, message %d does not exist", messageID );
+		agk::Error( err );
+		return;
+	}
+	
+	pListener->SendPacket( toIP, toPort, pMsg );
+	m_cNetMessageList.RemoveItem( messageID );
+	delete pMsg;
+}
+
+//****f* Multiplayer/UDP/GetUDPNetworkMessage
+// FUNCTION
+//   Checks a UDP listener for any broadcasts. Returns 0 if nothing has been received. Returns
+//   a message ID if something has been received, you can access the contents of this message using 
+//   network message commands. The message must be deleted when you have finished reading from it.
+// INPUTS
+//   listenerID -- The ID of the listener to check for messages
+// SOURCE
+UINT agk::GetUDPNetworkMessage( UINT listenerID )
+//****
+{
+	UDPManager *pListener = m_cUDPListenerList.GetItem( listenerID );
+	if ( !pListener )
+	{
+		uString err; err.Format( "Failed to get UDP message, Listener ID %d does not exist", listenerID );
+		agk::Error( err );
+		return 0;
+	}
+
+	if ( !pListener->PacketReady() ) return 0;
+	
+	int fromPort;
+	char fromIP[ 100 ];
+	cNetworkMessage *pMsg = new cNetworkMessage();
+	if ( !pListener->RecvPacket( fromIP, &fromPort, pMsg ) ) 
+	{
+		delete pMsg;
+		return 0;
+	}
+	pMsg->sFromIP.SetStr( fromIP );
+	pMsg->iFromPort = fromPort;
+	
+	UINT iMsgID = m_cNetMessageList.GetFreeID();
+	m_cNetMessageList.AddItem( pMsg, iMsgID );
+	return iMsgID;
+}
+
+//****f* Multiplayer/UDP/DeleteUDPListener
+// FUNCTION
+//   Deletes the specified UDP listenere and frees up the port it was using.
+// INPUTS
+//   listenerID -- The ID of the listener to delete
+// SOURCE
+void agk::DeleteUDPListener( UINT listenerID )
+//****
+{
+	UDPManager *pListener = m_cUDPListenerList.RemoveItem( listenerID );
+	if ( pListener ) delete pListener;
+}
+
 
 // HTTP commands
 //****f* HTTP/General/CreateHTTPConnection

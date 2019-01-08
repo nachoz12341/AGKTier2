@@ -1401,8 +1401,11 @@ void TweenChain::Update( float fTime )
 		m_fCurrTime = 0;
 		if ( fTime < 0 ) 
 		{
+			// force any current tween to its start position
+			if ( m_pCurrTween ) m_pCurrTween->UpdateFromChain( m_pCurrTween->m_fDelay );
 			m_bFlags &= ~AGK_TWEEN_CHAIN_PLAYING;
 			m_pCurrTween = 0;
+			return;
 		}
 	}
 	if ( m_fCurrTime > m_fTotalTime ) 
@@ -1410,8 +1413,11 @@ void TweenChain::Update( float fTime )
 		m_fCurrTime = m_fTotalTime;
 		if ( fTime > 0 ) 
 		{
+			// force any current tween to its end position
+			if ( m_pCurrTween ) m_pCurrTween->UpdateFromChain( m_pCurrTween->m_fDelay + m_pCurrTween->m_pTween->m_fDuration );
 			m_bFlags &= ~AGK_TWEEN_CHAIN_PLAYING;
 			m_pCurrTween = 0;
+			return;
 		}
 	}
 

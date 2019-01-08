@@ -267,15 +267,8 @@ int JSONArray::ParseArray( const char* data )
 				}
 				JSONString *pString = new JSONString();
 				if ( length > 0 ) pString->m_sValue.AppendN( data+index, length );
-				pString->m_sValue.ReplaceStr( "\\\"", "\"" );
-				pString->m_sValue.ReplaceStr( "\\/", "/" );
-				pString->m_sValue.ReplaceStr( "\\b", "\b" );
-				pString->m_sValue.ReplaceStr( "\\f", "\f" );
-				pString->m_sValue.ReplaceStr( "\\n", "\n" );
-				pString->m_sValue.ReplaceStr( "\\r", "\r" );
-				pString->m_sValue.ReplaceStr( "\\t", "\t" );
-				pString->m_sValue.ReplaceStr( "\\\\", "\\" );
-
+				pString->m_sValue.Unescape();
+				
 				index += (length+1);
 								
 				if ( pLastElement ) pLastElement->m_pTempNext = pString;
@@ -469,15 +462,8 @@ int JSONKeyPair::ParsePair( const char *data )
 	int length = JSONElement::ParseString( data );
 	if ( length < 0 ) return -1;
 	if ( length > 0 ) m_sName.AppendN( data, length );
-	m_sName.ReplaceStr( "\\\"", "\"" );
-	m_sName.ReplaceStr( "\\/", "/" );
-	m_sName.ReplaceStr( "\\b", "\b" );
-	m_sName.ReplaceStr( "\\f", "\f" );
-	m_sName.ReplaceStr( "\\n", "\n" );
-	m_sName.ReplaceStr( "\\r", "\r" );
-	m_sName.ReplaceStr( "\\t", "\t" );
-	m_sName.ReplaceStr( "\\\\", "\\" );
-	
+	m_sName.Unescape();
+		
 	int index = length+1;
 
 	while ( data[index] && data[index] != ':' ) index++;
@@ -546,15 +532,8 @@ int JSONKeyPair::ParsePair( const char *data )
 				if ( length < 0 ) return -1;
 				JSONString *pString = new JSONString();
 				if ( length > 0 ) pString->m_sValue.AppendN( data+index, length );
-				pString->m_sValue.ReplaceStr( "\\\"", "\"" );
-				pString->m_sValue.ReplaceStr( "\\/", "/" );
-				pString->m_sValue.ReplaceStr( "\\b", "\b" );
-				pString->m_sValue.ReplaceStr( "\\f", "\f" );
-				pString->m_sValue.ReplaceStr( "\\n", "\n" );
-				pString->m_sValue.ReplaceStr( "\\r", "\r" );
-				pString->m_sValue.ReplaceStr( "\\t", "\t" );
-				pString->m_sValue.ReplaceStr( "\\\\", "\\" );
-
+				pString->m_sValue.Unescape();
+				
 				index += (length+1);
 				m_pElement = pString;
 				

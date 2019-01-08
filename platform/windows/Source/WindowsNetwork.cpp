@@ -298,34 +298,77 @@ int agk::PlatformGetIPv6( uString &sIP, int *iInterface )
 // UDPManager
 //*********************
 
-UDPManager::UDPManager( UINT port )
+UDPManager::UDPManager( const char* szIP, UINT listenPort )
 {
-	if ( port == 0 ) port = 65535;
-	if ( port > 65535 ) port = 65535;
-	m_port = port;
+	m_iValid = 0;
+	if ( listenPort == 0 ) listenPort = 65535;
+	if ( listenPort > 65535 ) listenPort = 65535;
+	m_port = listenPort;
 
-	m_socket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
+	if ( !szIP || !*szIP ) szIP = "anyip4";
+
+	m_iIPv6 = 0;
+	if ( strcmp(szIP,"anyip6") == 0 || strchr(szIP,':') ) m_iIPv6 = 1;
+
+	unsigned short family;
+	int size = 0;
+	sockaddr_storage addr;
+	if ( !m_iIPv6 )
+	{
+		family = AF_INET;
+		sockaddr_in *addrv4 = (sockaddr_in*) &addr;
+		addrv4->sin_family = family;
+		addrv4->sin_port = htons( m_port );
+		if ( strcmp(szIP,"anyip4") == 0 ) addrv4->sin_addr.s_addr = INADDR_ANY;
+		else addrv4->sin_addr.s_addr = inet_addr( szIP );
+		size = sizeof(sockaddr_in);
+	}
+	else
+	{
+		family = AF_INET6;
+		sockaddr_in6 *addrv6 = (sockaddr_in6*) &addr;
+		memset(addrv6, 0, sizeof(sockaddr_in6));
+		addrv6->sin6_family = family;
+		addrv6->sin6_port = htons( m_port );
+		if ( strcmp( szIP, "anyip6" ) == 0 ) addrv6->sin6_addr = in6addr_any;
+		else agk_inet_pton6( szIP, (u_char*)&(addrv6->sin6_addr) );
+		size = sizeof(sockaddr_in6);
+	}
+
+	m_socket = socket( family, SOCK_DGRAM, IPPROTO_UDP );
 	if ( m_socket == INVALID_SOCKET ) 
 	{
-#ifdef _AGK_ERROR_CHECK
 		agk::Warning( "Failed to create UDP socket" );
-#endif
 		return;
 	}
 
-	sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons( m_port );
-	addr.sin_addr.s_addr = INADDR_ANY;
-	if ( bind( m_socket, (sockaddr*) &addr, sizeof(addr) ) == SOCKET_ERROR )
+	int value = 1;
+    setsockopt( m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value) );
+	
+	if ( family == AF_INET6 ) 
+	{
+		int value = 1;
+		setsockopt( m_socket, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&value, sizeof(value) ); // don't listen on IPV4 addresses
+
+		// if address is multicast then join the group
+		if ( strncmp(szIP,"FF",2) == 0 || strncmp(szIP,"ff",2) == 0 ) 
+		{
+			ipv6_mreq mreq;
+			mreq.ipv6mr_interface = 0;
+			inet_pton( AF_INET6, szIP, &(mreq.ipv6mr_multiaddr) );
+			setsockopt(m_socket, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char*)&mreq, sizeof(mreq)) ;
+		}
+	}
+
+	if ( bind( m_socket, (sockaddr*) &addr, size ) == SOCKET_ERROR )
 	{
 		closesocket( m_socket );
 		m_socket = INVALID_SOCKET;
-#ifdef _AGK_ERROR_CHECK
 		agk::Warning( "Failed to bind UDP socket" );
-#endif
 		return;
 	}
+
+	m_iValid = 1;
 }
 
 UDPManager::~UDPManager()
@@ -337,70 +380,106 @@ UDPManager::~UDPManager()
 	}
 }
 
-bool UDPManager::SendPacket( const char *IP, const AGKPacket *packet )
+bool UDPManager::SendPacket( const char *IP, UINT port, const AGKPacket *packet )
 {
 	if ( m_socket == INVALID_SOCKET )
 	{
-#ifdef _AGK_ERROR_CHECK
 		agk::Error( "Tried to send UDP packet on an uninitialised socket" );
-#endif
 		return false;
 	}
 
 	if ( !IP ) return false;
+	if ( port == 0 || port > 65535 ) return false;
 	if ( !packet ) return false;
 
-	sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons( m_port );
-	addr.sin_addr.s_addr = inet_addr( IP );
-	int length = sizeof( addr );
-	int result = sendto( m_socket, packet->GetBuffer(), packet->GetPos(), 0, (sockaddr*)&addr, length );
+	int size;
+	sockaddr_storage addr;
+	if ( !m_iIPv6 )
+	{
+		sockaddr_in *addrv4 = (sockaddr_in*) &addr;
+		addrv4->sin_family = AF_INET;
+		addrv4->sin_port = htons( port );
+		addrv4->sin_addr.s_addr = inet_addr( IP );
+		size = sizeof(sockaddr_in);
+	}
+	else
+	{
+		sockaddr_in6 *addrv6 = (sockaddr_in6*) &addr;
+		memset(addrv6, 0, sizeof(sockaddr_in6));
+		addrv6->sin6_family = AF_INET6;
+		addrv6->sin6_port = htons( port );
+		agk_inet_pton6( IP, (u_char*)&(addrv6->sin6_addr) );
+		size = sizeof(sockaddr_in6);
+	}
+	int result = sendto( m_socket, packet->GetBuffer(), packet->GetPos(), 0, (sockaddr*)&addr, size );
 	if ( result == 0 || result == SOCKET_ERROR ) return false;
 	return true;
 }
 
-bool UDPManager::RecvPacket( char *fromIP, AGKPacket *packet )
+bool UDPManager::RecvPacket( char *fromIP, int *fromPort, AGKPacket *packet )
 {
 	if ( m_socket == INVALID_SOCKET )
 	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Tried to send UDP packet on an uninitialised socket" );
-#endif
+		agk::Error( "Tried to receive UDP packet on an uninitialised socket" );
 		return false;
 	}
 
-	if ( !fromIP ) return false;
 	if ( !packet ) return false;
 
 	unsigned long waiting = 0;
 	if ( ioctlsocket( m_socket, FIONREAD, &waiting ) == SOCKET_ERROR )
 	{
-#ifdef _AGK_ERROR_CHECK
 		agk::Warning( "Failed to get receivable bytes on socket" );
-#endif
 		return false;
 	}
 
 	if ( waiting == 0 ) return false;
 
-	sockaddr_in addr;
+	sockaddr_storage addr;
 	int length = sizeof(addr);
 	int result = recvfrom( m_socket, packet->GetRaw(), AGK_NET_PACKET_SIZE, 0, (sockaddr*)&addr, &length );
 	if ( result == SOCKET_ERROR )
 	{
-#ifdef _AGK_ERROR_CHECK
 		agk::Warning( "Failed to receive UDP packet" );
-#endif
 		return false;
 	}
 
 	if ( result > 0 ) 
 	{
 		packet->SetPos( 0 );
-		strcpy( fromIP, inet_ntoa( addr.sin_addr ) );
+		if ( addr.ss_family == AF_INET6 )
+		{
+			sockaddr_in6 *addrv6 = (sockaddr_in6*) &addr;
+			if ( fromPort ) *fromPort = ntohs(addrv6->sin6_port);
+			if ( fromIP ) agk_inet_ntop6( (const unsigned char*)&(addrv6->sin6_addr), fromIP, 100 ); // don't know size so guess 100
+		}
+		else
+		{
+			sockaddr_in *addrv4 = (sockaddr_in*) &addr;
+			if ( fromPort ) *fromPort = ntohs(addrv4->sin_port);
+			if ( fromIP ) strcpy( fromIP, inet_ntoa( addrv4->sin_addr ) );
+		}		
 	}
 
+	return true;
+}
+
+bool UDPManager::PacketReady()
+{
+	if ( m_socket == INVALID_SOCKET )
+	{
+		agk::Error( "Tried to check UDP packet on an uninitialised socket" );
+		return false;
+	}
+	
+	unsigned long waiting = 0;
+	if ( ioctlsocket( m_socket, FIONREAD, &waiting ) == SOCKET_ERROR )
+	{
+		agk::Warning( "Failed to get receivable bytes on socket" );
+		return false;
+	}
+
+	if ( waiting == 0 ) return false;
 	return true;
 }
 

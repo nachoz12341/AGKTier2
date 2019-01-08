@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1987;
+int g_iNumAGKFunctions = 1993;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -249,6 +249,8 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"CREATETWEENSPRITE_L_F", (AGKVoidFunc) (UINT(*)(float)) (agk::CreateTweenSprite) },
 	{"CREATETWEENTEXT_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::CreateTweenText) },
 	{"CREATETWEENTEXT_L_F", (AGKVoidFunc) (UINT(*)(float)) (agk::CreateTweenText) },
+	{"CREATEUDPLISTENER_L_L_S_L", (AGKVoidFunc) (int(*)(UINT,const char*,int)) (agk::CreateUDPListener) },
+	{"CREATEUDPLISTENER_L_S_L", (AGKVoidFunc) (UINT(*)(const char*,int)) (agk::CreateUDPListener) },
 	{"CREATEVECTOR3_L_0", (AGKVoidFunc) (int(*)()) (agk::CreateVector3) },
 	{"CREATEVECTOR3_L_F_F_F", (AGKVoidFunc) (int(*)(float,float,float)) (agk::CreateVector3) },
 	{"CREATEWELDJOINT_0_L_L_L_F_F_L", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,float,float,int)) (agk::CreateWeldJoint) },
@@ -304,6 +306,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"DELETETEXT_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::DeleteText) },
 	{"DELETETWEENCHAIN_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::DeleteTweenChain) },
 	{"DELETETWEEN_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::DeleteTween) },
+	{"DELETEUDPLISTENER_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::DeleteUDPListener) },
 	{"DELETEVECTOR3_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::DeleteVector3) },
 	{"DELETEVIDEO_0_0", (AGKVoidFunc) (void(*)()) (agk::DeleteVideo) },
 	{"DELETEVIRTUALBUTTON_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::DeleteVirtualButton) },
@@ -609,6 +612,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETNETWORKMESSAGEFLOAT_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetNetworkMessageFloat) },
 	{"GETNETWORKMESSAGEFROMCLIENT_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkMessageFromClient) },
 	{"GETNETWORKMESSAGEFROMIP_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::GetNetworkMessageFromIP) },
+	{"GETNETWORKMESSAGEFROMPORT_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetNetworkMessageFromPort) },
 	{"GETNETWORKMESSAGEINTEGER_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetNetworkMessageInteger) },
 	{"GETNETWORKMESSAGESTRING_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::GetNetworkMessageString) },
 	{"GETNETWORKMESSAGE_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkMessage) },
@@ -1045,6 +1049,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETTWEENSPRITEPLAYING_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetTweenSpritePlaying) },
 	{"GETTWEENTEXTEXISTS_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetTweenTextExists) },
 	{"GETTWEENTEXTPLAYING_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetTweenTextPlaying) },
+	{"GETUDPNETWORKMESSAGE_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetUDPNetworkMessage) },
 	{"GETUNASSIGNEDIMAGEFILENAME_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::GetUnassignedImageFileName) },
 	{"GETUNASSIGNEDIMAGES_L_0", (AGKVoidFunc) (UINT(*)()) (agk::GetUnassignedImages) },
 	{"GETUNIXFROMDATE_L_L_L_L_L_L_L", (AGKVoidFunc) (int(*)(int,int,int,int,int,int)) (agk::GetUnixFromDate) },
@@ -1328,6 +1333,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SENDSOCKETFLOAT_L_L_F", (AGKVoidFunc) (int(*)(UINT,float)) (agk::SendSocketFloat) },
 	{"SENDSOCKETINTEGER_L_L_L", (AGKVoidFunc) (int(*)(UINT,int)) (agk::SendSocketInteger) },
 	{"SENDSOCKETSTRING_L_L_S", (AGKVoidFunc) (int(*)(UINT,const char *)) (agk::SendSocketString) },
+	{"SENDUDPNETWORKMESSAGE_0_L_L_S_L", (AGKVoidFunc) (void(*)(UINT,UINT,const char*,int)) (agk::SendUDPNetworkMessage) },
 	{"SET3DPARTICLESACTIVE_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::Set3DParticlesActive) },
 	{"SET3DPARTICLESCOLORINTERPOLATION_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::Set3DParticlesColorInterpolation) },
 	{"SET3DPARTICLESDIRECTIONRANGE_0_L_F_F", (AGKVoidFunc) (void(*)(UINT,float,float)) (agk::Set3DParticlesDirectionRange) },

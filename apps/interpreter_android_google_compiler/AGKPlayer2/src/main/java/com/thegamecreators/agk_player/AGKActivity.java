@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.NativeActivity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.media.MediaRecorder;
@@ -12,6 +13,7 @@ import android.media.projection.MediaProjection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -25,6 +27,9 @@ import com.google.android.gms.games.GamesActivityResultCodes;
 import com.google.android.gms.tasks.Task;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubeStandalonePlayer;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class AGKActivity extends NativeActivity
 {
@@ -168,6 +173,61 @@ public class AGKActivity extends NativeActivity
                         String errorMessage = errorReason.toString();
                         Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
                     }
+                }
+                break;
+            }
+            case 9004: // capture camera image
+            {
+                if ( resultCode == RESULT_OK )
+                {
+                    if (data != null && data.getExtras() != null) {
+                        Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
+                        try {
+                            FileOutputStream out = new FileOutputStream(AGKHelper.sCameraSavePath);
+                            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out);
+                            Log.w("Camera Image", "Saved image to: " + AGKHelper.sCameraSavePath);
+                            AGKHelper.iCapturingImage = 2;
+                            return;
+                        }
+                        catch( IOException e )
+                        {
+                            Log.e("Camera Image", "Failed to save image: "+e.toString() );
+                        }
+                    }
+                    AGKHelper.iCapturingImage = 0;
+                }
+                else
+                {
+                    Log.e("Camera Image", "User cancelled capture image" );
+                    AGKHelper.iCapturingImage = 0;
+                }
+                break;
+            }
+            case 9005: // choose image
+            {
+                if ( resultCode == RESULT_OK )
+                {
+                    if (data != null) {
+                        Uri uri = data.getData();
+                        try {
+                            Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                            FileOutputStream out = new FileOutputStream(AGKHelper.sChosenImagePath);
+                            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out);
+                            Log.w("Choose Image", "Saved image to: " + AGKHelper.sChosenImagePath);
+                            AGKHelper.iChoosingImage = 2;
+                            return;
+                        }
+                        catch( IOException e )
+                        {
+                            Log.e("Choose Image", "Failed to save image: "+e.toString() );
+                        }
+                    }
+                    AGKHelper.iChoosingImage = 0;
+                }
+                else
+                {
+                    Log.e("Choose Image", "User cancelled choose image" );
+                    AGKHelper.iChoosingImage = 0;
                 }
                 break;
             }

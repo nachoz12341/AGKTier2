@@ -2438,23 +2438,18 @@ void agk::PlatformResumedOpenGL()
 	{
 		if ( m_iUncollectedCaptureImage ) agk::DeleteImage( m_iUncollectedCaptureImage );
 		
-		FILE *pFile = fopen( "/sdcard/capturedimage.jpg", "rb" );
+		uString sPath("/capturedimage.jpg");
+		agk::PlatformGetFullPathWrite(sPath);
+
+		FILE *pFile = fopen( sPath.GetStr(), "rb" );
 		if ( !pFile )
 		{
 			m_iUncollectedCaptureImage = 0;
 		}
 		else
 		{
-			//int iID = agk::LoadImage( "/capturedimage.jpg" );
-
-			cImage* pImage = new cImage();
-			UINT iID = m_cImageList.GetFreeID( MAX_IMAGES );
-			m_cImageList.AddItem( pImage, iID );
-			m_iUncollectedCaptureImage = iID;
-
-			pImage->Load( "raw:/sdcard/capturedimage.jpg" );
-			
-			remove( "/sdcard/capturedimage.jpg" );
+			fclose(pFile);
+			m_iUncollectedCaptureImage = agk::LoadImage( "/capturedimage.jpg" );
 		}
 		
 		m_bIsCapturing = false;	
@@ -2462,56 +2457,19 @@ void agk::PlatformResumedOpenGL()
 	
 	if ( m_bIsChoosing )
 	{
-		// when choose intent selects image, activity finishes and returns here
-		// by which time the image path string has been collected and saved
-		JNIEnv* lJNIEnv = g_pActivity->env;
-		JavaVM* vm = g_pActivity->vm;
-		vm->AttachCurrentThread(&lJNIEnv, NULL);
-		jobject lNativeActivity = g_pActivity->clazz;
-		if ( !lNativeActivity ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get native activity pointer");
-		jclass classActivity = lJNIEnv->FindClass("android/app/NativeActivity");
-		if ( !classActivity ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get class NativeActivity");
-		jmethodID getClassLoader = lJNIEnv->GetMethodID(classActivity,"getClassLoader", "()Ljava/lang/ClassLoader;");
-		if ( !getClassLoader ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get getClassLoader");
-		jobject cls = lJNIEnv->CallObjectMethod(lNativeActivity, getClassLoader);
-		if ( !cls ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get cls");
-		jclass classLoader = lJNIEnv->FindClass("java/lang/ClassLoader");
-		if ( !classLoader ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get classLoader");
-		jmethodID findClass = lJNIEnv->GetMethodID(classLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
-		if ( !findClass ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get findClass");
-		jstring strClassName = lJNIEnv->NewStringUTF("com/thegamecreators/agk_player/AGKHelper");
-		jclass MyJavaClass = (jclass)lJNIEnv->CallObjectMethod(cls, findClass, strClassName);
-		if ( !MyJavaClass ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get MyJavaClass");
-		lJNIEnv->DeleteLocalRef( strClassName );
-
-		// get the method from our java class
-		jmethodID myGetChosenImagePath = lJNIEnv->GetStaticMethodID( MyJavaClass, "GetChosenImagePath","()Ljava/lang/String;" );
-
-		// call our java class method and return the image path
-		jstring jchosenimagepath = (jstring) lJNIEnv->CallStaticObjectMethod( MyJavaClass, myGetChosenImagePath, lNativeActivity );
-
 		if ( m_pUncollectedChosenImage ) delete m_pUncollectedChosenImage;
 		m_pUncollectedChosenImage = 0;
+				
+		uString sPath("/chosenimage.jpg");
+		agk::PlatformGetFullPathWrite(sPath);
 
-		// report the path we have found		
-		jboolean bCopy;
-		const char* absolutepathincmnt = lJNIEnv->GetStringUTFChars( jchosenimagepath, &bCopy );
-		if ( absolutepathincmnt && strlen(absolutepathincmnt) > 0 )
-		{		
-			// now create the image to complete the job
-			if ( m_pUncollectedChosenImage ) delete m_pUncollectedChosenImage;
+		FILE *pFile = fopen( sPath.GetStr(), "rb" );
+		if ( pFile )
+		{
+			fclose(pFile);
 			m_pUncollectedChosenImage = new cImage();
-			uString sPath( "raw:" ); sPath.Append( absolutepathincmnt );
-			m_pUncollectedChosenImage->Load ( sPath, false );
-
-			if ( strstr(absolutepathincmnt, "chosenImage.jpg") ) remove( absolutepathincmnt );
+			m_pUncollectedChosenImage->Load( "/chosenimage.jpg" );
 		}
-		
-		lJNIEnv->ReleaseStringUTFChars( jchosenimagepath, absolutepathincmnt );
-		lJNIEnv->DeleteLocalRef( jchosenimagepath );
-		
-		// ensure we restore VM
-		vm->DetachCurrentThread();
 
 		// finished choosing image
 		m_bIsChoosing = false;
@@ -3080,61 +3038,10 @@ bool cImage::ChooseFromSystem()
 
 void agk::PlatformShowChooseScreen()
 {
-	// get JNI pointer
-	JNIEnv* lJNIEnv = g_pActivity->env;
+	uString sPath("/chosenimage.jpg");
+	agk::PlatformGetFullPathWrite(sPath);
+	remove( sPath );
 
-	// get Java VM pointer
-	JavaVM* vm = g_pActivity->vm;
-
-	// associate this native thread with main Java VM
-	vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-	// get NativeActivity object (clazz)
-	jobject lNativeActivity = g_pActivity->clazz;
-	if ( !lNativeActivity ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get native activity pointer");
-
-	// get java class for NativeActivity
-	jclass classActivity = lJNIEnv->FindClass("android/app/NativeActivity");
-	if ( !classActivity ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get class NativeActivity");
-
-	// LEE: Get the classLoader from the native activity instance
-	// LEE: See http://blog.tewdew.com/post/6852907694/using-jni-from-a-native-activity
-	// http://blog.tewdew.com/post/6852907694/using-jni-from-a-native-activity
-	// http://pastebin.com/rkqvUaH3
-	// http://stackoverflow.com/questions/9286661/calling-a-constructor-fails-in-jni-android
-	// http://journals.ecs.soton.ac.uk/java/tutorial/native1.1/implementing/method.html
-	
-	// we need classLoader to find our OWN Java Class Code
-	jmethodID getClassLoader = lJNIEnv->GetMethodID(classActivity,"getClassLoader", "()Ljava/lang/ClassLoader;");
-	if ( !getClassLoader ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get getClassLoader");
-	jobject cls = lJNIEnv->CallObjectMethod(lNativeActivity, getClassLoader);
-	if ( !cls ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get cls");
-	jclass classLoader = lJNIEnv->FindClass("java/lang/ClassLoader");
-	if ( !classLoader ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get classLoader");
-	jmethodID findClass = lJNIEnv->GetMethodID(classLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
-	if ( !findClass ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get findClass");
-
-	// use classLoader to find our java class code
-	jstring strClassName = lJNIEnv->NewStringUTF("com/thegamecreators/agk_player/AGKHelper");
-	jclass MyJavaClass = (jclass)lJNIEnv->CallObjectMethod(cls, findClass, strClassName);
-	if ( !MyJavaClass ) __android_log_print( ANDROID_LOG_ERROR, "native-activity","Failed to get AGKHelper");
-	lJNIEnv->DeleteLocalRef( strClassName );
-
-	// get the method from our java class
-	jmethodID myStartChooseImage = lJNIEnv->GetStaticMethodID( MyJavaClass, "StartChooseImage","(Landroid/app/Activity;)Ljava/lang/String;" );
-
-	// call our java class method and return the image path
-	jstring successstring = (jstring) lJNIEnv->CallStaticObjectMethod( MyJavaClass, myStartChooseImage, lNativeActivity );
-	lJNIEnv->DeleteLocalRef( successstring );
-
-	// NOTE: This carries on in the INTENT, and PlatformResume() finishes this off..
-
-	// detatch thread from Java VM before we leave
-	vm->DetachCurrentThread();
-}
-
-bool agk::PlatformShowCaptureScreen()
-{
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);
@@ -3146,10 +3053,43 @@ bool agk::PlatformShowCaptureScreen()
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
 
 	// get the method from our java class
-	jmethodID camera = lJNIEnv->GetStaticMethodID( AGKHelper, "CaptureImage", "(Landroid/app/Activity;)V" );
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "StartChooseImage", "(Landroid/app/Activity;Ljava/lang/String;)V" );
 
-	// call our java class method
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, camera, lNativeActivity );
+	jstring sText = lJNIEnv->NewStringUTF( sPath.GetStr() );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, sText );
+	lJNIEnv->DeleteLocalRef( sText );
+
+	vm->DetachCurrentThread();
+}
+
+bool agk::PlatformShowCaptureScreen()
+{
+	uString sPath("/capturedimage.jpg");
+	agk::PlatformGetFullPathWrite(sPath);
+	remove( sPath );
+
+	if ( CheckPermission( "Camera" ) != 2 )
+	{
+		agk::Error( "Cannot use the camera without the camera permission, use RequestPermission(\"Camera\") first" );
+		return false;
+	}
+
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "CaptureImage", "(Landroid/app/Activity;Ljava/lang/String;)V" );
+
+	jstring sText = lJNIEnv->NewStringUTF( sPath.GetStr() );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, sText );
+	lJNIEnv->DeleteLocalRef( sText );
 
 	vm->DetachCurrentThread();
 
@@ -10775,7 +10715,7 @@ int AGKFont::PlatformGetSystemFontPath( const uString &sFontName, uString &sOut 
 
 	extern "C" 
 	{
-		ArStatus (*fpArCoreApk_requestInstall)( void* env, void* activity, bool user_requested_install, ArInstallStatus* out_install_status ) = 0;
+		ArStatus (*fpArCoreApk_requestInstallCustom)( void* env, void* activity, int user_requested_install, ArInstallBehavior install_behavior, ArInstallUserMessageType message_type, ArInstallStatus *out_install_status ) = 0;
 
 		ArStatus (*fpArSession_checkSupported)( const ArSession* session, const ArConfig* config ) = 0;
 		ArStatus (*fpArSession_configure)( ArSession* session, const ArConfig* config ) = 0;
@@ -10851,7 +10791,9 @@ int AGKFont::PlatformGetSystemFontPath( const uString &sFontName, uString &sOut 
 
 		
 		// real functions
-		ArStatus ArCoreApk_requestInstall( void* env, void* activity, bool user_requested_install, ArInstallStatus* out_install_status ) { return (ArStatus)fpArCoreApk_requestInstall( env, activity, user_requested_install, out_install_status ); }
+		ArStatus ArCoreApk_requestInstallCustom( void* env, void* activity, int user_requested_install, ArInstallBehavior install_behavior, ArInstallUserMessageType message_type, ArInstallStatus* out_install_status ) { 
+			return (ArStatus)fpArCoreApk_requestInstallCustom( env, activity, user_requested_install, install_behavior, message_type, out_install_status ); 
+		}
 
 		ArStatus ArSession_checkSupported( const ArSession* session, const ArConfig* config ) { return (ArStatus)fpArSession_checkSupported( session, config ); }
 		ArStatus ArSession_configure( ArSession* session, const ArConfig* config ) { return (ArStatus)fpArSession_configure( session, config ); }
@@ -10930,6 +10872,7 @@ int AGKFont::PlatformGetSystemFontPath( const uString &sFontName, uString &sOut 
 void agk::ARSetup()
 //****
 {
+	int request_install = (g_iARStatus != 1) ? 1 : 0; // only request install if we aren't returning from an install request
 	g_iARStatus = -1;
 
 #ifdef AGK_USE_AR
@@ -10958,7 +10901,7 @@ void agk::ARSetup()
 
 		agk::Warning( "Successfully loaded ARCore lib" );
 
-		fpArCoreApk_requestInstall = (ArStatus(*)(void*, void*, bool, ArInstallStatus*)) dlsym( g_pARCoreLibHandle, "ArCoreApk_requestInstall" );
+		fpArCoreApk_requestInstallCustom = (ArStatus(*)(void*, void*, int, ArInstallBehavior, ArInstallUserMessageType, ArInstallStatus*)) dlsym( g_pARCoreLibHandle, "ArCoreApk_requestInstallCustom" );
 
 		fpArSession_checkSupported = (ArStatus(*)(const ArSession*, const ArConfig*)) dlsym( g_pARCoreLibHandle, "ArSession_checkSupported" );
 		fpArSession_configure = (ArStatus(*)(ArSession*, const ArConfig* )) dlsym( g_pARCoreLibHandle, "ArSession_configure" );
@@ -11046,10 +10989,8 @@ void agk::ARSetup()
 		int orien = lJNIEnv->CallStaticIntMethod( AGKHelper, methodGetOrien, lNativeActivity );
 
 		ArInstallStatus install_status;
-		bool request_install = (g_iARStatus != 1); // only request install if we aren't returning from an install request
-
 		agk::Warning( "Requesting ARCore Install" );
-		ArStatus result = ArCoreApk_requestInstall( lJNIEnv, g_pActivity->clazz, request_install, &install_status );
+		ArStatus result = ArCoreApk_requestInstallCustom( lJNIEnv, g_pActivity->clazz, request_install, AR_INSTALL_BEHAVIOR_OPTIONAL, AR_INSTALL_USER_MESSAGE_TYPE_FEATURE, &install_status );
 		if ( result != AR_SUCCESS )
 		{
 			vm->DetachCurrentThread();

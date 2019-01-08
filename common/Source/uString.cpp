@@ -2591,6 +2591,59 @@ uString& uString::Lower( )
 	return *this;
 }
 
+uString& uString::Unescape()
+{
+	if ( m_iLength == 0 ) return *this;
+	char *str = m_pData;
+	char *str2 = m_pData;
+	
+	int numChars = 0;
+	do
+	{
+		if ( *str == '\\' )
+		{
+			str++;
+			switch( *str )
+			{
+				case 'n': *str2 = '\n'; break;
+				case 'r': *str2 = '\r'; break;
+				case '"': *str2 = '"'; break;
+				case 'b': *str2 = '\b'; break;
+				case 'f': *str2 = '\f'; break;
+				case 't': *str2 = '\t'; break;
+				case '/': *str2 = '/'; break;
+				case '\\': *str2 = '\\'; break;
+				default: *str2 = *str;
+			}
+		}
+		else 
+		{
+			*str2 = *str;
+		}
+		str++;
+		str2++;
+		numChars++;
+
+		// copy any continuation bytes
+		while( (*str & 0xC0) == 0x80 )
+		{
+			*str2 = *str;
+			str++; str2++;
+		}
+	} while ( *str );
+		
+	*str2 = 0;
+	m_iLength = (int)(str2 - m_pData);
+	m_iNumChars = numChars;
+	m_iCachedByteOffset = 0;
+	m_iCachedCharOffset = 0;
+
+	// now we have removed some characters, check for wasted space
+	CheckSize( m_iLength, true );
+
+	return *this;
+}
+
 int uString::ByteAt( unsigned int index )
 //****
 {

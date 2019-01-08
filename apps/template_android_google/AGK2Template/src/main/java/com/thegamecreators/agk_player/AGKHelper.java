@@ -3946,47 +3946,45 @@ public class AGKHelper {
 		final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : "unknown");
 		return applicationName;
 	}
-	
-	// image chooser code
-	//private static MyJavaActivity myActivity = null;
-	//private static MyJavaActivity imageActivity = null;
-    private static String storeimagepath = null;
-	public static void StoreImagePath(String path) { storeimagepath=path; }
-	
-	// Function to launch Choose Image intent
-	public static String StartChooseImage(Activity nativeactivityptr)
-	{
-		// Ensure we can create a new activity in this static function
-		Looper.prepare();
-		
-		// Create new intent and launch it (choose image)
-		Intent myIntent = new Intent(nativeactivityptr, MyJavaActivity.class);
-		nativeactivityptr.startActivity(myIntent);
-		
-		// return immediately - fun string return (can be replaced with boolean/int)
-		return "success";
-    }
-	
-	// Retrieve image path string when we return to main NativeActivity
-	public static String GetChosenImagePath()
-	{
-		if ( storeimagepath == null ) return "";
 
-		String result = storeimagepath;
-		storeimagepath = null;
-		return result;
-    }
-	
-	// camera
-	public static void CaptureImage(Activity nativeactivityptr)
+	// image chooser code
+	public static int iChoosingImage = 0;
+	public static String sChosenImagePath = "";
+
+	// Function to launch Choose Image intent
+	public static void StartChooseImage(Activity act, String path)
 	{
+		if ( iChoosingImage == 1 ) return;
+		sChosenImagePath = path;
+
 		// Ensure we can create a new activity in this static function
 		Looper.prepare();
-				
+
+		iChoosingImage = 1;
+		Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
+		photoPickerIntent.setType("image/*");
+		act.startActivityForResult(photoPickerIntent, 9005);
+	}
+
+	public static int ChooseImageResult() { return iChoosingImage; }
+
+	// camera
+	public static int iCapturingImage = 0; // 0=no image, 1=capturing, 2=got image
+	public static String sCameraSavePath = "";
+	public static void CaptureImage(Activity nativeactivityptr, String path)
+	{
+		if ( iCapturingImage == 1 ) return;
+		sCameraSavePath = path;
+
+		// Ensure we can create a new activity in this static function
+		Looper.prepare();
+
+		iCapturingImage = 1;
 		Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.parse("file:///sdcard/capturedimage.jpg"));
-		nativeactivityptr.startActivity(cameraIntent);    
-    }
+		nativeactivityptr.startActivityForResult( cameraIntent, 9004 );
+	}
+
+	public static int CaptureImageResult() { return iCapturingImage; }
 	
 	public static String GetLanguage()
 	{
@@ -4966,7 +4964,7 @@ public class AGKHelper {
 		target.putExtra( Intent.EXTRA_TEXT, sText );
 
 		try {
-			act.startActivity(target);
+			act.startActivity(Intent.createChooser(target,"Share Text"));
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share text");
 		}
@@ -4990,7 +4988,7 @@ public class AGKHelper {
 		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
-			act.startActivity(target);
+			act.startActivity(Intent.createChooser(target,"Share Image"));
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share images");
 		}
@@ -5014,7 +5012,7 @@ public class AGKHelper {
 		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
-			act.startActivity(target);
+			act.startActivity(Intent.createChooser(target,"Share"));
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share images");
 		}
@@ -5042,7 +5040,7 @@ public class AGKHelper {
 		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {
-			act.startActivity(target);
+			act.startActivity(Intent.createChooser(target,"Share File"));
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share file type \"" + sExt + "\"");
 		}

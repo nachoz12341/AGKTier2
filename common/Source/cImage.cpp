@@ -3431,6 +3431,41 @@ void cImage::Resize( int width, int height )
 {
 	if ( m_pParentImage ) return;
 
+	unsigned int *pDest = new unsigned int[ width*height ];
+
+	if ( m_iGifNumFrames > 0 )
+	{
+		unsigned long realSize = m_iOrigWidth * m_iOrigHeight * 4;
+		unsigned char* pSrc = new unsigned char[ realSize ];
+
+		uLong upperBound = compressBound( width * height * 4 );
+		unsigned char *tempbuf = new unsigned char[ upperBound ];
+
+		for( int i = 0; i < m_iGifNumFrames; i++ )
+		{
+			if ( m_pGifFrames[ i ]->pData )
+			{
+				uncompress( pSrc, &realSize, m_pGifFrames[i]->pData, m_pGifFrames[i]->iCompressedSize );
+				delete [] m_pGifFrames[i]->pData;
+				m_pGifFrames[i]->pData = 0;
+
+				CommonResize( pSrc, m_iOrigWidth, m_iOrigHeight, (unsigned char*)pDest, width, height );
+
+				uLong finalSize = upperBound;
+				int err = compress2( tempbuf, &finalSize, (unsigned char*)pDest, width * height * 4, 1 );
+				if ( err == Z_OK )
+				{
+					m_pGifFrames[ i ]->pData = new unsigned char[ finalSize ];
+					memcpy(m_pGifFrames[ i ]->pData, tempbuf, finalSize );
+					m_pGifFrames[ i ]->iCompressedSize = (UINT) finalSize;
+				}
+			}
+		}
+
+		delete [] tempbuf;
+		delete [] pSrc;
+	}
+
 	unsigned char *pSrc = 0;
 	int size = GetRawData( &pSrc );
 	if ( size == 0 ) return;
@@ -3438,7 +3473,6 @@ void cImage::Resize( int width, int height )
 	int origWidth = m_iOrigWidth;
 	int origHeight = m_iOrigHeight;
 
-	unsigned int *pDest = new unsigned int[ width*height ];
 	CommonResize( pSrc, m_iOrigWidth, m_iOrigHeight, (unsigned char*)pDest, width, height );
 	delete [] pSrc;
 

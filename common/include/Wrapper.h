@@ -893,6 +893,8 @@ namespace AGK
 			static void MaximizeWindow();
 			static void MinimizeApp();
 			static void RestoreApp();
+			static int GetWindowWidth();
+			static int GetWindowHeight();
 			static void SetImmersiveMode( int mode );
 			static int GetDeviceWidth();
 			static int GetRealDeviceWidth();
@@ -2652,6 +2654,9 @@ namespace AGK
 			static void CloseZip( UINT zipID );
 			static void ExtractZip( const char* zipfilename, const char* path);
 			static void ExtractZip(const char* zipfilename, const char* path, const char* password);
+			static void ExtractZipASync(const char* zipfilename, const char* path, const char* password);
+			static float GetZipExtractProgress();
+			static int GetZipExtractComplete();
 
 			// memblock functions (do not exist at this time)
 			static UINT CreateMemblock( UINT size );

@@ -7,7 +7,27 @@
     #include "iowin32.h"
 #endif
 
+namespace AGK
+{
+	ZipExtracter g_ZipExtracter;
+}
+
 using namespace AGK;
+
+UINT ZipExtracter::Run()
+{
+#if defined(AGK_IOS) || defined(AGK_MACOS)
+	@autoreleasepool 
+#endif
+	{
+		if ( m_sFilename.GetLength() == 0 ) return 0;
+
+		ZipFile::ExtractAll( m_sFilename.GetStr(), m_sExtractPath.GetStr(), m_sPassword.GetLength() > 0 ? m_sPassword.GetStr() : NULL, &m_fProgress );
+
+		m_sFilename.SetStr("");
+    }
+	return 0;
+}
 
 ZipFile::ZipFile()
 {
@@ -105,8 +125,10 @@ void ZipFile::Close()
 	m_zf = 0; // should fix the crash bug
 }
 
-bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const char* password)
+bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const char* password, volatile float* progress)
 {
+	if ( progress ) *progress = 0;
+
 	uString sPath( filename );
 	if ( cFile::ExistsRaw(filename) ) sPath.SetStr( filename+4 );
 	else if ( cFile::ExistsWrite(filename) ) agk::PlatformGetFullPathWrite(sPath);
@@ -156,6 +178,8 @@ bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const c
 			return false;
 		}
 	}
+
+	if ( progress ) *progress = 1;
 		
 	unzFile uf = unzOpen( sPath.GetStr() );
 	if ( !uf )
@@ -182,6 +206,8 @@ bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const c
 
     for ( int i=0; i < gi.number_entry; i++ )
     {
+		if ( progress ) *progress = (i / (float)gi.number_entry) * 98 + 2;
+
 		unz_file_info64 file_info;
 		char szFileNameInZip[ 512 ];
         err = unzGetCurrentFileInfo64( uf, &file_info, szFileNameInZip, 512, NULL,0,NULL,0 );
@@ -239,6 +265,8 @@ bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const c
     }
 
 	unzClose(uf);
+
+	if ( progress ) *progress = 100;
 
 	return true;
 }

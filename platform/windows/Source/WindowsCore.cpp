@@ -2648,7 +2648,7 @@ void agk::SetVSync( int mode )
 //   Gets the maximum width that your app window can be. For platforms that support windowed mode such as Windows and Mac
 //   your app can only achieve this size in full screen mode as windowed mode has a border around your app.
 //   For HTML5 apps this will return the size of the current HTML document, and is not guaranteed to work if the HTML5 app 
-//   is running in full screen mode.
+//   is running in full screen mode. A better name for this command would be GetMaxWindowWidth, but it is now set in stone.
 // SOURCE
 int agk::GetMaxDeviceWidth()
 //****
@@ -2663,7 +2663,7 @@ int agk::GetMaxDeviceWidth()
 //   Gets the maximum height that your app window can be. For platforms that support windowed mode such as Windows and Mac
 //   your app can only achieve this size in full screen mode as windowed mode has a border around your app.
 //   For HTML5 apps this will return the size of the current HTML document, and is not guaranteed to work if the HTML5 app 
-//   is running in full screen mode.
+//   is running in full screen mode. A better name for this command would be GetMaxWindowHeight, but it is now set in stone.
 // SOURCE
 int agk::GetMaxDeviceHeight()
 //****

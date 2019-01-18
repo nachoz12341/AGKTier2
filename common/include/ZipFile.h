@@ -5,12 +5,29 @@
 
 namespace AGK
 {
+	class ZipExtracter : public AGKThread
+	{
+		public:
+			uString m_sFilename;
+            uString m_sExtractPath;
+			uString m_sPassword;
+			volatile float m_fProgress;
+			
+			ZipExtracter() : AGKThread() {}
+			~ZipExtracter() {}
+
+			UINT Run();
+	};
+
+	extern ZipExtracter g_ZipExtracter;
+
 	class _EXPORT_ ZipFile
 	{
 		protected:
 			void* m_zf;
 
 		public:
+			
 			ZipFile();
 			~ZipFile();
 
@@ -19,7 +36,7 @@ namespace AGK
 			bool AddEntry( const char* realPath, const char* zipPath, int compressionlevel );
 			void Close();
 
-			static bool ExtractAll( const char* filename, const char* extractPath, const char* password);
+			static bool ExtractAll( const char* filename, const char* extractPath, const char* password, volatile float* progress=NULL );
 
 	};
 }

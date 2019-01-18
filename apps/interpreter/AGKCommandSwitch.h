@@ -13652,5 +13652,33 @@ case AGKI_DELETEUDPLISTENER_0_L:
     agk::DeleteUDPListener( param0 );
     break;
 }
+case AGKI_EXTRACTZIPASYNC_0_S_S_S:
+{
+    const char* param2 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::ExtractZipASync( param0, param1, param2 );
+    break;
+}
+case AGKI_GETZIPEXTRACTPROGRESS_F_0:
+{
+    m_pStack[ m_iStackPtr++ ].f = agk::GetZipExtractProgress( );
+    break;
+}
+case AGKI_GETZIPEXTRACTCOMPLETE_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetZipExtractComplete( );
+    break;
+}
+case AGKI_GETWINDOWWIDTH_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetWindowWidth( );
+    break;
+}
+case AGKI_GETWINDOWHEIGHT_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetWindowHeight( );
+    break;
+}
 
 

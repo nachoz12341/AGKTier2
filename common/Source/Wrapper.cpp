@@ -2818,10 +2818,34 @@ void agk::UseNewDefaultFonts( int mode )
 	m_iUseNewDefaultFonts = mode ? 1 : 0;
 }
 
+//****f* Core/Display/GetWindowWidth
+// FUNCTION
+//   Returns the width of the current device's window. This value may differ from the <i>GetDeviceWidth</i> if the
+//   window size does not match the pixel size of the backbuffer that is being used to draw the window. For example 
+//   on a Mac with a retina display the window size will be half of the pixel size.
+// SOURCE
+int agk::GetWindowWidth() 
+//****
+{ 
+	return m_iRealDeviceWidth; 
+}
+
+//****f* Core/Display/GetWindowHeight
+// FUNCTION
+//   Returns the height of the current device's window. This value may differ from the <i>GetDeviceHeight</i> if the
+//   window size does not match the pixel size of the backbuffer that is being used to draw the window. For example 
+//   on a Mac with a retina display the window size will be half of the pixel size.
+// SOURCE
+int agk::GetWindowHeight() 
+//****
+{ 
+	return m_iRealDeviceHeight; 
+} 
+
 //****f* Core/Display/GetDeviceWidth
 // FUNCTION
-//   Returns the width in pixels of the current device's screen. For most platforms this value is usually the size of the
-//   screen in portrait mode, but this is not guaranteed. This value will not change if the screen is rotated.
+//   Returns the width in pixels of the current device's backbuffer. This value will change if the device orientation
+//   changes from portrait to landscape, but only if orientation changes are allowed.
 // SOURCE
 int agk::GetDeviceWidth() 
 //****
@@ -2836,8 +2860,8 @@ int agk::GetRealDeviceWidth()
 
 //****f* Core/Display/GetDeviceHeight
 // FUNCTION
-//   Returns the height in pixels of the current device's screen. For most platforms this value is usually the size of the
-//   screen in portrait mode, but this is not guaranteed. This value will not change if the screen is rotated.
+//   Returns the height in pixels of the current device's backbuffer. This value will change if the device orientation
+//   changes from portrait to landscape, but only if orientation changes are allowed.
 // SOURCE
 int agk::GetDeviceHeight() 
 //****
@@ -36520,7 +36544,7 @@ void agk::CloseZip( UINT zipID )
 void agk::ExtractZip( const char* zipfilename, const char* path )
 //****
 {
-	ZipFile::ExtractAll( zipfilename, path , NULL );
+	ZipFile::ExtractAll( zipfilename, path , NULL, NULL );
 }
 
 //****f* File/Zip/ExtractZip
@@ -36540,8 +36564,54 @@ void agk::ExtractZip(const char* zipfilename, const char* path, const char* pass
 //****
 {
 	//PE:
-	ZipFile::ExtractAll(zipfilename, path, password);
+	ZipFile::ExtractAll(zipfilename, path, password, NULL);
 }
+
+//****f* File/Zip/ExtractZipASync
+// FUNCTION
+//   This command does the same as <i>ExtractZip</i> except it returns immediately and the zip extraction is 
+//   done on a thread in the background. You can use <i>GetZipExtractProgress</i> and <i>GetZipExtractComplete</i>
+//   to check on its progress. If you call this command whilst a zip extraction is already in progress then 
+//   nothing will happen. If the specified zip has no password then use an empty string.
+// INPUTS
+//   zipfilename -- The path to the zip file to extract.
+//   path -- The path to place the newly extracted zip files.
+//   password -- The password that was used to create the zip file.
+// SOURCE
+void agk::ExtractZipASync(const char* zipfilename, const char* path, const char* password)
+//****
+{
+	if ( g_ZipExtracter.IsRunning() ) return;
+
+	g_ZipExtracter.m_sFilename.SetStr( zipfilename );
+	g_ZipExtracter.m_sExtractPath.SetStr( path );
+	g_ZipExtracter.m_sPassword.SetStr( password );
+
+	g_ZipExtracter.m_fProgress = 0;
+	g_ZipExtracter.Start();
+}
+
+//****f* File/Zip/GetZipExtractProgress
+// FUNCTION
+//   Returns a value between 0 and 100 to represent the progress of the zip extraction started with <i>ExtractZipASync</i>.
+// SOURCE
+float agk::GetZipExtractProgress()
+//****
+{
+	return g_ZipExtracter.m_fProgress;
+}
+
+//****f* File/Zip/GetZipExtractComplete
+// FUNCTION
+//   Returns 0 if a zip extraction started with <i>ExtractZipASync</i> is in progress, or 1 if it has finished. It does 
+//   not give an indication of if the extraction was successful, only that it has finished.
+// SOURCE
+int agk::GetZipExtractComplete()
+//****
+{
+	return g_ZipExtracter.IsRunning() ? 0 : 1;
+}
+
 
 //
 // V108

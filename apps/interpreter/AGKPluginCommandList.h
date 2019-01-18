@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1993;
+int g_iNumAGKFunctions = 1998;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -324,6 +324,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ENABLECLEARCOLOR_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::EnableClearColor) },
 	{"ENABLECLEARDEPTH_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::EnableClearDepth) },
 	{"ENCODEQRCODE_L_S_L", (AGKVoidFunc) (UINT(*)(const char*,int)) (agk::EncodeQRCode) },
+	{"EXTRACTZIPASYNC_0_S_S_S", (AGKVoidFunc) (void(*)(const char*,const char*,const char*)) (agk::ExtractZipASync) },
 	{"EXTRACTZIP_0_S_S", (AGKVoidFunc) (void(*)(const char*,const char*)) (agk::ExtractZip) },
 	{"EXTRACTZIP_0_S_S_S", (AGKVoidFunc) (void(*)(const char*,const char*,const char*)) (agk::ExtractZip) },
 	{"FACEBOOKACTIVATEAPPTRACKING_0_0", (AGKVoidFunc) (void(*)()) (agk::FacebookActivateAppTracking) },
@@ -1083,11 +1084,15 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETVIRTUALJOYSTICKX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetVirtualJoystickX) },
 	{"GETVIRTUALJOYSTICKY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetVirtualJoystickY) },
 	{"GETVIRTUALWIDTH_L_0", (AGKVoidFunc) (int(*)()) (agk::GetVirtualWidth) },
+	{"GETWINDOWHEIGHT_L_0", (AGKVoidFunc) (int(*)()) (agk::GetWindowHeight) },
 	{"GETWINDOWSDRIVE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetWindowsDrive) },
+	{"GETWINDOWWIDTH_L_0", (AGKVoidFunc) (int(*)()) (agk::GetWindowWidth) },
 	{"GETWORLDXFROMSPRITE_F_L_F_F", (AGKVoidFunc) (float(*)(UINT,float,float)) (agk::GetWorldXFromSprite) },
 	{"GETWORLDYFROMSPRITE_F_L_F_F", (AGKVoidFunc) (float(*)(UINT,float,float)) (agk::GetWorldYFromSprite) },
 	{"GETWRITEPATH_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetWritePath) },
 	{"GETYEARFROMUNIX_L_L", (AGKVoidFunc) (int(*)(int)) (agk::GetYearFromUnix) },
+	{"GETZIPEXTRACTCOMPLETE_L_0", (AGKVoidFunc) (int(*)()) (agk::GetZipExtractComplete) },
+	{"GETZIPEXTRACTPROGRESS_F_0", (AGKVoidFunc) (float(*)()) (agk::GetZipExtractProgress) },
 	{"HEXTOBASE64_S_S", (AGKVoidFunc) (char*(*)(const char*)) (agk::HexToBase64) },
 	{"HEX_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::Hex) },
 	{"HOSTNETWORK_L_S_S_L", (AGKVoidFunc) (UINT(*)(const char *,const char *,int)) (agk::HostNetwork) },

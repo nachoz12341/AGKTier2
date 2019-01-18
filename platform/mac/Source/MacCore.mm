@@ -1165,8 +1165,7 @@ void agk::PlatformSetBlendMode( int mode )
 void agk::SetVSync( int mode )
 {
 	if ( mode < 0 ) mode = 0;
-	CGLContextObj context = CGLGetCurrentContext();
-	CGLSetParameter(context, kCGLCPSwapInterval, &mode);
+	glfwSwapInterval( mode );
 
 	m_bUsingVSync = mode > 0;
 }
@@ -1190,7 +1189,7 @@ int agk::GetMaxDeviceWidth()
 //****
 {
     NSScreen *mainScreen = [NSScreen mainScreen];
-    NSRect screenRect = [mainScreen convertRectToBacking:mainScreen.frame];
+    NSRect screenRect = [mainScreen frame];
 	return screenRect.size.width;
 }
 
@@ -1198,7 +1197,7 @@ int agk::GetMaxDeviceHeight()
 //****
 {
     NSScreen *mainScreen = [NSScreen mainScreen];
-    NSRect screenRect = [mainScreen convertRectToBacking:mainScreen.frame];
+    NSRect screenRect = [mainScreen frame];
 	return screenRect.size.height;
 }
 

@@ -2652,8 +2652,68 @@ int ProgramData::ParseDebugType( AGKFunction *pFunction, int stackPtr, int strSt
 	sRemaining.Trim( " " );
 	if ( sRemaining.GetLength() == 0 )
 	{
-		sValue.SetStrUTF8( "<Invalid Expression>" );
-		return 1;
+		//sValue.SetStrUTF8( "<Cannot show entire type contents>" );
+		//return 1;
+
+		int typetype = pType->m_iTypeDec;
+		stTypeDec *pStruct = m_pTypeStructs + typetype;
+		stTypeDecVar **pOrderedVars = new stTypeDecVar*[ pStruct->m_iNumVars ];
+		for( unsigned int i = 0; i < pStruct->m_iNumVars; i++ )
+		{
+			pOrderedVars[ i ] = pStruct->m_pVarTypes + i;
+		}
+
+		qsort( pOrderedVars, pStruct->m_iNumVars, sizeof(stTypeDecVar*), CompareOrderVars );
+	
+		sValue.SetStrUTF8( "{ " );
+		for( unsigned int i = 0; i < pStruct->m_iNumVars; i++ )
+		{
+			stTypeDecVar *pVar = pOrderedVars[ i ];
+
+			sValue.AppendAscii( '[' );
+			sValue.Append( pVar->varName );
+			sValue.Append( "]=" );
+
+			unsigned int offset = pVar->varOffset;
+			switch( pVar->varType )
+			{
+				case AGK_DATA_TYPE_INT:
+				{
+					uString sNumber;
+					sNumber.Format( "%d", *((int*)(pType->m_pData + offset)) );
+					sValue.Append( sNumber );
+					break;
+				}
+				case AGK_DATA_TYPE_FLOAT:
+				{
+					uString sNumber;
+					sNumber.Format( "%g", *((float*)(pType->m_pData + offset)) );
+					sValue.Append( sNumber );
+					break;
+				}
+				case AGK_DATA_TYPE_STRING:
+				{
+					sValue.AppendUnicode( '"' );
+					sValue.Append( *((uString*)(pType->m_pData + offset)) );
+					sValue.AppendUnicode( '"' );
+					break;
+				}
+				case AGK_DATA_TYPE_TYPE:
+				{
+					sValue.AppendUTF8( "<Add a separate watch for this variable>" );
+					break;
+				}
+				case AGK_DATA_TYPE_ARRAY:
+				{
+					sValue.AppendUTF8( "<Add a separate watch for this variable>" );
+					break;
+				}
+			}
+
+			if ( i < pStruct->m_iNumVars-1 ) sValue.Append( ", " );
+		}
+		sValue.Append( " }" );
+		return 0;
 	}
 	
 	if ( sRemaining.ByteAt(0) != '.' )
@@ -2741,12 +2801,12 @@ int ProgramData::ParseDebugArray( AGKFunction *pFunction, int stackPtr, int strS
 		{
 			case AGK_DATA_TYPE_ARRAY:
 			{
-				sValue.SetStrUTF8( "<Invalid Expression>" );
+				sValue.SetStrUTF8( "<Cannot display a multidimensional array>" );
 				return 1;
 			}
 			case AGK_DATA_TYPE_TYPE:
 			{
-				sValue.SetStrUTF8( "<Invalid Expression>" );
+				sValue.SetStrUTF8( "<Cannot show array of types>" );
 				return 1;
 			}
 			case AGK_DATA_TYPE_STRING:

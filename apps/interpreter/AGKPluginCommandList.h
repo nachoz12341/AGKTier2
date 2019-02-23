@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 1998;
+int g_iNumAGKFunctions = 2000;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -96,6 +96,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"CACHEREWARDADCHARTBOOST_0_0", (AGKVoidFunc) (void(*)()) (agk::CacheRewardAdChartboost) },
 	{"CALCULATESPRITEPHYSICSCOM_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::CalculateSpritePhysicsCOM) },
 	{"CANCELLOCALNOTIFICATION_0_L", (AGKVoidFunc) (void(*)(int)) (agk::CancelLocalNotification) },
+	{"CANCELZIPEXTRACT_0_0", (AGKVoidFunc) (void(*)()) (agk::CancelZipExtract) },
 	{"CEIL_L_F", (AGKVoidFunc) (int(*)(float)) (agk::Ceil) },
 	{"CHECKPERMISSION_L_S", (AGKVoidFunc) (int(*)(const char*)) (agk::CheckPermission) },
 	{"CHOOSERAWFILE_S_S", (AGKVoidFunc) (char*(*)(const char*)) (agk::ChooseRawFile) },
@@ -372,6 +373,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GAMECENTERACHIEVEMENTSRESET_0_0", (AGKVoidFunc) (void(*)()) (agk::GameCenterAchievementsReset) },
 	{"GAMECENTERACHIEVEMENTSSHOW_0_0", (AGKVoidFunc) (void(*)()) (agk::GameCenterAchievementsShow) },
 	{"GAMECENTERLOGIN_0_0", (AGKVoidFunc) (void(*)()) (agk::GameCenterLogin) },
+	{"GAMECENTERLOGOUT_0_0", (AGKVoidFunc) (void(*)()) (agk::GameCenterLogout) },
 	{"GAMECENTERSETUP_0_0", (AGKVoidFunc) (void(*)()) (agk::GameCenterSetup) },
 	{"GAMECENTERSHOWLEADERBOARD_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::GameCenterShowLeaderBoard) },
 	{"GAMECENTERSUBMITACHIEVEMENT_0_S_L", (AGKVoidFunc) (void(*)(const char*,int)) (agk::GameCenterSubmitAchievement) },

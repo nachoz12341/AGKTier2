@@ -1070,6 +1070,21 @@ void ProgramData::CleanUp()
 
 	if ( m_pFunctions ) delete [] m_pFunctions;
 	m_pFunctions = 0;
+
+	m_iStackPtr = 0;
+	m_iFramePtr = -1;
+
+	m_iStrStackPtr = 0;
+	m_iStrFramePtr = -1;
+
+	m_iMaxStack = 0;
+	m_iInstructionCounter = 200000;
+
+	m_iGosubCounter = 0;
+	m_iFunctionLevel = 0;
+	m_iDebugFrameDepth = 0;
+	m_iLastBreakLine = -1;
+	m_iLastBreakLevel = -1;
 }
 
 void ProgramData::RuntimeError( const char *msg )
@@ -2200,6 +2215,15 @@ int ProgramData::RunProgram()
 	return 0;
 }
 
+void ProgramData::Break()
+{
+	// break and keep program counter on next instruction, so errors can be skipped
+	int instruction = m_iProgramCounter - 1;
+	m_iLastBreakLine = m_pInstructions[ instruction ].iLineNum;
+	m_iLastBreakLevel = m_iFunctionLevel;
+	App.OnAppBreak( m_pIncludeFiles[ m_pInstructions[ instruction ].iIncludeFile ], m_iLastBreakLine );
+}
+
 int ProgramData::RunProgramDebug( int stepMode )
 {
 	if ( !m_pInstructions ) 
@@ -2236,7 +2260,7 @@ int ProgramData::RunProgramDebug( int stepMode )
 				// if we previously stopped here, clear the continue marker and continue
 				m_pInstructions[ instruction ].iFlags &= ~AGK_INSTRUCTION_CONTINUE;
 			}
-			else
+			else 
 			{
 				// break and record that the next pass should continue on this instruction
 				m_pInstructions[ instruction ].iFlags |= AGK_INSTRUCTION_CONTINUE;
@@ -2501,6 +2525,90 @@ void ProgramData::RemoveVariableWatch( const char *szVar )
 	}
 }
 
+void ProgramData::SetVariable( const char *szVar, const char *szValue )
+{
+	if ( m_iBytecodeDebug == 0 ) return;
+
+	// find current function
+	AGKFunction *pFunction = 0;
+	int iDebugFramePtr = m_iFramePtr;
+	int iDebugStrFramePtr = m_iStrFramePtr;
+	if ( m_iFramePtr >= 0 )
+	{
+		// if user has selected a different function from the call stack then traverse up the stack
+		for( int i = 0; i < m_iDebugFrameDepth; i++ )
+		{
+			iDebugStrFramePtr = m_pStack[ iDebugFramePtr+2 ].i;
+			iDebugFramePtr = m_pStack[ iDebugFramePtr+1 ].i;
+			if ( iDebugFramePtr == -1 ) break;
+		}
+
+		if ( iDebugFramePtr >= 0 )
+		{
+			// grab return address of selected function and use this to find the function call command
+			// extract the jump pointer from the function call command and use that to match against known functions
+			int returnAddress = m_pStack[ iDebugFramePtr ].i;
+			int functionPtr = m_pInstructions[ returnAddress-1 ].i;
+
+			for ( UINT i = 0; i < m_iNumFunctions; i++ )
+			{
+				if ( m_pFunctions[ i ].iInstructionPtr == functionPtr )
+				{
+					pFunction = m_pFunctions + i;
+					break;
+				}
+			}
+		}
+	}
+
+	uString sFinal;
+	uString sNewValue( szValue );
+	int consumed = 0;
+	int error = SetDebugVariable( pFunction, iDebugFramePtr, iDebugStrFramePtr, szVar, sNewValue, consumed );
+	if ( error == 0 && consumed != strlen(szVar) ) error = 1;
+	if ( !error )
+	{
+		// tell debugger the new value of the variable
+		sNewValue.Replace( ':', 0x01 );
+		sFinal.Format( "%s:%s", szVar, sNewValue.GetStr() );
+		agk::DebugInfo( "Variable", sFinal.GetStr() );
+
+		// find any watch variables that have changed due to this change
+		AGKVariableWatch *pVar = m_pWatchVaraibles;
+		while ( pVar )
+		{
+			if ( pVar->sExpression.CompareCaseToN( szVar, pVar->sExpression.GetNumChars() ) == 0 )
+			{
+				int consumed = 0;
+				int error = ParseDebugVariable( pFunction, iDebugFramePtr, iDebugStrFramePtr, pVar->sExpression, sNewValue, consumed );
+				if ( error == 0 && consumed != pVar->sExpression.GetLength() )
+				{
+					sNewValue.SetStrUTF8( "<Invalid Expression>" );
+				}
+				sNewValue.Replace( ':', 0x01 );
+				sFinal.Format( "%s:%s", pVar->sExpression.GetStr(), sNewValue.GetStr() );
+				agk::DebugInfo( "Variable", sFinal.GetStr() );
+			}
+			
+			pVar = pVar->m_pNext;
+		}
+	}
+	else
+	{	
+		// failed to change, send debugger the current value of the variable
+		consumed = 0;
+		sNewValue.SetStr( "" );
+		error = ParseDebugVariable( pFunction, iDebugFramePtr, iDebugStrFramePtr, szVar, sNewValue, consumed );
+		if ( error == 0 && consumed != strlen(szVar) ) error = 1;
+		if ( !error )
+		{
+			sNewValue.Replace( ':', 0x01 );
+			sFinal.Format( "%s:%s", szVar, sNewValue.GetStr() );
+			agk::DebugInfo( "Variable", sFinal.GetStr() );
+		}
+	}
+}
+
 int ProgramData::ParseDebugVariable( AGKFunction *pFunction, int stackPtr, int strStackPtr, const char *szVar, uString &sValue, int &consumed )
 {
 	const char *varEnd = strpbrk( szVar, "[].," );
@@ -2536,7 +2644,7 @@ int ProgramData::ParseDebugVariable( AGKFunction *pFunction, int stackPtr, int s
 				// it's an array
 				stArray* arrayPtr = (stArray*)m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].p;
 				consumed += (int)(varEnd-szVar);
-				if ( !arrayPtr )
+				if ( !arrayPtr || stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr )
 				{
 					sValue.SetStrUTF8( "<Out Of Scope>" );
 					return 1;
@@ -2548,7 +2656,7 @@ int ProgramData::ParseDebugVariable( AGKFunction *pFunction, int stackPtr, int s
 				// it's a type
 				stType* typePtr = (stType*)m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].p;
 				consumed += (int)(varEnd-szVar);
-				if ( !typePtr )
+				if ( !typePtr || stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr )
 				{
 					sValue.SetStrUTF8( "<Out Of Scope>" );
 					return 1;
@@ -2563,22 +2671,37 @@ int ProgramData::ParseDebugVariable( AGKFunction *pFunction, int stackPtr, int s
 					case AGK_VARIABLE_STRING:
 					{
 						const char* value = m_pStrStack[ strStackPtr + pFunction->pVars[v].iVarID ].GetStr();
-						sValue.Format( "\"%s\"", value );
 						consumed += (int)(varEnd-szVar);
+						if ( strStackPtr + pFunction->pVars[v].iVarID >= (int)m_iStrStackPtr )
+						{
+							sValue.SetStrUTF8( "<Out Of Scope>" );
+							return 1;
+						}
+						sValue.Format( "\"%s\"", value );
 						return 0;
 					}
 					case AGK_VARIABLE_FLOAT:
 					{
 						float value = m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].f;
-						sValue.Format( "%f", value );
 						consumed += (int)(varEnd-szVar);
+						if ( stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr )
+						{
+							sValue.SetStrUTF8( "<Out Of Scope>" );
+							return 1;
+						}
+						sValue.Format( "%f", value );
 						return 0;
 					}
 					case AGK_VARIABLE_INTEGER:
 					{
 						int value = m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].i;
-						sValue.Format( "%d", value );
 						consumed += (int)(varEnd-szVar);
+						if ( stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr )
+						{
+							sValue.SetStrUTF8( "<Out Of Scope>" );
+							return 1;
+						}
+						sValue.Format( "%d", value );
 						return 0;
 					}
 				}
@@ -2947,6 +3070,307 @@ int ProgramData::ParseDebugArray( AGKFunction *pFunction, int stackPtr, int strS
 	return 1;
 }
 
+int ProgramData::SetDebugVariable( AGKFunction *pFunction, int stackPtr, int strStackPtr, const char *szVar, uString &sNewValue, int &consumed )
+{
+	const char *varEnd = strpbrk( szVar, "[].," );
+	uString identifier;
+	if ( varEnd ) identifier.SetStrN( szVar, (UINT)(varEnd-szVar) );
+	else 
+	{
+		varEnd = szVar + strlen(szVar);
+		identifier.SetStr( szVar );
+	}
+	identifier.Trim( " " );
+
+	// search for the identifier in function local variables
+	if ( pFunction )
+	{
+		for ( int v = 0; v < pFunction->iNumVars; v++ )
+		{
+			if ( pFunction->pVars[ v ].sName.CompareCaseTo( identifier ) != 0 ) continue;
+			
+			// found the variable
+			if ( pFunction->pVars[ v ].iNumDimensions > 0 )
+			{
+				// it's an array
+				stArray* arrayPtr = (stArray*)m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].p;
+				consumed += (int)(varEnd-szVar);
+				if ( !arrayPtr || stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr )
+				{
+					return 1;
+				}
+				return SetDebugArray( pFunction, stackPtr, strStackPtr, arrayPtr, varEnd, sNewValue, consumed );
+			}
+			else if ( pFunction->pVars[ v ].iType == AGK_VARIABLE_TYPE )
+			{
+				// it's a type
+				stType* typePtr = (stType*)m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].p;
+				consumed += (int)(varEnd-szVar);
+				if ( !typePtr || stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr )
+				{
+					return 1;
+				}
+				return SetDebugType( pFunction, stackPtr, strStackPtr, typePtr, varEnd, sNewValue, consumed );
+			}
+			else
+			{
+				// evaluate simple expression
+				switch( pFunction->pVars[ v ].iType )
+				{
+					case AGK_VARIABLE_STRING:
+					{
+						m_pStrStack[ strStackPtr + pFunction->pVars[v].iVarID ].SetStr( sNewValue );
+						if ( strStackPtr + pFunction->pVars[v].iVarID >= (int)m_iStrStackPtr ) return 1;
+						consumed += (int)(varEnd-szVar);
+						return 0;
+					}
+					case AGK_VARIABLE_FLOAT:
+					{
+						m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].f = sNewValue.ToFloat();
+						if ( stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr ) return 1;
+						consumed += (int)(varEnd-szVar);
+						return 0;
+					}
+					case AGK_VARIABLE_INTEGER:
+					{
+						m_pStack[ stackPtr + pFunction->pVars[v].iVarID ].i = sNewValue.ToInt();
+						if ( stackPtr + pFunction->pVars[v].iVarID >= (int)m_iStackPtr ) return 1;
+						consumed += (int)(varEnd-szVar);
+						return 0;
+					}
+				}
+			}
+		}
+	}
+
+	// search global integer variables
+	for ( UINT i = 0; i < m_iNumVariablesInt; i++ )
+	{
+		if ( m_pVariablesIntNames[ i ].CompareCaseTo( identifier ) == 0 )
+		{
+			m_pVariablesInt[i] = sNewValue.ToInt();
+			consumed += (int)(varEnd-szVar);
+			return 0;
+		}
+	}
+
+	// search global float variables
+	for ( UINT i = 0; i < m_iNumVariablesFloat; i++ )
+	{
+		if ( m_pVariablesFloatNames[ i ].CompareCaseTo( identifier ) == 0 )
+		{
+			m_pVariablesFloat[i] = sNewValue.ToFloat();
+			consumed += (int)(varEnd-szVar);
+			return 0;
+		}
+	}
+
+	// search global string variables
+	for ( UINT i = 0; i < m_iNumVariablesString; i++ )
+	{
+		if ( m_pVariablesStringNames[ i ].CompareCaseTo( identifier ) == 0 )
+		{
+			m_pVariablesString[i].SetStr( sNewValue );
+			consumed += (int)(varEnd-szVar);
+			return 0;
+		}
+	}
+
+	// search global type variables
+	for ( UINT i = 0; i < m_iNumVariablesType; i++ )
+	{
+		if ( m_pVariablesTypeNames[ i ].CompareCaseTo( identifier ) == 0 )
+		{
+			// evaluate type expression
+			consumed += (int)(varEnd-szVar);
+			return SetDebugType( pFunction, stackPtr, strStackPtr, m_pVariablesType + i, varEnd, sNewValue, consumed );
+		}
+	}
+
+	// search global array variables
+	for ( UINT i = 0; i < m_iNumVariablesArray; i++ )
+	{
+		if ( m_pVariablesArrayNames[ i ].CompareCaseTo( identifier ) == 0 )
+		{
+			// evaluate array expression
+			consumed += (int)(varEnd-szVar);
+			return SetDebugArray( pFunction, stackPtr, strStackPtr, m_pVariablesArray + i, varEnd, sNewValue, consumed );
+		}
+	}
+
+	return 1;
+}
+
+int ProgramData::SetDebugType( AGKFunction *pFunction, int stackPtr, int strStackPtr, stType *pType, const char *szField, uString &sNewValue, int &consumed )
+{
+	// szField should look like ".someField", could also have sub arrays such as ".someField[5]"
+	uString sRemaining( szField );
+	sRemaining.Trim( " " );
+	if ( sRemaining.GetLength() == 0 )
+	{
+		// Cannot set a whole type
+		return 1;
+	}
+	
+	if ( sRemaining.ByteAt(0) != '.' )
+	{
+		return 1;
+	}
+
+	// grab the field name
+	const char *varStart = strchr( szField, '.' ) + 1;
+	const char *varEnd = strpbrk( varStart, "[].," );
+	uString identifier;
+	if ( varEnd ) identifier.SetStrN( varStart, (UINT)(varEnd-varStart) );
+	else 
+	{
+		varEnd = varStart + strlen(varStart);
+		identifier.SetStr( varStart );
+	}
+	identifier.Trim( " " );
+
+	// look for the field name in the type definition
+	int iTypeIndex = pType->m_iTypeDec;
+	stTypeDec *pTypeStruct = m_pTypeStructs + iTypeIndex;
+	for ( UINT i = 0; i < pTypeStruct->m_iNumVars; i++ )
+	{
+		if ( pTypeStruct->m_pVarTypes[ i ].varName.CompareCaseTo( identifier ) == 0 )
+		{
+			switch( pTypeStruct->m_pVarTypes[ i ].varType )
+			{
+				case AGK_DATA_TYPE_ARRAY:
+				{
+					stArray *pArray = (stArray*)(pType->m_pData + pTypeStruct->m_pVarTypes[ i ].varOffset);
+					consumed += (int)(varEnd-szField);
+					return SetDebugArray( pFunction, stackPtr, strStackPtr, pArray, varEnd, sNewValue, consumed );
+				}
+				case AGK_DATA_TYPE_TYPE:
+				{
+					stType *pSubType = (stType*)(pType->m_pData + pTypeStruct->m_pVarTypes[ i ].varOffset);
+					consumed += (int)(varEnd-szField);
+					return SetDebugType( pFunction, stackPtr, strStackPtr, pSubType, varEnd, sNewValue, consumed );
+				}
+				case AGK_DATA_TYPE_STRING:
+				{
+					uString *pString = (uString*)(pType->m_pData + pTypeStruct->m_pVarTypes[ i ].varOffset);
+					pString->SetStr( sNewValue );
+					consumed += (int)(varEnd-szField);
+					return 0;
+				}
+				case AGK_DATA_TYPE_FLOAT:
+				{
+					float *pFloat = (float*)(pType->m_pData + pTypeStruct->m_pVarTypes[ i ].varOffset);
+					*pFloat = sNewValue.ToFloat();
+					consumed += (int)(varEnd-szField);
+					return 0;
+				}
+				case AGK_DATA_TYPE_INT:
+				{
+					int *pInt = (int*)(pType->m_pData + pTypeStruct->m_pVarTypes[ i ].varOffset);
+					*pInt = sNewValue.ToInt();
+					consumed += (int)(varEnd-szField);
+					return 0;
+				}
+				default:
+				{
+					return 1;
+				}
+			}
+		}
+	}
+
+	return 1;
+}
+
+int ProgramData::SetDebugArray( AGKFunction *pFunction, int stackPtr, int strStackPtr, stArray *pArray, const char *szDimensions, uString &sNewValue, int &consumed )
+{
+	// szDimensions should look something like "[a][0]" depending on number of dimensions and index types, could also be "[a][0].typeField"
+	uString sRemaining( szDimensions );
+	sRemaining.Trim( " " );
+	if ( sRemaining.GetLength() == 0 )
+	{
+		// cannot set an entire array
+		return 1;		
+	}
+	else
+	{
+		const char *varStart;
+		if ( sRemaining.ByteAt(0) == '[' ) varStart = strchr( szDimensions, '[' )+1;
+		else if ( sRemaining.ByteAt(0) == ',' ) varStart = strchr( szDimensions, ',' )+1;
+		else
+		{
+			return 1;
+		}
+
+		uString sIndex;
+		int subConsumed = 0;
+		int result = ParseDebugVariable( pFunction, stackPtr, strStackPtr, varStart, sIndex, subConsumed );
+		if ( result > 0 ) return result;
+		UINT iIndex = sIndex.ToInt();
+
+		// check for strings that convert to index 0 but aren't valid indices
+		if ( iIndex == 0 && sIndex.ByteAt(0) != '0' )
+		{
+			return 1;
+		}
+
+		// find end dimension bracket
+		varStart += subConsumed;
+		while( *varStart == ' ' ) varStart++;
+
+		if ( *varStart == ']' ) varStart++;
+		else if ( *varStart != ',' )
+		{
+			return 1;
+		}
+
+		// check index range
+		if ( iIndex >= pArray->m_iLength )
+		{
+			return 1;
+		}
+
+		int type = pArray->GetCurrType();
+		switch( type )
+		{
+			case AGK_DATA_TYPE_ARRAY:
+			{
+				consumed += (int)(varStart - szDimensions);
+				return SetDebugArray( pFunction, stackPtr, strStackPtr, pArray->m_pA[ iIndex ], varStart, sNewValue, consumed );
+			}
+			case AGK_DATA_TYPE_TYPE:
+			{
+				consumed += (int)(varStart - szDimensions);
+				return SetDebugType( pFunction, stackPtr, strStackPtr, pArray->m_pT[ iIndex ], varStart, sNewValue, consumed );
+			}
+			case AGK_DATA_TYPE_STRING:
+			{
+				pArray->m_pS[ iIndex ]->SetStr( sNewValue );
+				consumed += (int)(varStart - szDimensions);
+				return 0;
+			}
+			case AGK_DATA_TYPE_FLOAT:
+			{
+				pArray->m_pF[ iIndex ] = sNewValue.ToFloat();
+				consumed += (int)(varStart - szDimensions);
+				return 0;
+			}
+			case AGK_DATA_TYPE_INT:
+			{
+				pArray->m_pI[ iIndex ] = sNewValue.ToInt();
+				consumed += (int)(varStart - szDimensions);
+				return 0;
+			}
+			default:
+			{
+				return 1;
+			}
+		}
+	}
+
+	return 1;
+}
+
 void ProgramData::PrintWatchVariables( AGKVariableWatch *pTargetVar )
 {
 	if ( m_iBytecodeDebug == 0 ) return;
@@ -2985,15 +3409,25 @@ void ProgramData::PrintWatchVariables( AGKVariableWatch *pTargetVar )
 
 	if ( pTargetVar )
 	{
-		uString sFinal, sValue;
-		int consumed = 0;
-		int error = ParseDebugVariable( pFunction, iDebugFramePtr, iDebugStrFramePtr, pTargetVar->sExpression, sValue, consumed );
-		if ( error == 0 && consumed != pTargetVar->sExpression.GetLength() )
+		if ( pTargetVar->sExpression.CompareTo( "@Version" ) == 0 )
 		{
-			sValue.SetStrUTF8( "<Invalid Expression>" );
+			uString sFinal;
+			sFinal.Format( "@Version:%d", AGK_DEBUG_MESSAGE_VERSION );
+			agk::DebugInfo( "Variable", sFinal.GetStr() );
 		}
-		sFinal.Format( "%s:%s", pTargetVar->sExpression.GetStr(), sValue.GetStr() );
-		agk::DebugInfo( "Variable", sFinal.GetStr() );
+		else
+		{
+			uString sFinal, sValue;
+			int consumed = 0;
+			int error = ParseDebugVariable( pFunction, iDebugFramePtr, iDebugStrFramePtr, pTargetVar->sExpression, sValue, consumed );
+			if ( error == 0 && consumed != pTargetVar->sExpression.GetLength() )
+			{
+				sValue.SetStrUTF8( "<Invalid Expression>" );
+			}
+			sValue.Replace( ':', 0x01 );
+			sFinal.Format( "%s:%s", pTargetVar->sExpression.GetStr(), sValue.GetStr() );
+			agk::DebugInfo( "Variable", sFinal.GetStr() );
+		}
 	}
 	else
 	{
@@ -3002,15 +3436,24 @@ void ProgramData::PrintWatchVariables( AGKVariableWatch *pTargetVar )
 		AGKVariableWatch *pVar = m_pWatchVaraibles;
 		while ( pVar )
 		{
-			int consumed = 0;
-			int error = ParseDebugVariable( pFunction, iDebugFramePtr, iDebugStrFramePtr, pVar->sExpression, sValue, consumed );
-			if ( error == 0 && consumed != pVar->sExpression.GetLength() )
+			if ( pVar->sExpression.CompareTo( "@Version" ) == 0 )
 			{
-				sValue.SetStrUTF8( "<Invalid Expression>" );
+				uString sFinal;
+				sFinal.Format( "@Version:%d", AGK_DEBUG_MESSAGE_VERSION );
+				agk::DebugInfo( "Variable", sFinal.GetStr() );
 			}
-			sValue.Replace( ':', 0x01 );
-			sFinal.Format( "%s:%s", pVar->sExpression.GetStr(), sValue.GetStr() );
-			agk::DebugInfo( "Variable", sFinal.GetStr() );
+			else
+			{
+				int consumed = 0;
+				int error = ParseDebugVariable( pFunction, iDebugFramePtr, iDebugStrFramePtr, pVar->sExpression, sValue, consumed );
+				if ( error == 0 && consumed != pVar->sExpression.GetLength() )
+				{
+					sValue.SetStrUTF8( "<Invalid Expression>" );
+				}
+				sValue.Replace( ':', 0x01 );
+				sFinal.Format( "%s:%s", pVar->sExpression.GetStr(), sValue.GetStr() );
+				agk::DebugInfo( "Variable", sFinal.GetStr() );
+			}
 			
 			pVar = pVar->m_pNext;
 		}

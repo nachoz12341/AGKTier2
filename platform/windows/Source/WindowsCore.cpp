@@ -10168,8 +10168,7 @@ float agk::GetRawGPSAltitude()
 
 //****f* Extras/GameCenter/GetGameCenterExists
 // FUNCTION
-//   Returns 1 if the current platform supports Game Center. 
-//   Works with iOS, Google Game Services, and Amazon GameCircle.
+//   Returns 1 if the current platform supports Game Center or Google Play Games. 
 // SOURCE
 int agk::GetGameCenterExists()
 //****
@@ -10189,9 +10188,9 @@ void agk::GameCenterSetup()
 
 //****f* Extras/GameCenter/GameCenterLogin
 // FUNCTION
-//   Call this once to log the user in to Game Center, if they are already logged in to the Game Center
-//   app then this happens in the background and does not interrupt the user, otherwise a popup will 
-//   appear asking them to log in.
+//   Call this once to log the user in to Game Center (iOS) or Google Play Games (Android), if they have 
+//   logged in before this happens in the background and does not interrupt the user, otherwise a popup will 
+//   appear asking them to log in and grant permission to continue.
 // SOURCE
 void agk::GameCenterLogin()
 //****
@@ -10199,9 +10198,20 @@ void agk::GameCenterLogin()
 	
 }
 
+//****f* Extras/GameCenter/GameCenterLogout
+// FUNCTION
+//   Call this to log the user out of Google Play Games. After this you may call <i>GameCenterLogin</i>
+//   again. On Game Center (iOS) this has no affect, the user must logout from the Game Center app.
+// SOURCE
+void agk::GameCenterLogout()
+//****
+{
+	
+}
+
 //****f* Extras/GameCenter/GetGameCenterLoggedIn
 // FUNCTION
-//   Will return 1 if the user is logged in to Game Center, 0 if not. The login process is Asynchronous 
+//   Will return 1 if the user is logged in to Game Center or Google Play Games, 0 if not. The login process is Asynchronous 
 //   so after calling <i>GameCenterLogin</i> it may take a few seconds for this command to return 1.
 //   If the user fails to login or GameCenter is not available then this will return -1.
 // SOURCE

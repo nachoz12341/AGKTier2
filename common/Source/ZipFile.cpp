@@ -22,7 +22,7 @@ UINT ZipExtracter::Run()
 	{
 		if ( m_sFilename.GetLength() == 0 ) return 0;
 
-		ZipFile::ExtractAll( m_sFilename.GetStr(), m_sExtractPath.GetStr(), m_sPassword.GetLength() > 0 ? m_sPassword.GetStr() : NULL, &m_fProgress );
+		ZipFile::ExtractAll( m_sFilename.GetStr(), m_sExtractPath.GetStr(), m_sPassword.GetLength() > 0 ? m_sPassword.GetStr() : NULL, &m_fProgress, &m_bTerminate );
 
 		m_sFilename.SetStr("");
     }
@@ -125,7 +125,7 @@ void ZipFile::Close()
 	m_zf = 0; // should fix the crash bug
 }
 
-bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const char* password, volatile float* progress)
+bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const char* password, volatile float* progress, volatile bool *stop)
 {
 	if ( progress ) *progress = 0;
 
@@ -178,6 +178,8 @@ bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const c
 			return false;
 		}
 	}
+
+	if ( stop && *stop ) return false;
 
 	if ( progress ) *progress = 1;
 		
@@ -262,6 +264,12 @@ bool ZipFile::ExtractAll( const char* filename, const char* extractPath, const c
                 break;
             }
         }
+
+		if ( stop && *stop ) 
+		{
+			unzClose(uf);
+			return false;
+		}
     }
 
 	unzClose(uf);

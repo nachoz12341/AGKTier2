@@ -191,7 +191,8 @@ class RunnableKeyboard implements Runnable
 			{
 				AGKHelper.mTextInput = new EditText(act);
 				AGKHelper.mTextInput.setSingleLine(multiline == 0);
-				AGKHelper.mTextInput.setInputType( inputType==1 ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT );
+				if ( inputType==1 ) AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED );
+				else AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_TEXT );
 				if ( MyTextWatcher.m_TextWatcher == null ) MyTextWatcher.m_TextWatcher = new MyTextWatcher();
 				if ( MyTextActionWatcher.m_TextActionWatcher == null ) MyTextActionWatcher.m_TextActionWatcher = new MyTextActionWatcher();
 				MyTextActionWatcher.act = act;
@@ -242,7 +243,8 @@ class RunnableKeyboard implements Runnable
 				if ( AGKHelper.mTextInput != null ) 
 				{
 					AGKHelper.mTextInput.setSingleLine(multiline == 0);
-					AGKHelper.mTextInput.setInputType( inputType==1 ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT );
+					if ( inputType==1 ) AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED );
+					else AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_TEXT );
 					AGKHelper.mTextFinished = false;
 					if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
 					AGKHelper.mTextInput.requestFocus();
@@ -1267,6 +1269,8 @@ public class AGKHelper {
 	{
 		
 	}
+
+	public static void GameCenterLogout() {}
 	
 	public static int GetGameCenterLoggedIn()
 	{

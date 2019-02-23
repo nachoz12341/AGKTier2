@@ -5,6 +5,7 @@
 
 #define AGK_BYTECODE_VERSION 13
 #define AGK_FIRST_INSTRUCTION 0
+#define AGK_DEBUG_MESSAGE_VERSION 1
 
 #ifdef FREEVERSION
 	#include "FreeVersion.h"

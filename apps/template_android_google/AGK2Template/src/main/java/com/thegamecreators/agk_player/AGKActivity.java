@@ -59,18 +59,6 @@ public class AGKActivity extends NativeActivity
     {
         switch( requestCode ) {
             case 9000:
-            case 9001: {
-                if (resultCode == Activity.RESULT_OK) {
-                    if (AGKHelper.m_GameClient != null
-                            && !AGKHelper.m_GameClient.isConnected()
-                            && !AGKHelper.m_GameClient.isConnecting()) {
-                        AGKHelper.m_GameClient.connect();
-                    }
-                } else {
-                    AGKHelper.ShowMessage(this, "Unable to sign in to Google Play Games");
-                }
-                break;
-            }
             case 9002: {
                 if (!AGKHelper.mHelper.handleActivityResult(requestCode, resultCode, data)) {
                     Log.e("IAP", "Failed to handle activity result " + resultCode);
@@ -156,11 +144,21 @@ public class AGKActivity extends NativeActivity
                 }
                 break;
             }
-            case GamesActivityResultCodes.RESULT_RECONNECT_REQUIRED:
+            case 10004: // Google Games sign in
             {
-                Log.i("GameCenter", "Logged out from app");
-                AGKHelper.m_GameClient.disconnect();
-                AGKHelper.m_GameCenterLoggedIn = 0;
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                try {
+                    AGKHelper.g_GamesAccount = task.getResult(ApiException.class);
+                    AGKHelper.GameCenterCompleteLogin( this );
+                } catch (ApiException e) {
+                    Log.e("Games Sign In", "Failed to sign in, error code: " + e.getStatusCode());
+                    if (e.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_CANCELLED)
+                        AGKHelper.m_GameCenterLoggedIn = -1;
+                    else if (e.getStatusCode() != GoogleSignInStatusCodes.SIGN_IN_CURRENTLY_IN_PROGRESS)
+                        AGKHelper.m_GameCenterLoggedIn = -1;
+                    AGKHelper.g_GamesAccount = null;
+                    AGKHelper.g_GamesSignIn = null;
+                }
                 break;
             }
             case 9003: // youtube start video playback

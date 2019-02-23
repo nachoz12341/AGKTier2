@@ -6739,6 +6739,11 @@ void agk::GameCenterLogin()
 #endif
 }
 
+void agk::GameCenterLogout()
+{
+	
+}
+
 int agk::GetGameCenterLoggedIn()
 {
 #ifndef LITEVERSION

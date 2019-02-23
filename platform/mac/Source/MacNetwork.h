@@ -342,8 +342,10 @@ namespace AGK
 	class cHTTPConnection : public AGKThread
 	{
         protected:
+            NSURLConnection *m_connection;
             AGKHTTPListener *m_listener;
             NSString *m_sHost;
+            uString m_sLastURL;
             bool m_bFinished;
             uString m_sRndFilename;
 			int m_iTimeout;

@@ -36612,6 +36612,18 @@ int agk::GetZipExtractComplete()
 	return g_ZipExtracter.IsRunning() ? 0 : 1;
 }
 
+//****f* File/Zip/CancelZipExtract
+// FUNCTION
+//   Stops any asynchronous zip extraction that is currently in progress, it may take a moment to finish the current file
+//   and then it will stop. Once it finishes <i>GetZipExtractComplete</i> will return 1 and <i>GetZipExtractProgress</i>
+//   will remain at whatever value it was currently at.
+// SOURCE
+void agk::CancelZipExtract()
+//****
+{
+	g_ZipExtracter.Stop();
+}
+
 
 //
 // V108

@@ -1490,8 +1490,7 @@ void Broadcaster::SetData( int ipv6, UINT port, const AGKPacket* packet, UINT in
 	m_pHTTP->FinishedInternal(1);
     
     //NSLog( @"Connection finished" );
-    
-    [connection release];
+    // don't release connection here, do it in FinishedInternal instead
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
@@ -1557,7 +1556,7 @@ void Broadcaster::SetData( int ipv6, UINT port, const AGKPacket* packet, UINT in
     m_pHTTP->FinishedInternal(0);
     NSLog( @"%@", [error localizedDescription] );
     
-    [connection release];
+    // don't relase connection here, do it in FinishedInternal instead
 }
 
 - (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
@@ -1598,6 +1597,7 @@ void Broadcaster::SetData( int ipv6, UINT port, const AGKPacket* packet, UINT in
 
 cHTTPConnection::cHTTPConnection()
 {
+    m_connection = nil;
     m_sHost = 0;
 	m_listener = [[AGKHTTPListener alloc] init];
 	m_iSecure = 0;
@@ -1618,6 +1618,12 @@ cHTTPConnection::cHTTPConnection()
 cHTTPConnection::~cHTTPConnection()
 {
     //NSLog( @"Connection deleted" );
+    if ( m_connection )
+    {
+        [m_connection cancel];
+        [m_connection release];
+        m_connection = nil;
+    }
     if ( m_listener ) [ m_listener release ];
     if ( m_sHost ) [ m_sHost release ];
     if ( m_szResponse ) delete [] m_szResponse;
@@ -1656,7 +1662,7 @@ void cHTTPConnection::SetVerifyCertificate( int mode )
 
 void cHTTPConnection::AddHeader( const char* headerName, const char* headerValue )
 {
-	if ( IsRunning() )
+	if ( !m_bFinished )
 	{
 		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
 		return;
@@ -1675,7 +1681,7 @@ void cHTTPConnection::AddHeader( const char* headerName, const char* headerValue
 
 void cHTTPConnection::RemoveHeader( const char* headerName )
 {
-	if ( IsRunning() )
+	if ( !m_bFinished )
 	{
 		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
 		return;
@@ -1687,7 +1693,11 @@ void cHTTPConnection::RemoveHeader( const char* headerName )
 
 void cHTTPConnection::FinishedInternal( int value )
 {
-    if ( !m_listener ) return;
+    if ( m_connection )
+    {
+        [m_connection release];
+        m_connection = nil;
+    }
     
     if ( value == 0 )
     {
@@ -1696,13 +1706,16 @@ void cHTTPConnection::FinishedInternal( int value )
         agk::Warning( err );
     }
     
-    int reslength = (int) [m_listener->m_response length];
-    
-    if ( value > 0 )
+    if ( m_listener )
     {
-        m_szResponse = new char[ reslength + 1 ];
-        if ( reslength > 0 ) memcpy( m_szResponse, [m_listener->m_response bytes], reslength );
-        m_szResponse[ reslength ] = 0;
+        int reslength = (int) [m_listener->m_response length];
+        
+        if ( value > 0 )
+        {
+            m_szResponse = new char[ reslength + 1 ];
+            if ( reslength > 0 ) memcpy( m_szResponse, [m_listener->m_response bytes], reslength );
+            m_szResponse[ reslength ] = 0;
+        }
     }
     
     if ( m_sRndFilename.GetLength() > 0 ) agk::DeleteFile( m_sRndFilename );
@@ -1851,9 +1864,9 @@ bool cHTTPConnection::SendRequestASync( const char *szServerFile, const char *sz
     m_listener->m_pHTTP = this;
     m_listener->m_bToFile = false;
     m_listener->m_file = 0;
-    NSURLConnection *result = [ [NSURLConnection alloc] initWithRequest:request delegate:m_listener ];
+    m_connection = [ [NSURLConnection alloc] initWithRequest:request delegate:m_listener ];
     
-    if ( !result )
+    if ( !m_connection )
     {
         uString err;
         err.Format( "Failed to connect to %s", [sURL cStringUsingEncoding:NSUTF8StringEncoding] );
@@ -2008,9 +2021,9 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
     m_listener->m_pHTTP = this;
     m_listener->m_bToFile = false;
     m_listener->m_file = 0;
-    NSURLConnection *result = [ [NSURLConnection alloc] initWithRequest:request delegate:m_listener ];
+    m_connection = [ [NSURLConnection alloc] initWithRequest:request delegate:m_listener ];
     
-    if ( !result )
+    if ( !m_connection )
     {
         uString err;
         err.Format( "Failed to connect to %s", [sURL cStringUsingEncoding:NSUTF8StringEncoding] );
@@ -2092,9 +2105,9 @@ bool cHTTPConnection::DownloadFile( const char *szServerFile, const char *szLoca
     m_listener->m_bToFile = true;
     m_listener->m_sFilename.SetStr(szLocalFile);
     m_listener->m_file = 0;
-    NSURLConnection *result = [ [NSURLConnection alloc] initWithRequest:request delegate:m_listener ];
+    m_connection = [ [NSURLConnection alloc] initWithRequest:request delegate:m_listener ];
     
-    if ( !result )
+    if ( !m_connection )
     {
         uString err;
         err.Format( "Failed to connect to %s", [sURL cStringUsingEncoding:NSUTF8StringEncoding] );

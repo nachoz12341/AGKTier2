@@ -25,7 +25,7 @@ namespace AGK
 	{
 		protected:
 			void* m_zf;
-
+			
 		public:
 			
 			ZipFile();
@@ -36,7 +36,7 @@ namespace AGK
 			bool AddEntry( const char* realPath, const char* zipPath, int compressionlevel );
 			void Close();
 
-			static bool ExtractAll( const char* filename, const char* extractPath, const char* password, volatile float* progress=NULL );
+			static bool ExtractAll( const char* filename, const char* extractPath, const char* password, volatile float* progress=NULL, volatile bool* stop=NULL );
 
 	};
 }

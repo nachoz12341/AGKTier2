@@ -2657,6 +2657,7 @@ namespace AGK
 			static void ExtractZipASync(const char* zipfilename, const char* path, const char* password);
 			static float GetZipExtractProgress();
 			static int GetZipExtractComplete();
+			static void CancelZipExtract();
 
 			// memblock functions (do not exist at this time)
 			static UINT CreateMemblock( UINT size );
@@ -2747,6 +2748,7 @@ namespace AGK
 			static void GameCenterSetup();
 			static void GameCenterSetup( const char *szKey, const char *szData );
 			static void GameCenterLogin();
+			static void GameCenterLogout();
 			static int GetGameCenterLoggedIn();
 			static char* GetGameCenterPlayerID();
 			static char* GetGameCenterPlayerDisplayName();

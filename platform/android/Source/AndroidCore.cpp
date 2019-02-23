@@ -10052,6 +10052,23 @@ void agk::GameCenterLogin()
 	vm->DetachCurrentThread();
 }
 
+void agk::GameCenterLogout()
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GameCenterLogout","()V" );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity );
+
+	vm->DetachCurrentThread();
+}
+
 int agk::GetGameCenterLoggedIn()
 {
 	JNIEnv* lJNIEnv = g_pActivity->env;

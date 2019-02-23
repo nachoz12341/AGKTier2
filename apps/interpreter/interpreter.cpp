@@ -596,6 +596,16 @@ void app::CheckMessages()
 				break;
 			}
 
+			case 15: // set variable value
+			{
+				uString var;
+				m_pConnection->RecvString( var );
+				uString value;
+				m_pConnection->RecvString( value );
+				m_sProgram.SetVariable( var, value );
+				break;
+			}
+
 			case 99: // disconnected
 			{
 				m_pConnection->Close();
@@ -1096,7 +1106,16 @@ void app::Loop ( void )
 					err.Prepend( "Error: " );
 					//agk::Message( err.GetStr() );
 					m_sProgram.RuntimeError( err.GetStr() );
-					if ( m_iStandAlone == 0 ) AppFinished();
+					if ( m_iStandAlone == 0 ) 
+					{
+						if ( m_iDebugMode == 0 ) AppFinished();
+						else
+						{
+							m_sProgram.Break();
+							AppPause();
+							m_iAppControlStage = APP_PAUSED;
+						}
+					}
 					else m_iAppControlStage = APP_RUNTIME_ERROR;
 					break;
 				}

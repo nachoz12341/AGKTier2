@@ -10046,3 +10046,13 @@ case AGKI_GETWINDOWHEIGHT_L_0:
     m_pStack[ m_iStackPtr++ ].i = agk::GetWindowHeight( );
     break;
 }
+case AGKI_CANCELZIPEXTRACT_0_0:
+{
+    agk::CancelZipExtract( );
+    break;
+}
+case AGKI_GAMECENTERLOGOUT_0_0:
+{
+    agk::GameCenterLogout( );
+    break;
+}

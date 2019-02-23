@@ -20,16 +20,21 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 
+import com.google.android.gms.games.AchievementsClient;
+import com.google.android.gms.games.AnnotatedData;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.LeaderboardsClient;
+import com.google.android.gms.games.Player;
+import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.games.achievement.AchievementBuffer;
 import com.google.android.gms.games.achievement.Achievements;
 import com.google.android.gms.games.achievement.Achievements.LoadAchievementsResult;
-import com.google.android.gms.plus.Plus;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.api.client.googleapis.extensions.android.gms.auth.*;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -235,7 +240,8 @@ class RunnableKeyboard implements Runnable
 			{
 				AGKHelper.mTextInput = new EditText(act);
 				AGKHelper.mTextInput.setSingleLine(multiline == 0);
-				AGKHelper.mTextInput.setInputType( inputType==1 ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT );
+				if ( inputType==1 ) AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED );
+				else AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_TEXT );
 				if ( MyTextWatcher.m_TextWatcher == null ) MyTextWatcher.m_TextWatcher = new MyTextWatcher();
 				if ( MyTextActionWatcher.m_TextActionWatcher == null ) MyTextActionWatcher.m_TextActionWatcher = new MyTextActionWatcher();
 				MyTextActionWatcher.act = act;
@@ -286,7 +292,8 @@ class RunnableKeyboard implements Runnable
 				if ( AGKHelper.mTextInput != null ) 
 				{
 					AGKHelper.mTextInput.setSingleLine(multiline == 0);
-					AGKHelper.mTextInput.setInputType( inputType==1 ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT );
+					if ( inputType==1 ) AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED );
+					else AGKHelper.mTextInput.setInputType( InputType.TYPE_CLASS_TEXT );
 					AGKHelper.mTextFinished = false;
 					if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
 					AGKHelper.mTextInput.requestFocus();
@@ -1970,93 +1977,6 @@ class AGKLocationListener implements GoogleApiClient.ConnectionCallbacks,
 	public void onConnectionSuspended(int arg0) {}
 } 
 
-class AGKGameListener implements GoogleApiClient.ConnectionCallbacks,
-								 GoogleApiClient.OnConnectionFailedListener, 
-								 ResultCallback<Achievements.LoadAchievementsResult>
-{
-	Activity act;
-	
-	public void onConnected(Bundle dataBundle) 
-	{
-		Log.i("GameCenter", "Connected");
-		AGKHelper.m_GameCenterLoggedIn = 1;
-		AGKHelper.m_ReconnectGameCenter = 0;
-		Games.Achievements.load(AGKHelper.m_GameClient, false).setResultCallback(this);
-	}
-	
-	public void onDisconnected() {
-		Log.i("GameCenter","Disconnected");
-		AGKHelper.m_ReconnectGameCenter = 0;
-		AGKHelper.m_GameCenterLoggedIn = 0;
-	}
-	
-	public void onConnectionFailed(ConnectionResult connectionResult) 
-	{
-		/*
-		* Google Play services can resolve some errors it detects.
-		* If the error has a resolution, try sending an Intent to
-		* start a Google Play services activity that can resolve
-		* error.
-		*/
-		if (connectionResult.hasResolution())
-		{
-			Log.i("GameCenter","Failed to connect, trying connection resolution");
-			try 
-			{
-				AGKHelper.m_ReconnectGameCenter++;
-				// Start an Activity that tries to resolve the error
-				connectionResult.startResolutionForResult(act,9000);
-				/*
-				* Thrown if Google Play services canceled the original
-				* PendingIntent
-				*/
-			} catch (IntentSender.SendIntentException e) {
-				// Log the error
-				AGKHelper.m_ReconnectGameCenter = 0;
-				e.printStackTrace();
-				AGKHelper.m_GameCenterLoggedIn = -1;
-				AGKHelper.ShowMessage(act, connectionResult.toString());
-			}
-		} 
-		else 
-		{
-			/*
-			* If no resolution is available, display a dialog to the
-			* user with the error.
-			*/
-			AGKHelper.m_GameCenterLoggedIn = -1;
-
-			if ( connectionResult.getErrorCode() == ConnectionResult.SERVICE_MISSING
-			  || connectionResult.getErrorCode() == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED
-			  || connectionResult.getErrorCode() == ConnectionResult.SERVICE_DISABLED )
-			{
-				Log.i("GameCenter","Failed to connect, trying service resolution");
-				AGKHelper.m_ReconnectGameCenter++;
-				Dialog resolution = GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), act, 9001 );
-				resolution.show();
-			}
-			else
-			{
-				Log.i("GameCenter","Failed to connect");
-				AGKHelper.m_ReconnectGameCenter = 0;
-				AGKHelper.ShowMessage(act,connectionResult.toString());
-			}
-		}
-	}
-
-	@Override
-	public void onConnectionSuspended(int arg0) {
-		Log.i("GameCenter","Suspended");
-		AGKHelper.m_GameCenterLoggedIn = 0;
-		AGKHelper.m_GameClient.connect();
-	}
-
-	@Override
-    public void onResult(LoadAchievementsResult arg0) {
-        AGKHelper.m_AllAchievements = arg0.getAchievements();
-    }    
-}
-
 class AGKSpeechListener  implements TextToSpeech.OnInitListener, TextToSpeech.OnUtteranceCompletedListener
 {
 	@Override
@@ -2097,12 +2017,7 @@ public class AGKHelper {
 	static float m_fGPSAltitude;
 	static GoogleApiClient m_GPSClient = null;
 	static boolean m_GPSRequested = false;
-	static int m_GPSCheck = -1;
-	static int m_ReconnectGameCenter = 0;
-	static AGKGameListener m_GameListener = null;
-	static GoogleApiClient m_GameClient = null;
-	static int m_GameCenterLoggedIn = 0;
-	static AchievementBuffer m_AllAchievements = null;
+	static int m_GoogleServicesCheck = -1;
 	static int isVisible = 0;
 	static int immersiveMode = 0; // 0 = show nav bar, 1 = hide nav bar
 	static int listenerSet = 0;
@@ -2262,6 +2177,8 @@ public class AGKHelper {
 				catch( IllegalStateException e ) { Log.w("ScreenRecorder", "Tried to resume MediaRecorder from illegal state"); }
 			}
 		}
+
+		if ( g_GamesSignIn != null ) GameCenterLogin( act );
 	}
 	
 	public static void OnStop( Activity act ) {
@@ -2370,8 +2287,8 @@ public class AGKHelper {
 	// GPS
 	public static int GetGPSExists( Activity act )
 	{
-		if ( m_GPSCheck < 0 ) m_GPSCheck = servicesConnected(act) ? 1 : 0;
-		return m_GPSCheck;
+		if ( m_GoogleServicesCheck < 0 ) m_GoogleServicesCheck = servicesConnected(act) ? 1 : 0;
+		return m_GoogleServicesCheck;
 	}
 	
 	public static void StartGPSTracking( Activity act )
@@ -2422,138 +2339,184 @@ public class AGKHelper {
 	{
 		return m_fGPSAltitude;
 	}
-	
-	// GameCenter
+
+	// GameCenter commands
+	static GoogleSignInClient g_GamesSignIn = null;
+	static GoogleSignInAccount g_GamesAccount = null;
+	static String g_GamesPlayerID = "";
+	static String g_GamesPlayerName = "";
+	static int m_GameCenterLoggedIn = 0;
+	static AchievementBuffer m_AllAchievements = null;
+
 	public static int GetGameCenterExists( Activity act )
 	{
-		if ( m_GPSCheck < 0 ) m_GPSCheck = servicesConnected(act) ? 1 : 0;
-		return m_GPSCheck;
+		if ( m_GoogleServicesCheck < 0 ) m_GoogleServicesCheck = servicesConnected(act) ? 1 : 0;
+		return m_GoogleServicesCheck;
 	}
-	
+
 	public static void GameCenterSetup( Activity act )
 	{
-		if ( m_GameListener == null )
-		{
-			m_GameListener = new AGKGameListener();
-			m_GameListener.act = act;
-		}
-		
-		if ( m_GameClient == null )
-		{
-			m_GameClient = new GoogleApiClient.Builder(act)
-            								  .addConnectionCallbacks(m_GameListener)
-            								  .addOnConnectionFailedListener(m_GameListener)
-            								  .addApi(Plus.API).addScope(Plus.SCOPE_PLUS_LOGIN)
-            								  .addApi(Games.API).addScope(Games.SCOPE_GAMES)
-            								  .build();
+		if ( g_pAct == null ) g_pAct = act;
 
-			m_GameCenterLoggedIn = 0;
+		//if ( g_GamesSignIn != null ) GameCenterLogout();
+
+		if ( g_GamesSignIn == null )
+		{
+			GoogleSignInOptions signInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN).build();
+			g_GamesSignIn = GoogleSignIn.getClient(act, signInOptions);
 		}
 	}
-	
-	public static void GameCenterLogin( Activity act )
-	{
-		if ( m_GameClient == null ) return;
-		
-		if ( !m_GameClient.isConnected() && !m_GameClient.isConnecting() ) 
-		{
-			m_ReconnectGameCenter = 0;
-			GoogleApiAvailability api = GoogleApiAvailability.getInstance();
-			int code = ConnectionResult.UNKNOWN;
-			try { code = api.isGooglePlayServicesAvailable(act); }
-			catch( Exception e ) { Log.w("GameCenter", "Failed to check Google Play services available: " + e.toString()); }
 
-			if (code == ConnectionResult.SUCCESS) m_GameClient.connect();
-			else
-			{
-				try
-				{
-					if (!api.isUserResolvableError(code) || !api.showErrorDialogFragment(act, code, 9001)) {
-						m_GameCenterLoggedIn = -1;
-						ShowMessage(act, "Google Play Game Services unavailable");
+	public static void GameCenterLogin( final Activity act )
+	{
+		if ( g_GamesSignIn == null ) return;
+
+		g_GamesAccount = null;
+		AGKHelper.m_GameCenterLoggedIn = 0;
+
+		Task<GoogleSignInAccount> task = g_GamesSignIn.silentSignIn();
+		if (task.isSuccessful())
+		{
+			g_GamesAccount = task.getResult();
+			GameCenterCompleteLogin( act );
+		}
+		else {
+			task.addOnCompleteListener(new OnCompleteListener<GoogleSignInAccount>() {
+				@Override
+				public void onComplete(@NonNull Task<GoogleSignInAccount> task) {
+					try {
+						g_GamesAccount = task.getResult(ApiException.class);
+						GameCenterCompleteLogin( act );
+					}
+					catch (ApiException apiException)
+					{
+						if (apiException.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_REQUIRED) {
+							Log.i("Games Sign In", "Prompting user to sign in");
+							Intent signInIntent = g_GamesSignIn.getSignInIntent();
+							act.startActivityForResult( signInIntent, 10004 );
+						}
+						else
+						{
+							Log.e("Games Sign In", "Failed to sign in user: " + apiException.toString());
+							AGKHelper.m_GameCenterLoggedIn = -1;
+							g_GamesAccount = null;
+							g_GamesSignIn = null;
+						}
 					}
 				}
-				catch( Exception e )
-				{
-					Log.w("GameCenter", "Failed to show error dialog for Google Play services: " + e.toString());
-				}
-			}
+			});
 		}
+	}
+
+	public static void GameCenterCompleteLogin( final Activity act )
+	{
+		PlayersClient playersClient = Games.getPlayersClient( act, g_GamesAccount );
+		Task<Player> playerTask = playersClient.getCurrentPlayer().addOnCompleteListener(
+				new OnCompleteListener<Player>() {
+					@Override
+					public void onComplete(@NonNull Task<Player> task) {
+						if ( task.isSuccessful() ) {
+							g_GamesPlayerName = task.getResult().getDisplayName();
+							g_GamesPlayerID = task.getResult().getPlayerId();
+						}
+
+						AchievementsClient achievementsClient = Games.getAchievementsClient( act, g_GamesAccount );
+						achievementsClient.load(false).addOnCompleteListener(new OnCompleteListener<AnnotatedData<AchievementBuffer>>() {
+							@Override
+							public void onComplete(@NonNull Task<AnnotatedData<AchievementBuffer>> task) {
+								if ( task.isSuccessful() ) m_AllAchievements = task.getResult().get();
+
+								AGKHelper.m_GameCenterLoggedIn = 1;
+							}
+						});
+					}
+				}
+		);
 	}
 
 	public static void GameCenterLogout()
 	{
+		if ( g_GamesSignIn != null ) g_GamesSignIn.signOut();
 		m_GameCenterLoggedIn = 0;
-		if ( m_GameClient == null ) return;
-		if ( m_GameClient.isConnected() ) m_GameClient.disconnect();
+		g_GamesAccount = null;
 	}
-	
+
 	public static int GetGameCenterLoggedIn()
 	{
 		return m_GameCenterLoggedIn;
 	}
-	
+
 	public static void GameCenterSubmitAchievement( String szAchievementID, int iPercentageComplete )
 	{
-		if ( m_GameClient == null ) return;
-		if ( !m_GameClient.isConnected() ) return;
+		if ( g_GamesAccount == null ) return;
 		if ( m_AllAchievements == null ) return;
-		
+
 		Achievement ach;
 		Iterator<Achievement> aIterator = m_AllAchievements.iterator();
 
-        while (aIterator.hasNext()) {
+		while (aIterator.hasNext()) {
 			ach = aIterator.next();
-            if (szAchievementID.equals(ach.getAchievementId())) {
-                if (ach.getType() == Achievement.TYPE_INCREMENTAL) {
+			if (szAchievementID.equals(ach.getAchievementId())) {
+				if (ach.getType() == Achievement.TYPE_INCREMENTAL)
+				{
 					if ( iPercentageComplete != 0 )
-                		Games.Achievements.setSteps(m_GameClient, szAchievementID, iPercentageComplete);
-                } else {
-                	Games.Achievements.unlock(m_GameClient, szAchievementID);
-                }
-                break;
-            }
-        }
+					{
+						AchievementsClient achievementsClient = Games.getAchievementsClient( g_pAct, g_GamesAccount );
+						achievementsClient.setSteps( szAchievementID, iPercentageComplete );
+					}
+				}
+				else
+				{
+					AchievementsClient achievementsClient = Games.getAchievementsClient( g_pAct, g_GamesAccount );
+					achievementsClient.unlock( szAchievementID );
+				}
+				break;
+			}
+		}
 	}
 
 	public static String GetGameCenterPlayerID()
 	{
-		if ( m_GameClient == null ) return "";
-		if ( !m_GameClient.isConnected() ) return "";
-		return Games.Players.getCurrentPlayerId(m_GameClient);
+		return g_GamesPlayerID;
 	}
 
 	public static String GetGameCenterPlayerDisplayName()
 	{
-		if ( m_GameClient == null ) return "";
-		if ( !m_GameClient.isConnected() ) return "";
-		return Games.Players.getCurrentPlayer(m_GameClient).getDisplayName();
+		return g_GamesPlayerName;
 	}
-	
-	public static void GameCenterAchievementsShow( Activity act )
+
+	public static void GameCenterAchievementsShow( final Activity act )
 	{
-		if ( m_GameClient == null ) return;
-		if ( !m_GameClient.isConnected() ) return;
-		
-		Looper.prepare();
-		act.startActivityForResult(Games.Achievements.getAchievementsIntent(m_GameClient),0);
+		if ( g_GamesAccount == null ) return;
+
+		AchievementsClient client = Games.getAchievementsClient( act, g_GamesAccount );
+		client.getAchievementsIntent().addOnSuccessListener(new OnSuccessListener<Intent>() {
+			@Override
+			public void onSuccess(Intent intent) {
+				act.startActivityForResult( intent, 0 );
+			}
+		});
 	}
-	
+
 	public static void GameCenterSubmitScore( String szBoardID, int iScore )
 	{
-		if ( m_GameClient == null ) return;
-		if ( !m_GameClient.isConnected() ) return;
-		
-		Games.Leaderboards.submitScore(m_GameClient, szBoardID, iScore);
+		if ( g_GamesAccount == null ) return;
+
+		LeaderboardsClient client = Games.getLeaderboardsClient( g_pAct, g_GamesAccount );
+		client.submitScore( szBoardID, iScore );
 	}
-	
+
 	public static void GameCenterShowLeaderBoard( Activity act, String szBoardID )
 	{
-		if ( m_GameClient == null ) return;
-		if ( !m_GameClient.isConnected() ) return;
-		
-		Looper.prepare();
-		act.startActivityForResult(Games.Leaderboards.getLeaderboardIntent(m_GameClient,szBoardID),0);
+		if ( g_GamesAccount == null ) return;
+
+		LeaderboardsClient client = Games.getLeaderboardsClient( g_pAct, g_GamesAccount );
+		client.getLeaderboardIntent( szBoardID ).addOnSuccessListener(new OnSuccessListener<Intent>() {
+			@Override
+			public void onSuccess(Intent intent) {
+				g_pAct.startActivityForResult( intent, 0 );
+			}
+		});
 	}
 	// End GameCenter
 	

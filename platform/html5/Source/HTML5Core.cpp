@@ -4841,6 +4841,11 @@ void agk::GameCenterLogin()
 
 }
 
+void agk::GameCenterLogout()
+{
+	
+}
+
 int agk::GetGameCenterLoggedIn()
 {
 	return 0;

@@ -22,7 +22,6 @@ android {
 dependencies {
     compile project(':FacebookSDK')
     compile 'com.google.android.gms:play-services-ads:15.0.0'
-    compile 'com.google.android.gms:play-services-plus:15.0.0'
     compile 'com.google.android.gms:play-services-games:15.0.0'
     compile 'com.google.android.gms:play-services-location:15.0.0'
     compile 'com.google.android.gms:play-services-auth:15.0.0'

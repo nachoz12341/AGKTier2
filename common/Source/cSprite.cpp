@@ -1417,8 +1417,8 @@ void cSprite::SetFlip( int horz, int vert )
 
 			case b2Shape::e_circle:
 			{
-				((b2CircleShape*)pShape)->m_p.x = -((b2CircleShape*)pShape)->m_p.x;
-				((b2CircleShape*)pShape)->m_p.y = -((b2CircleShape*)pShape)->m_p.y;
+				if ( (horz ^ currHorz) != 0 ) ((b2CircleShape*)pShape)->m_p.x = -((b2CircleShape*)pShape)->m_p.x;
+				if ( (vert ^ currVert) != 0 ) ((b2CircleShape*)pShape)->m_p.y = -((b2CircleShape*)pShape)->m_p.y;
 			}
 		}
 	}

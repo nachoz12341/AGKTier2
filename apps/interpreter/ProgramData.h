@@ -478,12 +478,16 @@ class ProgramData
 		int ParseDebugType( AGKFunction *pFunction, int stackPtr, int strStackPtr, stType *pType, const char *szField, uString &sValue, int &consumed );
 		int ParseDebugArray( AGKFunction *pFunction, int stackPtr, int strStackPtr, stArray *pArray, const char *szDimensions, uString &sValue, int &consumed );
 
+		int SetDebugVariable( AGKFunction *pFunction, int stackPtr, int strStackPtr, const char *szVar, uString &sNewValue, int &consumed ); 
+		int SetDebugType( AGKFunction *pFunction, int stackPtr, int strStackPtr, stType *pType, const char *szField, uString &sNewValue, int &consumed );
+		int SetDebugArray( AGKFunction *pFunction, int stackPtr, int strStackPtr, stArray *pArray, const char *szDimensions, uString &sNewValue, int &consumed );
+
 	public:
 		ProgramData();
 		~ProgramData();
 
 		int GetDebugMode() { return m_iBytecodeDebug; }
-
+		
 		const char* GetCurrentIncludeFile();
 		int GetCurrentLineNum();
 		const char* GetCompanyName() { return m_sCompanyName.GetStr(); }
@@ -500,6 +504,7 @@ class ProgramData
 		void CleanUp();
 		int ShouldEnd();
 
+		void Break();
 		int RunProgram();
 		int RunProgramDebug( int stepMode );
 		void PrintDebug();
@@ -509,7 +514,7 @@ class ProgramData
 
 		AGKVariableWatch* AddVariableWatch( const char *szVar );
 		void RemoveVariableWatch( const char *szVar );
-
+		void SetVariable( const char *szVar, const char *szValue );
 
 		void PrintWatchVariables( AGKVariableWatch *pTargetVar=0 );
 		void PrintCallStack();

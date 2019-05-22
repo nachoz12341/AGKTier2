@@ -37,7 +37,7 @@ $(ODIR)/%.o: ../interpreter/%.cpp $(DEPS)
 	$(CC) -DIDE_LINUX -c $(INC) -o $@ $< $(CFLAGS)
 	
 AGKPlayer: | $(OBJS)
-	$(CC) $(LDFLAGS$(ARCH)) $(LDFLAGS) $(OBJS) -o build/LinuxPlayer$(ARCH) $(LDFLAGS) -Wl,-Bstatic -lAGKLinux -lglfw3 -Wl,-Bdynamic -lGL -lXt -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lXinerama -lXcursor -lopenal -ludev -ldl 
+	$(CC) $(LDFLAGS$(ARCH)) $(LDFLAGS) $(OBJS) -o build/LinuxPlayer$(ARCH) $(LDFLAGS) -Wl,-Bstatic -lAGKLinux -lglfw3 -Wl,-Bdynamic -lGL -lXt -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lXinerama -lXcursor -lopenal -ludev -ldl -no-pie 
 
 clean:
 	rm -rf build/obj$(ARCH)/*

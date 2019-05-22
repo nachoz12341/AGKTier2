@@ -2393,8 +2393,15 @@ public class AGKHelper {
 					{
 						if (apiException.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_REQUIRED) {
 							Log.i("Games Sign In", "Prompting user to sign in");
-							Intent signInIntent = g_GamesSignIn.getSignInIntent();
-							act.startActivityForResult( signInIntent, 10004 );
+							if ( g_GamesSignIn == null )
+							{
+								Log.i("Games Sign In", "GamesSignIn is null");
+							}
+							else
+							{
+								Intent signInIntent = g_GamesSignIn.getSignInIntent();
+								act.startActivityForResult(signInIntent, 10004);
+							}
 						}
 						else
 						{
@@ -2419,6 +2426,12 @@ public class AGKHelper {
 						if ( task.isSuccessful() ) {
 							g_GamesPlayerName = task.getResult().getDisplayName();
 							g_GamesPlayerID = task.getResult().getPlayerId();
+						}
+
+						if ( g_GamesAccount == null )
+						{
+							Log.i("Games Sign In", "GamesAccount is null");
+							return;
 						}
 
 						AchievementsClient achievementsClient = Games.getAchievementsClient( act, g_GamesAccount );
@@ -3585,7 +3598,11 @@ public class AGKHelper {
 	            if (purchased != null)
 	            {
 	            	// is it consumable?
-	            	if ( g_iPurchaseProductTypes[i] == 1 ) mHelper.consumeAsync(inventory.getPurchase(g_sPurchaseProductNames[i]), mConsumeFinishedListener);
+	            	if ( g_iPurchaseProductTypes[i] == 1 )
+					{
+						try { mHelper.consumeAsync(inventory.getPurchase(g_sPurchaseProductNames[i]), mConsumeFinishedListener); }
+						catch( IabHelper.IabAsyncInProgressException e ) { Log.e( "In App Billing", e.toString() ); }
+					}
 	            	else 
 	            	{
 	            		g_iPurchaseProductStates[i] = 1;
@@ -3613,7 +3630,7 @@ public class AGKHelper {
 						case '$': price = "$" + price; break;
 						case '£': price = "p" + price; break; // can't transfer pound character to AGK easily, so use a place holder and replace it in AGK
 						case '€': price = "e" + price; break; // can't transfer euro character to AGK easily, so use a place holder and replace it in AGK
-						default: price = price + " " + details.getCurrency();
+						default: price = price + " " + details.getPriceCurrencyCode();
 					}
 
 					synchronized (iapLock)
@@ -3645,7 +3662,11 @@ public class AGKHelper {
             	if ( purchase.getSku().equals(g_sPurchaseProductNames[i]) )
 	            {
 	            	// is it consumable?
-	            	if ( g_iPurchaseProductTypes[i] == 1 ) mHelper.consumeAsync(purchase, mConsumeFinishedListener);
+	            	if ( g_iPurchaseProductTypes[i] == 1 )
+					{
+						try	{ mHelper.consumeAsync(purchase, mConsumeFinishedListener); }
+						catch( IabHelper.IabAsyncInProgressException e ) { Log.e( "In App Billing", e.toString() ); }
+					}
 	            	else 
 	            	{
 						synchronized (iapLock) {
@@ -3765,9 +3786,20 @@ public class AGKHelper {
 
 				// create a list of all products
 				ArrayList<String> skus = new ArrayList<String>();
-				for (int i = 0; i < g_iNumProducts; i++) skus.add(g_sPurchaseProductNames[i]);
+				ArrayList<String> subscriptionSkus = new ArrayList<String>();
+				for (int i = 0; i < g_iNumProducts; i++)
+				{
+					if ( g_iPurchaseProductTypes[i] == 2 ) subscriptionSkus.add(g_sPurchaseProductNames[i]);
+					else skus.add(g_sPurchaseProductNames[i]);
+				}
 
-				mHelper.queryInventoryAsync(true, skus, mGotInventoryListener);
+				try {
+					mHelper.queryInventoryAsync(true, skus, subscriptionSkus, mGotInventoryListener);
+				}
+				catch ( IabHelper.IabAsyncInProgressException e )
+				{
+					Log.e( "In App Billing", e.toString() );
+				}
 			}
 		});
     }
@@ -3809,9 +3841,16 @@ public class AGKHelper {
 		g_iIAPID = ID;
 		Log.i("IAB MakePurchase", "Buying " + g_sPurchaseProductNames[ID]);
 		
-		//Intent myIntent = new Intent(act, IAPActivity.class);
-		//act.startActivity(myIntent);
-		AGKHelper.mHelper.launchPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
+		try {
+			if ( g_iPurchaseProductTypes[ ID ] == 2 )
+				AGKHelper.mHelper.launchSubscriptionPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
+			else
+				AGKHelper.mHelper.launchPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
+		}
+		catch( IabHelper.IabAsyncInProgressException e )
+		{
+			Log.e( "In App Billing", e.toString() );
+		}
     }
 	
 	public static int iapCheckPurchaseState()
@@ -5181,7 +5220,8 @@ public class AGKHelper {
 		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
-		target.setDataAndType( uri, sMIME );
+		target.setType( sMIME );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
 		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {

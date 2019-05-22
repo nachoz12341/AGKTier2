@@ -1,17 +1,21 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+    }
     compileSdkVersion 26
     buildToolsVersion "26.0.3"
     sourceSets.main.jni.srcDirs = []
-
     defaultConfig {
         applicationId "com.thegamecreators.agk_player2"
         minSdkVersion 15
         targetSdkVersion 26
     }
-
     buildTypes {
+        debug {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
@@ -33,7 +37,7 @@ dependencies {
     implementation files('libs/amazon-ads-5.8.2.jar')
     implementation 'com.google.ar:core:1.6.0'
     implementation 'com.google.android.ads.consent:consent-library:1.0.6'
-    implementation "com.google.firebase:firebase-messaging:15.0.0"
+    implementation 'com.google.firebase:firebase-messaging:15.0.0'
     implementation 'com.google.api-client:google-api-client:1.23.0'
     implementation 'com.google.api-client:google-api-client-android:1.23.0'
     implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'

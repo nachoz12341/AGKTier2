@@ -874,7 +874,7 @@ void cSpriteMgrEx::DrawDebug( )
 		if ( pMember->GetType() == 1 ) 
 		{
 			// if shape set but not physics enabled
-			if ( pMember->GetSprite()->m_phyShape && !pMember->GetSprite()->m_phyBody )
+			if ( pMember->GetSprite()->GetVisible() && pMember->GetSprite()->m_phyShape && !pMember->GetSprite()->m_phyBody )
 			{
 				switch( pMember->GetSprite()->m_phyShape->m_type )
 				{

@@ -2792,6 +2792,9 @@ void agk::SetScissor( float x, float y, float x2, float y2 )
 //   This command has been deprecated and you should use <i>LoadImageResized</i> to adjust image sizes depending 
 //   on the device resolution, you can check the device resolution with <i>GetDeviceWidth</i> and 
 //   <i>GetDeviceHeight</i>.
+// INPUTS
+//   width -- The intended width
+//   height -- The intended height
 // SOURCE
 void agk::SetIntendedDeviceSize( int width, int height )
 //****
@@ -2803,8 +2806,10 @@ void agk::SetIntendedDeviceSize( int width, int height )
 //****f* Text/Properties/UseNewDefaultFonts
 // FUNCTION
 //   Since version 2.0.20 AGK has a new font system that can display more characters and render characters more smoothly,
-//   however to preserve backwards ocmpatibility this is turned off by default. To use the new system set this command to 1.
+//   however to preserve backwards compatibility this is turned off by default. To use the new system set this command to 1.
 //   This only affects the default font where you haven't set one yourself.
+// INPUTS
+//   mode -- 1=use new default fonts, 0=use old default fonts
 // SOURCE
 void agk::UseNewDefaultFonts( int mode )
 //****
@@ -2967,6 +2972,9 @@ void agk::SetVirtualResolution( int iWidth, int iHeight )
 // FUNCTION
 //   If for any reason the device dimensions may have changed (e.g. a change in orientation rotates the viewspace to a new size)
 //   call this function to update the internal values.
+// INPUTS
+//   w -- The new width
+//   h -- The new height
 // SOURCE
 void agk::UpdateDeviceSize( UINT w, UINT h )
 //****
@@ -3367,6 +3375,8 @@ void agk::Break()
 //   speed regardless of frame rate, but it will no longer be deterministic across devices and different frame rates. For example 
 //   if your game depends on a physics entity falling and bouncing to the same height each time it is run then you should use
 //   a fixed time step. If the position of physics objects is not important to you game logic then a variable time step may be best.
+// INPUTS
+//   time -- The step time in seconds
 // SOURCE
 void agk::StepPhysics( float time )
 //****
@@ -4339,25 +4349,14 @@ void agk::Swap()
 	DeviceCameraUpdate();
 	ARUpdateInternal();
 
-	bool bAlwaysSwapFirst = true;
-
-	// if vsync is on then swap here, it will block using up a lot of frame time
-	// changed to always swap before waiting for performance
-	if ( bAlwaysSwapFirst || m_bUsingVSync )
-	{
-		float startTime = agk::Timer();
-		PlatformSync();
+	float startTime = agk::Timer();
+	PlatformSync();
 #ifndef AGK_HTML5
-		// HTML5 has a slightly different order of events, the swap isn't done until control is handed back to the browser, so doing a clear here overwrites everything we've done
-		PlatformClearScreen();
+	// HTML5 has a slightly different order of events, the swap isn't done until control is handed back to the browser, so doing a clear here overwrites everything we've done
+	PlatformClearScreen();
 #endif
-		m_fDrawingTime = agk::Timer() - startTime;
-	}
-	else
-	{
-		PlatformFlush();
-	}
-
+	m_fDrawingTime = agk::Timer() - startTime;
+	
 	float waittime = agk::Timer();
 	
 	// limit fps, HTML5 uses emscripten_set_main_loop_timing instead, unless mode is set to 1
@@ -4402,34 +4401,6 @@ void agk::Swap()
 	m_fTimeDelta = (float) (m_fTimeCurr - m_fTimeFrameStart);
 	m_fTimeFrameStart = m_fTimeCurr;
 	// end of frame
-
-	// start next frame by swapping last frame
-	// if not using vsync swap here it will use no time and continue
-	if ( !bAlwaysSwapFirst && !m_bUsingVSync )
-	{
-		float startTime = agk::Timer();
-		PlatformSync();
-#ifndef AGK_HTML5
-		PlatformClearScreen();
-#endif
-		m_fDrawingTime = agk::Timer() - startTime;
-	}
-
-	/*
-	// debug timing
-	static bool bFirst = true;
-	if ( bFirst )
-	{
-		agk::OpenToWrite( 1, "times.txt", 0 );
-		bFirst = false;
-	}
-
-	uString info;
-	info.Format( "U: %.2f, P: %.2f, DS: %.2f, D:%.2f, W: %.2f, F: %.4f", agk::GetUpdateTime()*1000, agk::GetPhysicsTime()*1000, agk::GetDrawingSetupTime()*1000, agk::GetDrawingTime()*1000, waittime*1000, m_fTimeDelta*1000 );
-	agk::WriteLine( 1, info );
-
-	if ( agk::GetRawKeyState( AGK_KEY_SPACE ) ) agk::WriteLine( 1, "Here!!" );
-	*/
 
 	float fFps = 60;
 	if ( m_fTimeDelta > 0 ) fFps = 1.0f / m_fTimeDelta;
@@ -5454,6 +5425,23 @@ UINT agk::GetImageTextureID ( UINT iImageIndex )
 	return pImage ? pImage->GetTextureID() : 0;
 }
 
+//****f* Image/General/GetImageSizeFromFile
+// FUNCTION
+//   Opens the image file to extract the width and height values and then immediately closes the file. This is much 
+//   faster than loading the entire image. This can be useful when using <i>LoadImageResized</i> to know how much to 
+//   scale the image before loading it. Both the width and height will be returned in a single integer value, the top
+//   16bits will be the width and the lower 16bits will be the height. You can extract these values in Tier 1 by doing <br/>
+//   width = result >> 16<br/>
+//   height = result && 0xFFFF
+// INPUTS
+//   sImageFilename -- The filename of the image to check
+// SOURCE
+UINT agk::GetImageSizeFromFile( const char* filename )
+//****
+{
+	return cImage::GetImageSizeFromFile( filename );
+}
+
 //****f* Image/General/LoadImage
 // FUNCTION
 //   Loads an image from a file into a specified image ID, can also be used to load an atlas texture that will be used by sub images.
@@ -5723,7 +5711,7 @@ UINT agk::LoadSubImage ( UINT iParentIndex, const char *sImageFilename )
 //   The cache parameter is no longer used as the image scaling is now done by the GPU so has almost no 
 //   impact on performance
 // INPUTS
-//   imageID -- The ID to use to reference this image in future
+//   iImageID -- The ID to use to reference this image in future
 //   szFilename -- The name of the file to load
 //   scaleX -- The amount to scale in the X direction, 1.0 is the original size
 //   scaleY -- The amount to scale in the Y direction, 1.0 is the original size
@@ -6134,7 +6122,7 @@ void agk::SetImageWrapV( UINT iImageIndex, UINT mode )
 //   If you add some transparent pixels to an image that currently has none, and you use the image on a sprite, then be sure 
 //   to use <i>SetSpriteTransparency</i> to make the sprite transparent.
 // INPUTS
-//   iImageIndex -- The ID of the image to change.
+//   iDstImage -- The ID of the image to change.
 //   iSrcImage -- The ID of the image to use as a source.
 //   dst -- The ID of the color channel to use as the destination, 1-4 for RGBA,
 //   src -- The ID of the color channel to use as the source, 1-4 for RGBA,
@@ -6411,7 +6399,7 @@ void agk::GetImage( UINT imageID, float x, float y, float width, float height )
 //   Returns the file name used to load this image. In tier 2 the returned string must be deleted when 
 //   you are done with it.
 // INPUTS
-//   iImageIndex -- The ID of the image to check.
+//   imageID -- The ID of the image to check.
 // SOURCE
 char* agk::GetImageFilename( UINT imageID )
 //****
@@ -7443,10 +7431,14 @@ void agk::SetSpriteAdditionalImage ( UINT iSpriteIndex, UINT iImageIndex, int iS
 //   control over the UV coordinates. To undo this use <i>ResetSpriteUV</i> to return to calculated UV coordinates.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to modify.
-//   u1, v1 -- The UV coordinates of the top left vertex.
-//   u2, v2 -- The UV coordinates of the bottom left vertex.
-//   u3, v3 -- The UV coordinates of the top right vertex.
-//   u4, v4 -- The UV coordinates of the bottom right vertex.
+//   u1 -- The U coordinate of the top left vertex.
+//   v1 -- The V coordinate of the top left vertex.
+//   u2 -- The U coordinate of the bottom left vertex.
+//   u2 -- The V coordinate of the bottom left vertex.
+//   u3 -- The U coordinate of the top right vertex.
+//   u3 -- The V coordinate of the top right vertex.
+//   u4 -- The U coordinate of the bottom right vertex.
+//   u4 -- The V coordinate of the bottom right vertex.
 // SOURCE
 void agk::SetSpriteUV ( UINT iSpriteIndex, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4 )
 //****
@@ -7910,7 +7902,7 @@ float agk::GetSpriteOffsetX( UINT iSpriteIndex )
 	return pSprite->GetOffsetX();
 }
 
-//****f* Sprite/Properties/GetSpriteOffsetX
+//****f* Sprite/Properties/GetSpriteOffsetY
 // FUNCTION
 //   Returns the Y component of the sprite's current offset point.
 // INPUTS
@@ -9300,6 +9292,7 @@ void agk::SetSpriteUVBorder( UINT iSpriteIndex, float border )
 //   images (not atlas textures) and which are a power of 2 size in both width and height. With these constraints 
 //   it is possible to use UV values outside 0-1 to clamp or repeat the texture successfully.
 // INPUTS
+//   iSpriteIndex -- The ID of the sprite to modify
 //   u -- The amount to offset the UV coordinates in the U direction.
 //   v -- The amount to offset the UV coordinates in the V direction.
 // SOURCE
@@ -9342,6 +9335,7 @@ void agk::SetSpriteUVOffset( UINT iSpriteIndex, float u, float v )
 //   images (not atlas textures) and which are a power of 2 size in both width and height. With these constraints 
 //   it is possible to use UV values outside 0-1 to clamp or repeat the texture successfully.
 // INPUTS
+//   iSpriteIndex -- The ID of the sprite to modify
 //   scaleU -- The amount to scale in the U direction.
 //   scaleV -- The amount to scale in the V direction.
 // SOURCE
@@ -9476,7 +9470,7 @@ void agk::SetSpriteScissor( UINT iSpriteIndex, float x, float y, float x2, float
 //   By default sprites are assigned an internal shader that can handle 1 texture and a color.
 //   If you use a shader ID of 0 the sprite is assigned the internal shader.
 // INPUTS
-//   objID -- The ID of the object to modify.
+//   spriteID -- The ID of the sprite to modify.
 //   shaderID -- The ID of the shader to use.
 // SOURCE
 void agk::SetSpriteShader( UINT spriteID, UINT shaderID )
@@ -10403,6 +10397,7 @@ void agk::AddSpriteShapePolygon( UINT iSpriteIndex, UINT numPoints, UINT index, 
 //   iSpriteIndex -- The ID of the sprite to modify.
 //   numPoints -- The number of points to use in the chain, min 2, no maximum.
 //   index -- The index of the point to set, if it equals numPoints-1 then the shape will be created
+//   loop -- 1=connect this back to the first point creating a loop, 0=leave this point hanging on the end (default)
 //   x -- X position for the specified point.
 //   y -- Y position for the specified point.
 // SOURCE
@@ -12624,14 +12619,14 @@ void agk::CreatePrismaticJoint( UINT iJointIndex, UINT iSpriteIndex1, UINT iSpri
 //   iJointIndex -- The ID to use for this joint.
 //   iSpriteIndex1 -- The ID of the first sprite to join.
 //   iSpriteIndex2 -- The ID of the second sprite to join.
-//   gndx1 -- The x coordinate of the ground point for sprite 1.
+//   gnd1x -- The x coordinate of the ground point for sprite 1.
 //   gnd1y -- The y coordinate of the ground point for sprite 1.
-//   gndx1 -- The x coordinate of the ground point for sprite 2.
-//   gnd1y -- The y coordinate of the ground point for sprite 2.
-//   ax1 -- The x coordinate of the anchor point for sprite 1.
-//   ay1 -- The y coordinate of the anchor point for sprite 1.
-//   ax2 -- The x coordinate of the anchor point for sprite 2.
-//   ay2 -- The y coordinate of the anchor point for sprite 2.
+//   gnd2x -- The x coordinate of the ground point for sprite 2.
+//   gnd2y -- The y coordinate of the ground point for sprite 2.
+//   a1x -- The x coordinate of the anchor point for sprite 1.
+//   a1y -- The y coordinate of the anchor point for sprite 1.
+//   a2x -- The x coordinate of the anchor point for sprite 2.
+//   a2y -- The y coordinate of the anchor point for sprite 2.
 //   ratio -- The ratio between the two sides of the pulley.
 //   colConnected -- Set whether the two sprites connected by the joint can collide with one another, 0=no, 1=yes.
 // SOURCE
@@ -13062,6 +13057,7 @@ UINT agk::CreatePulleyJoint( UINT iSpriteIndex1, UINT iSpriteIndex2, float gnd1x
 // INPUTS
 //   iSpriteIndex1 -- The ID of the first sprite to join.
 //   iSpriteIndex2 -- The ID of the second sprite to join.
+//   ratio -- The ratio between the two sides of the pulley.
 //   colConnected -- Set whether the two sprites connected by the joint can collide with one another, 0=no, 1=yes.
 // SOURCE
 void agk::CreatePulleyJoint2( UINT iSpriteIndex1, UINT iSpriteIndex2, float ratio, int colConnected )
@@ -14726,6 +14722,9 @@ cSprite* agk::GetSpriteContactSprite2( )
 //   of contact points.<br><br>
 //
 //   This function is affected by group and category settings.
+// INPUTS
+//   iSprite1 -- The ID of the first sprite to check
+//   iSprite2 -- The ID of the second sprite to check
 // SOURCE
 int agk::GetPhysicsCollision( UINT iSprite1, UINT iSprite2 )
 //****
@@ -15447,7 +15446,7 @@ void agk::SetParticlesActive( UINT ID, int active )
 //   ID -- The ID of the particle emitter to modify.
 //   mode -- The transparency mode for these particles, 0=off, 1=alpha transparency, 2=additive blending
 // SOURCE
-void agk::SetParticlesTransparency( UINT ID, int active )
+void agk::SetParticlesTransparency( UINT ID, int mode )
 //****
 {
 	cParticleEmitter *pEmitter = m_cParticleEmitterList.GetItem( ID );
@@ -15461,7 +15460,7 @@ void agk::SetParticlesTransparency( UINT ID, int active )
 		return;
 	}
 
-	pEmitter->SetTransparency( active );
+	pEmitter->SetTransparency( mode );
 }
 
 
@@ -16871,6 +16870,7 @@ void agk::SetTextCharColor( UINT iTextIndex, UINT iCharIndex, UINT red, UINT gre
 // INPUTS
 //   iTextIndex -- The ID of the text object to set.
 //   iCharIndex -- The ID of the character to set, indexes start at 0, if the index is out of range it will be ignored.
+//   red -- The new red value to use
 // SOURCE
 void agk::SetTextCharColorRed( UINT iTextIndex, UINT iCharIndex, UINT red )
 //****
@@ -16895,6 +16895,7 @@ void agk::SetTextCharColorRed( UINT iTextIndex, UINT iCharIndex, UINT red )
 // INPUTS
 //   iTextIndex -- The ID of the text object to set.
 //   iCharIndex -- The ID of the character to set, indexes start at 0, if the index is out of range it will be ignored.
+//   green -- The new green value to use
 // SOURCE
 void agk::SetTextCharColorGreen( UINT iTextIndex, UINT iCharIndex, UINT green )
 //****
@@ -16919,6 +16920,7 @@ void agk::SetTextCharColorGreen( UINT iTextIndex, UINT iCharIndex, UINT green )
 // INPUTS
 //   iTextIndex -- The ID of the text object to set.
 //   iCharIndex -- The ID of the character to set, indexes start at 0, if the index is out of range it will be ignored.
+//   blue -- The new blue value to use
 // SOURCE
 void agk::SetTextCharColorBlue( UINT iTextIndex, UINT iCharIndex, UINT blue )
 //****
@@ -16943,6 +16945,7 @@ void agk::SetTextCharColorBlue( UINT iTextIndex, UINT iCharIndex, UINT blue )
 // INPUTS
 //   iTextIndex -- The ID of the text object to set.
 //   iCharIndex -- The ID of the character to set, indexes start at 0, if the index is out of range it will be ignored.
+//   alpha -- The new alpha value to use
 // SOURCE
 void agk::SetTextCharColorAlpha( UINT iTextIndex, UINT iCharIndex, UINT alpha )
 //****
@@ -17335,6 +17338,7 @@ int agk::GetTextHitTest( UINT iTextIndex, float x, float y )
 //   choose one or the other, setting a bitmap font will remove the Truetype font, and setting a TrueType font
 //   will remove the bitmap font.
 // INPUTS
+//   iTextIndex -- The ID of the text object to modify
 //   iImageID -- The image containing the new font.
 // SOURCE
 void agk::SetTextFontImage( UINT iTextIndex, UINT iImageID )
@@ -17391,6 +17395,7 @@ void agk::SetTextFontImage( UINT iTextIndex, UINT iImageID )
 //   If this text object is using a TrueType font then this command has no affect, the TrueType font handles 
 //   both normal and extended (unicode) characters.
 // INPUTS
+//   iTextIndex -- The ID of the text object to modify
 //   iImageID -- The image containing the new font.
 // SOURCE
 void agk::SetTextExtendedFontImage( UINT iTextIndex, UINT iImageID )
@@ -17610,6 +17615,7 @@ void agk::FixTextToScreen( UINT iTextIndex, int mode )
 //   Sets the maximum width the text object will use to draw, any characters that extend beyond this
 //   value will wrap onto a new line.
 // INPUTS
+//   iTextIndex -- The ID of the text object to modify
 //   width -- The maximum width the text will use
 // SOURCE
 void agk::SetTextMaxWidth( UINT iTextIndex, float width )
@@ -17972,7 +17978,7 @@ void agk::LoadFont( UINT iFontID, const char *szFontFile )
 // FUNCTION
 //   Returns 1 if a font has been loaded sucessfully at the given ID.
 // INPUTS
-//   iTextIndex -- The ID of the text object to check.
+//   iFontID -- The ID of the font to check.
 // SOURCE
 int agk::GetFontExists( UINT iFontID )
 //****
@@ -18174,7 +18180,6 @@ void agk::SetPrintColor( UINT iRed, UINT iGreen, UINT iBlue )
 //   printed text in the next call to <i>Sync</i>. To control color on a per string basis use the Text 
 //   commands. Each component should be in the range 0-255, an alpha of 0 is invisible.
 // INPUTS
-//   fSpacing -- The letter spacing to use.
 //   iRed -- The red component of the color.
 //   iGreen -- The green component of the color.
 //   iBlue -- The blue component of the color.
@@ -19072,7 +19077,7 @@ void agk::SetSkeleton2DBoneMode( UINT iSkeleton, int bone, int mode )
 //   parameters do not matter in this case.
 // INPUTS
 //   spriteID -- The ID of the sprite to attach
-//   iSkeleton -- ID of the skeleton to attach to
+//   iSkeletonID -- ID of the skeleton to attach to
 //   bone -- The ID of the bone in the skeleton to attach to
 //   zorder -- The ZOrder to place the new sprite in the skeleton draw order
 // SOURCE
@@ -19430,7 +19435,7 @@ int agk::GetTweenExists( UINT tweenID )
 //   of a chain that is currently running, then changing its duration may produce unexpected results.
 // INPUTS
 //   tweenID -- ID of the tween to change, can be any type of tween
-//   dureation -- The new duration to use in seconds
+//   duration -- The new duration to use in seconds
 // SOURCE
 void agk::SetTweenDuration( UINT tweenID, float duration )
 //****
@@ -20612,6 +20617,7 @@ void agk::PlayTweenSprite( UINT tweenID, UINT spriteID, float delay )
 //   is called. If the tween has already stopped or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to pause
+//   spriteID -- ID of the sprite to pause
 // SOURCE
 void agk::PauseTweenSprite( UINT tweenID, UINT spriteID )
 //****
@@ -20632,6 +20638,7 @@ void agk::PauseTweenSprite( UINT tweenID, UINT spriteID )
 //   If the tween is already resumed or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to resume
+//   spriteID -- ID of the sprite to resume
 // SOURCE
 void agk::ResumeTweenSprite( UINT tweenID, UINT spriteID )
 //****
@@ -21214,6 +21221,7 @@ void agk::PlayTweenText( UINT tweenID, UINT textID, float delay )
 //   is called. If the tween has already stopped or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to pause
+//   textID -- ID of the text to pause
 // SOURCE
 void agk::PauseTweenText( UINT tweenID, UINT textID )
 //****
@@ -21234,6 +21242,7 @@ void agk::PauseTweenText( UINT tweenID, UINT textID )
 //   If the tween is already resumed or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to resume
+//   textID -- ID of the text to resume
 // SOURCE
 void agk::ResumeTweenText( UINT tweenID, UINT textID )
 //****
@@ -21713,6 +21722,8 @@ void agk::PlayTweenChar( UINT tweenID, UINT textID, UINT charID, float delay )
 //   is called. If the tween has already stopped or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to pause
+//   textID -- ID of the text to pause
+//   charID -- Index of the character to pause
 // SOURCE
 void agk::PauseTweenChar( UINT tweenID, UINT textID, UINT charID )
 //****
@@ -21733,6 +21744,8 @@ void agk::PauseTweenChar( UINT tweenID, UINT textID, UINT charID )
 //   If the tween is already resumed or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to resume
+//   textID -- ID of the text to resume
+//   charID -- Index of the character to resume
 // SOURCE
 void agk::ResumeTweenChar( UINT tweenID, UINT textID, UINT charID )
 //****
@@ -22432,6 +22445,7 @@ void agk::PlayTweenObject( UINT tweenID, UINT objectID, float delay )
 //   is called. If the tween has already stopped or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to pause
+//   objectID -- ID of the object to pause
 // SOURCE
 void agk::PauseTweenObject( UINT tweenID, UINT objectID )
 //****
@@ -22452,6 +22466,7 @@ void agk::PauseTweenObject( UINT tweenID, UINT objectID )
 //   If the tween is already resumed or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to resume
+//   objectID -- ID of the object to resume
 // SOURCE
 void agk::ResumeTweenObject( UINT tweenID, UINT objectID )
 //****
@@ -22923,6 +22938,7 @@ void agk::PlayTweenCamera( UINT tweenID, UINT cameraID, float delay )
 //   is called. If the tween has already stopped or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to pause
+//   cameraID -- ID of the camera to pause
 // SOURCE
 void agk::PauseTweenCamera( UINT tweenID, UINT cameraID )
 //****
@@ -22943,6 +22959,7 @@ void agk::PauseTweenCamera( UINT tweenID, UINT cameraID )
 //   If the tween is already resumed or doesn't exist then this does nothing.
 // INPUTS
 //   tweenID -- ID of the tween to resume
+//   cameraID -- ID of the camera to resume
 // SOURCE
 void agk::ResumeTweenCamera( UINT tweenID, UINT cameraID )
 //****
@@ -24042,7 +24059,7 @@ void agk::SetRawTouchMoveSensitivity( int distance )
 //   Please note that compressed WAV files are not supported. You must use uncompressed WAV files to ensure compatibility on all platforms.
 // INPUTS
 //   iID -- The sound number to store the sound.
-//   Filename -- The filename of the sound file to load, must be a WAV file.
+//   sFilename -- The filename of the sound file to load, must be a WAV file.
 // SOURCE
 void agk::LoadSound( UINT iID, const char* sFilename )
 //****
@@ -24057,7 +24074,7 @@ void agk::LoadSound( UINT iID, const char* sFilename )
 //   not absolute, you cannot load sound files from elsewhere on the disk.<br><br>
 //   Please note that compressed WAV files are not supported. You must use uncompressed WAV files to ensure compatibility on all platforms.
 // INPUTS
-//   Filename -- The filename of the sound file to load, must be a WAV file.
+//   sFilename -- The filename of the sound file to load, must be a WAV file.
 // SOURCE
 UINT agk::LoadSound( const char* sFilename )
 //****
@@ -24085,7 +24102,7 @@ UINT agk::LoadSound( const uString &sFile )
 //   commands.
 // INPUTS
 //   iID -- The sound number to store the sound.
-//   Filename -- The filename of the sound file to load, must be a OGG file.
+//   sFilename -- The filename of the sound file to load, must be a OGG file.
 // SOURCE
 void agk::LoadSoundOGG( UINT iID, const char* sFilename )
 //****
@@ -24116,7 +24133,7 @@ UINT agk::LoadSoundOGG( const char* sFilename )
 //   Saves a sound file to the application write folder.
 // INPUTS
 //   iID -- The ID of the sound to save.
-//   Filename -- The filename to use for the sound file, recommended it end in .wav.
+//   sFilename -- The filename to use for the sound file, recommended it end in .wav.
 // SOURCE
 void agk::SaveSound( UINT iID, const char* sFilename )
 //****
@@ -24469,7 +24486,7 @@ void agk::LoadMusic( UINT iID, const char *sFile )
 //   Sets the volume on a per file basis, this volume level is combined with the music system volume to create the final volume.
 //   By default files are played at volume 100. The volume level should be between 0 and 100.
 // INPUTS
-//   iID -- The music number to set.
+//   ID -- The music number to set.
 //   vol -- The volume to use for this file.
 // SOURCE
 void agk::SetMusicFileVolume( UINT ID, int vol )
@@ -26086,7 +26103,7 @@ void agk::SetFilePos( UINT iFileID, int pos )
 //   files that will later be read with ReadByte. To create human readable files use <i>WriteLine</i>
 // INPUTS
 //   iFileID -- The ID of the file to modify.
-//   i -- The integer to write.
+//   b -- The integer to write.
 // SOURCE
 void agk::WriteByte( UINT iFileID, int b )
 //****
@@ -26450,7 +26467,7 @@ char* agk::ReadLine( UINT iFileID )
 //   Converts a value into a string, if you are calling this command from tier 2 this string must
 //   be deleted when you are done with it.
 // INPUTS
-//   value -- Value to convert into a string.
+//   valueInt -- Value to convert into a string.
 // SOURCE
 char* agk::Str( int valueInt )
 //****
@@ -26465,7 +26482,7 @@ char* agk::Str( int valueInt )
 //   Converts a value into a string, if you are calling this command from tier 2 this string must
 //   be deleted when you are done with it.
 // INPUTS
-//   value -- Value to convert into a string.
+//   valueFloat -- Value to convert into a string.
 // SOURCE
 char* agk::Str( float valueFloat )
 //****
@@ -26878,7 +26895,7 @@ UINT agk::Asc( const char* strin )
 //   may not be equal to the number of bytes in the string, as each character can use up to 4 bytes.
 //   To determine the length in bytes use the <i>ByteLen</i> command.
 // INPUTS
-//   string -- The string to measure the length of
+//   strin -- The string to measure the length of
 // SOURCE
 UINT agk::Len( const char* strin )
 //****
@@ -26893,7 +26910,7 @@ UINT agk::Len( const char* strin )
 //   not be equal to the number of characters in the string, as each character can use up to 4 bytes.
 //   To determine the number of characters in a string use the <i>Len</i> command.
 // INPUTS
-//   string -- The string to measure the length of
+//   strin -- The string to measure the length of
 // SOURCE
 UINT agk::ByteLen( const char* strin )
 //****
@@ -26921,7 +26938,7 @@ char* agk::Chr( UINT unicodevalue )
 // FUNCTION
 //   Converts the string to lower case characters.
 // INPUTS
-//   string -- The string to convert
+//   strin -- The string to convert
 // SOURCE
 char* agk::Lower( const char* strin )
 //****
@@ -26938,7 +26955,7 @@ char* agk::Lower( const char* strin )
 // FUNCTION
 //   Converts the string to upper case characters.
 // INPUTS
-//   string -- The string to convert
+//   strin -- The string to convert
 // SOURCE
 char* agk::Upper( const char* strin )
 //****
@@ -27353,6 +27370,8 @@ char* agk::GetFolder()
 //   If you want to access files outside of the read and write folders you can use the normal file commands such as
 //   <i>OpenToRead</i> with a "raw:" file path, see that command for more details. To access folders outside the
 //   read and write folders you can use the <i>OpenRawFolder</i> commands.
+// INPUTS
+//   str -- The path of the folder to set
 // SOURCE
 int agk::SetFolder( const char* str )
 //****
@@ -28770,6 +28789,7 @@ void agk::CloseNetwork( UINT iNetID )
 //   20 updates per second or further.
 // INPUTS
 //   iNetID -- The ID of the network to disconnect from.
+//   latency -- The latency to use in milliseconds
 // SOURCE
 void agk::SetNetworkLatency( UINT iNetID, UINT latency )
 //****
@@ -29052,7 +29072,6 @@ float agk::GetNetworkClientPing( UINT iNetID, UINT client )
 //   such as board size, game length, etc, as only the host client should have a copy of these such variables.
 // INPUTS
 //   iNetID -- The ID of the network to check.
-//   client -- The ID of the client to check.
 // SOURCE
 UINT agk::GetNetworkServerID( UINT iNetID )
 //****
@@ -29183,6 +29202,7 @@ void agk::SetNetworkLocalFloat( UINT iNetID, const char *name, float f, int mode
 //   If the specified client has not set a variable of the given name the value 0 is returned.
 // INPUTS
 //   iNetID -- The ID of the network to check.
+//   client -- The ID of the client to check.
 //   name -- The name of the variable to return.
 // SOURCE
 int agk::GetNetworkClientInteger( UINT iNetID, UINT client, const char *name )
@@ -29212,6 +29232,7 @@ int agk::GetNetworkClientInteger( UINT iNetID, UINT client, const char *name )
 //   If the specified client has not set a variable of the given name the value 0 is returned.
 // INPUTS
 //   iNetID -- The ID of the network to check.
+//   client -- The ID of the client to check.
 //   name -- The name of the variable to return.
 // SOURCE
 float agk::GetNetworkClientFloat( UINT iNetID, UINT client, const char *name )
@@ -29253,6 +29274,8 @@ UINT agk::CreateNetworkMessage( )
 //   source messsage can be either a message you have created, or one you have received. The new message
 //   becomes completely independent of the source message and can be sent using <i>SendNetworkMessage</i>
 //   without affecting the original.
+// INPUTS
+//  iFromMsgID -- The ID of the message to copy
 // SOURCE
 UINT agk::CopyNetworkMessage( UINT iFromMsgID )
 //****
@@ -29414,7 +29437,7 @@ int agk::GetNetworkMessageFromPort( UINT iMsgID )
 //****f* Multiplayer/Messages/GetNetworkMessageFromClient
 // FUNCTION
 //   Returns the client ID that sent this message. Only applicable to messages received from networks,
-//   broadcast listener and USP messages will return 0 for this function. It will also return 0 for messages 
+//   broadcast listener and UDP messages will return 0 for this function. It will also return 0 for messages 
 //   created using <i>CreateNetworkMessage</i>.
 // INPUTS
 //   iMsgID -- The ID of the message to read.
@@ -30518,6 +30541,8 @@ void agk::Warning( const uString &msg )
 //****f* Core/Misc/Message
 // FUNCTION
 //   Displays a message box containing the given text. Your app is not guaranteed to pause whilst the message is displayed.
+// INPUTS
+//   msg -- The message to display
 // SOURCE
 void agk::Message( const char* msg )
 //****
@@ -34442,7 +34467,7 @@ void agk::SetEditBoxWrapMode( UINT index, int mode )
 //   of that type will be displayed, for example a keyboard with numbers only.
 // INPUTS
 //   index -- The ID to modify.
-//   mode -- 0 for normal text, 1 for numbers only.
+//   inputType -- 0 for normal text, 1 for numbers only.
 // SOURCE
 void agk::SetEditBoxInputType( UINT index, int inputType )
 //****
@@ -35419,7 +35444,7 @@ void agk::SetInneractiveDetails( const char* szCode )
 //   immediately later. You can check the progress of this by using <i>GetFullscreenAdvertLoadedAdMob</i>.<br><br>
 //   AdMob ads are currently supported by iOS and Android.
 // INPUTS
-//   ID -- Ad unit ID as provided by AdMob.
+//   szID -- Ad unit ID as provided by AdMob.
 // SOURCE
 void agk::SetAdMobDetails ( const char* szID )
 //****    
@@ -36082,7 +36107,7 @@ void agk::SetAdvertLocationEx( int horz, int vert, float offsetx, float offsety,
 // FUNCTION
 //   Set the visibility of any advert.
 // INPUTS
-//   visible -- 1 will display the advert and 0 will hide it.
+//   iVisible -- 1 will display the advert and 0 will hide it.
 // SOURCE
 void agk::SetAdvertVisible ( int iVisible )
 //****    
@@ -36744,7 +36769,7 @@ void agk::InAppPurchaseSetKeys ( const char* szData1, const char* szData2 )
 //   that get displayed when using the in app purchase commands.
 //   Currently this command is only supported on iOS and Android.
 // INPUTS
-//   title -- Name of your application
+//   szTitle -- Name of your application
 // SOURCE
 void agk::InAppPurchaseSetTitle ( const char* szTitle )
 //****
@@ -36763,7 +36788,7 @@ void agk::InAppPurchaseSetTitle ( const char* szTitle )
 //   Currently this command is only supported on iOS, Google Play, and Amazon.
 //   This must be called before InAppPurchaseSetup, after that no further products can be added.
 // INPUTS
-//   ID -- The product ID as specified in iTunes Connect or the Google Play developer console
+//   szID -- The product ID as specified in iTunes Connect or the Google Play developer console
 //   type -- The type of product this is, consumable (1) or non consumable(0)
 // SOURCE
 void agk::InAppPurchaseAddProductID ( const char* szID, int type )
@@ -36790,8 +36815,8 @@ void agk::InAppPurchaseSetup()
 //   if the content is not available.
 //   Currently this command is only supported on iOS and Android.
 // INPUTS
-//   ID -- this ID corresponds to the product IDs that have been added e.g. your first product
-//         ID is 0, your second is 1 etc.
+//   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
+//          ID is 0, your second is 1 etc.
 // SOURCE
 int agk::GetInAppPurchaseAvailable ( int iID )
 //****
@@ -36804,7 +36829,7 @@ int agk::GetInAppPurchaseAvailable ( int iID )
 //   Call this when you want to start the process of activating / unlocking extra content.
 //   Currently this command is only supported on iOS and Android.
 // INPUTS
-//   ID -- this ID corresponds to the product IDs that have been added e.g. your first product
+//   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
 //         ID is 0, your second is 1 etc.
 // SOURCE
 void agk::InAppPurchaseActivate ( int iID )
@@ -36822,7 +36847,7 @@ void agk::InAppPurchaseActivate ( int iID )
 //   When calling this from Tier 2 you must deleted the returned string when you are done with
 //   it.
 // INPUTS
-//   ID -- this ID corresponds to the product IDs that have been added e.g. your first product
+//   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
 //         ID is 0, your second is 1 etc.
 // SOURCE
 char* agk::GetInAppPurchaseLocalPrice ( int iID )
@@ -36839,7 +36864,7 @@ char* agk::GetInAppPurchaseLocalPrice ( int iID )
 //   When calling this from Tier 2 you must deleted the returned string when you are done with
 //   it.
 // INPUTS
-//   ID -- this ID corresponds to the product IDs that have been added e.g. your first product
+//   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
 //         ID is 0, your second is 1 etc.
 // SOURCE
 char* agk::GetInAppPurchaseDescription ( int iID )
@@ -36909,7 +36934,7 @@ void agk::TwitterMessage ( const char* szMessage )
 //   part 5 of http://developers.facebook.com/docs/getting-started/facebook-sdk-for-ios/3.1/
 //   This command is currently only supported on iOS and Android.
 // INPUTS
-//   ID -- your Facebook app ID.
+//   szID -- your Facebook app ID.
 // SOURCE
 void agk::FacebookSetup ( const char* szID )
 //****
@@ -36995,11 +37020,11 @@ void agk::FacebookLogout()
 //   alternative to this command. They will open a dialog box giving the user the option to
 //   share via various installed apps, including Facebook.
 // INPUTS
-//   link        -- link to a URL, this must match the URL given to Facbook in the Website with Facebook Login section.
-//   picture     -- link to a picture.
-//   name        -- name to be displayed.
-//   caption     -- caption.
-//   description -- description of post.
+//   szLink        -- link to a URL, this must match the URL given to Facbook in the Website with Facebook Login section.
+//   szPicture     -- link to a picture.
+//   szName        -- name to be displayed.
+//   szCaption     -- caption.
+//   szDescription -- description of post.
 // SOURCE
 void agk::FacebookPostOnMyWall ( const char* szLink, const char* szPicture, const char* szName, const char* szCaption, const char* szDescription )
 //****
@@ -37013,12 +37038,12 @@ void agk::FacebookPostOnMyWall ( const char* szLink, const char* szPicture, cons
 //   a specific message.
 //   This command is currently only supported on iOS and Android.
 // INPUTS
-//   ID          -- ID of the friend.
-//   link        -- link to a URL, this must match the URL given to Facbook in the Website with Facebook Login section.
-//   picture     -- link to a picture.
-//   name        -- name to be displayed.
-//   caption     -- caption.
-//   description -- description of post.
+//   szID          -- ID of the friend.
+//   szLink        -- link to a URL, this must match the URL given to Facbook in the Website with Facebook Login section.
+//   szPicture     -- link to a picture.
+//   szName        -- name to be displayed.
+//   szCaption     -- caption.
+//   szDescription -- description of post.
 // SOURCE
 void agk::FacebookPostOnFriendsWall ( const char* szID, const char* szLink, const char* szPicture, const char* szName, const char* szCaption, const char* szDescription )
 //****
@@ -37030,8 +37055,8 @@ void agk::FacebookPostOnFriendsWall ( const char* szID, const char* szLink, cons
 // FUNCTION
 //   This command is not currently supported
 // INPUTS
-//   ID      -- ID of the friend.
-//   message -- the message.
+//   szID      -- ID of the friend.
+//   szMessage -- the message.
 // SOURCE
 void agk::FacebookInviteFriend ( const char* szID, const char* szMessage )
 //****
@@ -37043,11 +37068,11 @@ void agk::FacebookInviteFriend ( const char* szID, const char* szMessage )
 // FUNCTION
 //   This command is not currently supported
 // INPUTS
-//   url    -- URL that you want to like.
-//   x      -- x position of like button.
-//   y      -- y position of like button.
-//   width  -- width of like button.
-//   height -- height of like button.
+//   szURL   -- URL that you want to like.
+//   iX      -- x position of like button.
+//   iY      -- y position of like button.
+//   iWidth  -- width of like button.
+//   iHeight -- height of like button.
 // SOURCE
 void agk::FacebookShowLikeButton ( const char* szURL, int iX, int iY, int iWidth, int iHeight )
 //****
@@ -37105,7 +37130,7 @@ int agk::FacebookGetFriendsCount()
 //   Returns name for the specified index.
 //   This command is currently only supported on iOS and Android.
 // INPUTS
-//   index -- index for the player starting at 0.
+//   iIndex -- index for the player starting at 0.
 // SOURCE
 char* agk::FacebookGetFriendsName ( int iIndex )
 //****
@@ -37118,7 +37143,7 @@ char* agk::FacebookGetFriendsName ( int iIndex )
 //   Returns ID for the specified index.
 //   This command is currently only supported on iOS and Android.
 // INPUTS
-//   index -- index for the player starting at 0.
+//   iIndex -- index for the player starting at 0.
 // SOURCE
 char* agk::FacebookGetFriendsID ( int iIndex )
 //****
@@ -37131,7 +37156,7 @@ char* agk::FacebookGetFriendsID ( int iIndex )
 //   Download the specified friends photo.
 //   This command is currently only supported on iOS and Android.
 // INPUTS
-//   index -- index for the player starting at 0.
+//   iIndex -- index for the player starting at 0.
 // SOURCE
 void agk::FacebookDownloadFriendsPhoto ( int iIndex )
 //****
@@ -37204,7 +37229,7 @@ void agk::NotificationReset()
 // INPUTS
 //   iID -- The ID to use to reference this notification in future
 //   datetime -- The date and time to show this notification in unix time
-//   message -- The message to display in the notification
+//   szMessage -- The message to display in the notification
 // SOURCE
 void agk::SetLocalNotification( int iID, int datetime, const char *szMessage )
 //****
@@ -38325,6 +38350,7 @@ float agk::GetMemblockFloat( UINT memID, UINT offset )
 // INPUTS
 //   memID -- The ID of the memblock to check.
 //   offset -- The offset from the start of the memblock of the value to return, between 0 and size.
+//   length -- The number of bytes to read
 // SOURCE
 char* agk::GetMemblockString( UINT memID, UINT offset, UINT length )
 //****
@@ -42480,7 +42506,7 @@ char* agk::GetObjectMeshName( UINT objID, UINT meshIndex )
 //   objID -- The ID of the object to modify.
 //   meshIndex -- The index of the mesh to modify, first mesh is at index 1.
 //   imageID -- The ID of the image to assign to this object.
-//   texStage -- The texture stage to use for this image.
+//   textureStage -- The texture stage to use for this image.
 // SOURCE
 void agk::SetObjectMeshImage( UINT objID, UINT meshIndex, UINT imageID, UINT textureStage )
 //****
@@ -42895,8 +42921,8 @@ void agk::SetObjectMeshUVOffset( UINT objID, UINT meshIndex, UINT textureStage, 
 //   objID -- The ID of the object to modify.
 //   meshIndex -- The index of the mesh to modify.
 //   textureStage -- The texture stage of the UVs to modify, in the range 0 to 7
-//   offsetU -- The offset to use in the U direction, the default is 1
-//   offsetV -- The offset to use in the V direction, the default is 1
+//   scaleU -- The scale to use in the U direction, the default is 1
+//   scaleV -- The scale to use in the V direction, the default is 1
 // SOURCE
 void agk::SetObjectMeshUVScale( UINT objID, UINT meshIndex, UINT textureStage, float scaleU, float scaleV )
 //****
@@ -43210,6 +43236,7 @@ void agk::FixObjectToObject( UINT objID, UINT toObjID )
 // INPUTS
 //   objID -- The ID of the object to fix.
 //   toObjID -- The ID of the object to fix it to.
+//   toBoneIndex -- The index of the bone to fix it to.
 // SOURCE
 void agk::FixObjectToBone( UINT objID, UINT toObjID, UINT toBoneIndex )
 //****
@@ -43683,6 +43710,7 @@ float agk::GetObjectAnimationTime( UINT objID )
 //   Returns the duration of a specified animation in seconds.
 // INPUTS
 //   objID -- The ID of the object to check.
+//   animName -- The name of the animation to check, defined by the modelling program
 // SOURCE
 float agk::GetObjectAnimationDuration( UINT objID, const char *animName )
 //****
@@ -46760,8 +46788,8 @@ void agk::SetObjectDepthBias( UINT objID, float bias )
 //   Reverse mappings are allowed by setting near greater than far.
 // INPUTS
 //   objID -- The ID of the object to modify.
-//   near -- The start of the depth range for this object
-//   far -- The end of the depth range for this object
+//   zNear -- The start of the depth range for this object
+//   zFar -- The end of the depth range for this object
 // SOURCE
 void agk::SetObjectDepthRange( UINT objID, float zNear, float zFar )
 //****
@@ -48198,9 +48226,6 @@ void agk::SetFogRange( float minDist, float maxDist )
 //****f* 3D/Fog/GetFogMode
 // FUNCTION
 //   Returns 1 if 3D fog is currently on, otherwise it returns 0.
-// INPUTS
-//   minDist -- The red component of the color.
-//   maxDist -- The green component of the color.
 // SOURCE
 int agk::GetFogMode()
 //****
@@ -48463,8 +48488,8 @@ void agk::LoadShader( UINT shaderID, const char* szVertexFile, const char* szPix
 //   The global "precision" value will be added and should not be included in the shader source.
 //   Returns an ID that can be used to reference this shader in other commands.
 // INPUTS
-//   szVertexFile -- The file name of the vertex shader file, normally ending .vs
-//   szPixelFile -- The file name of the pixel shader file, normally ending .ps
+//   szVertexSource -- The file name of the vertex shader file, normally ending .vs
+//   szPixelSource -- The file name of the pixel shader file, normally ending .ps
 // SOURCE
 UINT agk::LoadShaderFromString( const char* szVertexSource, const char* szPixelSource )
 //****
@@ -49382,8 +49407,8 @@ void agk::SetCameraLookAt( UINT cameraID, float x, float y, float z, float roll 
 //   The default range is near=1, far=1000.
 // INPUTS
 //   cameraID -- The ID of the camera to modify, the main camera is ID 1.
-//   near -- The nearest that an object will be rendered.
-//   far -- The furthest that an object will be rendered.
+//   fNear -- The nearest that an object will be rendered.
+//   fFar -- The furthest that an object will be rendered.
 // SOURCE
 void agk::SetCameraRange( UINT cameraID, float fNear, float fFar )
 //****
@@ -50579,7 +50604,7 @@ void agk::Set3DParticlesActive( UINT ID, int active )
 //   ID -- The ID of the particle emitter to modify.
 //   mode -- The transparency mode for these particles, 0=off, 1=alpha transparency, 2=additive blending
 // SOURCE
-void agk::Set3DParticlesTransparency( UINT ID, int active )
+void agk::Set3DParticlesTransparency( UINT ID, int mode )
 //****
 {
 	AGK3DParticleEmitter *pEmitter = m_3DParticleEmitterList.GetItem( ID );
@@ -50593,7 +50618,7 @@ void agk::Set3DParticlesTransparency( UINT ID, int active )
 		return;
 	}
 
-	pEmitter->SetTransparency( active );
+	pEmitter->SetTransparency( mode );
 }
 
 
@@ -51278,9 +51303,9 @@ void agk::Create3DPhysicsWorld( float scaleFactor )
 //   Gravity is set to ( 0.0, -10.0, 0.0 ) by default. You only need to call this command if 
 //   you need to change from the default setting.
 // INPUTS
-//   X --  The value of gravity on the X axis in meters per second.
-//	  Y --	 The value of gravity on the Y axis in meters per second.
-//   Z --  The value of gravity on the Z axis in meters per second.  
+//   x -- The value of gravity on the X axis in meters per second.
+//	 y -- The value of gravity on the Y axis in meters per second.
+//   z -- The value of gravity on the Z axis in meters per second.  
 // SOURCE
 void agk::Set3DPhysicsGravity( float x, float y, float z )
 //****
@@ -51298,9 +51323,7 @@ void agk::Set3DPhysicsGravity( float x, float y, float z )
 //   Gravity is set to ( 0.0, -10.0, 0.0 ) by default. You only need to call this command if 
 //   you need to change from the default setting.
 // INPUTS
-//   X --  The value of gravity on the X axis in meters per second.
-//	  Y --	 The value of gravity on the Y axis in meters per second.
-//   Z --  The value of gravity on the Z axis in meters per second.  
+//   vectorID -- The ID of the vector to use
 // SOURCE
 void agk::Set3DPhysicsGravity( UINT vectorID )
 //****
@@ -51871,7 +51894,7 @@ void agk::Delete3DPhysicsBody( UINT objID )
 	}
 }
 
-//****f* 3DPhysics/RigidBodies/Create3DphysicsStaticPlane
+//****f* 3DPhysics/RigidBodies/Create3DPhysicsStaticPlane
 // FUNCTION
 //   Creates a static plane.
 //   Returns a static Plane ID
@@ -51881,13 +51904,13 @@ void agk::Delete3DPhysicsBody( UINT objID )
 //  normalZ -- z value of the  normal vector.
 //  offsetPosition -- How much the plane will be offset from its world position.
 // SOURCE
-int agk::Create3DPhysicsStaticPlane( float normlX, float normalY, float normalZ, float offsetPosition )
+int agk::Create3DPhysicsStaticPlane( float normalX, float normalY, float normalZ, float offsetPosition )
 //****
 {
 	if ( !AGKToBullet::AssertValidPhysicsWorld() )
 		return 0;
 	offsetPosition /= GetCurrentDynamicsWorld()->m_scaleFactor;
-	btCollisionShape* collShape = new btStaticPlaneShape(btVector3( normlX, normalY, normalZ ), offsetPosition );
+	btCollisionShape* collShape = new btStaticPlaneShape(btVector3( normalX, normalY, normalZ ), offsetPosition );
 	btRigidBody* body = RigidBodies::CreateRigidBodyStatic( collShape );
 	GetCurrentDynamicsWorld()->m_dynamicsWorld->addRigidBody( body );
 	int planeID = staticPlaneManager.GetFreeID();
@@ -51963,7 +51986,7 @@ void agk::Delete3DPhysicsStaticPlane( UINT planeID )
 	}
 }
 
-//****f* 3DPhysics/RigidBodies/SetObject3DPhysicsGroup
+//****f* 3DPhysics/RigidBodies/SetObject3DPhysicsGroupAndMask
 // FUNCTION
 //   Sets the objects collision group and mask.
 //   By default all physics objects are in one group and are not masked.
@@ -52894,7 +52917,6 @@ void agk::Delete3DPhysicsPickJoint( UINT jointID )
 // INPUTS
 //  objA -- first object ID
 //  objB -- second object ID
-//  min_maxVec2 -- vector ID
 //  positionVec3 -- vector ID
 //  rotationVec3 -- vector ID
 //  disableCollisions -- 1 = collisions will be disabled between linked objects, 0 collisions will be enabled between linked objects.
@@ -53533,11 +53555,11 @@ void agk::Set3DPhysicsHingeJointMotorVelocity( UINT jointID, float targetVelocit
 	}
 }
 
-//****f* 3DPhysics/Joints/Set3DPhysicsTwistJointIsEnabled
+//****f* 3DPhysics/Joints/Set3DPhysicsTwistJointMotorIsEnabled
 // FUNCTION
 //   Enables a twist joint motor.
 // INPUTS
-//  objID -- object ID
+//  jointID -- joint ID
 //  isEnabled -- 1 = true , 0 = false
 // SOURCE
 void agk::Set3DPhysicsTwistJointMotorIsEnabled( UINT jointID, int isEnabled )
@@ -54054,8 +54076,7 @@ int agk::LoadObjectShape( UINT objID, const char* fileName )
 
 //****f* Maths/Vectors/CreateVector3
 // FUNCTION
-//   Creates an empty vector
-//  Returns a vector ID
+//  Creates an empty vector, returns a vector ID
 // SOURCE
 int agk::CreateVector3()
 //****
@@ -54067,12 +54088,12 @@ int agk::CreateVector3()
 
 //****f* Maths/Vectors/CreateVector3
 // FUNCTION
-//  Creates a vector and fills it. with the values passed in.
+//  Creates a vector and fills it with the values passed in.
 //  Returns a vector ID
 // INPUTS
-// X -- 
-// Y --
-// Z --
+//  x -- The x component of the vector
+//  y -- The y component of the vector
+//  z -- The z component of the vector
 // SOURCE
 int agk::CreateVector3( float x, float y, float z )
 //****
@@ -54087,9 +54108,9 @@ int agk::CreateVector3( float x, float y, float z )
 //  Fills the specified vector.
 // INPUTS
 //  vectorID -- Id of Vector
-// X -- 
-// Y --
-// Z --
+//  x -- The x component of the vector
+//  y -- The y component of the vector
+//  z -- The z component of the vector
 // SOURCE
 void agk::SetVector3( UINT vectorID, float x, float y, float z )
 //****
@@ -54241,7 +54262,7 @@ void agk::GetVector3Cross( UINT resultVec, UINT vectorU, UINT vectorV )
 
 //****f* Maths/Vectors/GetVector3Multiply
 // FUNCTION
-//   Returns the Vector ID which is the multiplication of 2 vectors passed in.
+//   Returns the Vector ID which is the multiplication of the vector passed in and a float value.
 // INPUTS
 //  resultVec -- ID of the vector to multiply.
 //  multiplier -- float value to multiply by.
@@ -54526,11 +54547,14 @@ int agk::Get3DPhysicsRayCastNumHits( UINT rayID )
 	return rayManager.GetItem( rayID )->GetNumberOfContacts();
 }
 
-//****f* 3DPhysics/RayCast/SphereCast3DPhysicsRay
+//****f* 3DPhysics/RayCast/SphereCast3DPhysics
 // FUNCTION
 //  Casts a sphere collision shape along the length of the ray.
 // INPUTS
 //  rayID -- The ID of the ray which is returned by calling <i>Create3DPhysicsRay()</i>.
+//  fromVec3ID -- The ID of the vector holding the start point
+//  toVec3ID -- The ID of the vector holding the end point
+//  radius -- The radius of the sphere
 // SOURCE
 void agk::SphereCast3DPhysics( UINT rayID, int fromVec3ID, int toVec3ID, float radius )
 //****
@@ -54552,13 +54576,16 @@ void agk::SphereCast3DPhysics( UINT rayID, int fromVec3ID, int toVec3ID, float r
 	rayManager.GetItem( rayID )->ConvexCast( radius, from, to );
 }
 
-//****f* 3DPhysics/RayCast/SphereCast3DPhysicsRay
+//****f* 3DPhysics/RayCast/SphereCast3DPhysicsObject
 // FUNCTION
 //  Casts a sphere collision shape along the length of the ray.
-//   Returns 1 if the specified object has been hit and 0 if it has not.
+//  Returns 1 if the specified object has been hit and 0 if it has not.
 // INPUTS
 //  objID -- object ID
 //  rayID -- The ID of the ray which is returned by calling <i>Create3DPhysicsRay()</i>.
+//  fromVec3ID -- The ID of the vector holding the start point
+//  toVec3ID -- The ID of the vector holding the end point
+//  radius -- The radius of the sphere
 // SOURCE
 int agk::SphereCast3DPhysicsObject( UINT objID, UINT rayID, int fromVec3ID, int toVec3ID, float radius )
 //****
@@ -54642,7 +54669,7 @@ int agk::Add3DPhysicsRagDollBone( UINT startBoneID, UINT endBoneID, float diamet
 	return -1;
 }
 
-//****f* 3DPhysics/Ragdoll/AssignTo3DPhysicsRagdollBoneObjectBone
+//****f* 3DPhysics/Ragdoll/AssignTo3DPhysicsRagDollBoneObjectBone
 // FUNCTION
 //  Assigns the objects bone to the ragdoll bone.
 //  The objects bones that are in between the bones that are used to create a ragdoll bone.
@@ -54659,16 +54686,16 @@ void agk::AssignTo3DPhysicsRagDollBoneObjectBone( UINT ragdollBoneID, UINT objBo
 		currentRagDoll->AssignLimbIDToBone( ragdollBoneID, objBoneID );
 	}
 	else{
-		Error("You Must Call Create3DPhysicsRagDoll before AssignTo3DPhysicsRagdollBoneObjectBone" );
+		Error("You Must Call Create3DPhysicsRagDoll before AssignTo3DPhysicsRagollBoneObjectBone" );
 	}
 }
 
-//****f* 3DPhysics/Ragdoll/Add3DPhysicsRagdollHingeJoint
+//****f* 3DPhysics/Ragdoll/Add3DPhysicsRagDollHingeJoint
 // FUNCTION
 //   Creates a physics hing joint between ragdoll bone A and B at the location of the objects bone.
 // INPUTS
-//  boneAID -- ID of the Ragdoll bone returned from Add3DPhysicsRagDollBone
-//  boneBID -- ID of the Ragdoll bone returned from Add3DPhysicsRagDollBone
+//  boneAID -- ID of the RagDoll bone returned from Add3DPhysicsRagDollBone
+//  boneBID -- ID of the RagDoll bone returned from Add3DPhysicsRagDollBone
 //  objBoneID -- ID of the bone in the object which will be the location of the ragdoll joint
 //  jointRotationVec3 -- Id of the vector with the rotation of the joint.
 //  minLimit -- float value in angular degrees
@@ -54679,23 +54706,23 @@ void agk::Add3DPhysicsRagDollHingeJoint( UINT boneAID, UINT boneBID, UINT objBon
 {
 	if ( !AGKToBullet::AssertValidPhysicsWorld() )
 		return;
-	if ( !AGKToBullet::AssertValidVectorID( jointRotationVec3, "Add3DPhysicsRagdollHingeJoint: jointRotationVec3 ID not valid") )
+	if ( !AGKToBullet::AssertValidVectorID( jointRotationVec3, "Add3DPhysicsRagDollHingeJoint: jointRotationVec3 ID not valid") )
 		return;
 	if( currentRagDoll != NULL ){
 		AGKVector* rotVec3 = vectorManager.GetItem( jointRotationVec3 )->GetAGKVector();
 		currentRagDoll->AddHingeJoint( boneAID, boneBID, objBoneID, AGKToBullet::GetBtVector3( *rotVec3 ), btScalar( minLimit ), btScalar( maxLimit ) );
 	}else
 	{
-		Error( "Can not call Add3DPhysicsRagdollHingeJoint before Create3DPhysicsRagDoll" );
+		Error( "Can not call Add3DPhysicsRagDollHingeJoint before Create3DPhysicsRagDoll" );
 	}
 }
 
-//****f* 3DPhysics/Ragdoll/Add3DPhysicsRagdollTwistJoint
+//****f* 3DPhysics/Ragdoll/Add3DPhysicsRagDollTwistJoint
 // FUNCTION
 //  Creates a physics Cone Twist joint between ragdoll bone A and B at the location of the objects bone.
 // INPUTS
-//  boneAID -- ID of the Ragdoll bone returned from Add3DPhysicsRagDollBone
-//  boneBID -- ID of the Ragdoll bone returned from Add3DPhysicsRagDollBone
+//  boneAID -- ID of the RagDoll bone returned from Add3DPhysicsRagDollBone
+//  boneBID -- ID of the RagDoll bone returned from Add3DPhysicsRagDollBone
 //  objBoneID -- ID of the bone in the object which will be the location of the ragdoll joint
 //  jointRotationVec3 -- ID of the vector with the rotation of the joint.
 //  limitsVec3 -- ID of the vector with the joint limits
@@ -54705,10 +54732,10 @@ void agk::Add3DPhysicsRagDollTwistJoint( UINT boneAID, UINT boneBID, UINT objBon
 {
 	if ( !AGKToBullet::AssertValidPhysicsWorld() )
 		return;
-	if ( !AGKToBullet::AssertValidVectorID( jointRotationVec3, "Add3DPhysicsRagdollTwistJoint: jointRotationVec3 ID not valid") )
+	if ( !AGKToBullet::AssertValidVectorID( jointRotationVec3, "Add3DPhysicsRagDollTwistJoint: jointRotationVec3 ID not valid") )
 		return;
 	AGKVector* rotVec3 = vectorManager.GetItem( jointRotationVec3 )->GetAGKVector();
-	if ( !AGKToBullet::AssertValidVectorID( limitsVec3, "Add3DPhysicsRagdollTwistJoint: limitsVec3 ID not valid") )
+	if ( !AGKToBullet::AssertValidVectorID( limitsVec3, "Add3DPhysicsRagDollTwistJoint: limitsVec3 ID not valid") )
 		return;
 	AGKVector* limtsVec3 = vectorManager.GetItem( limitsVec3 )->GetAGKVector();
 	if( currentRagDoll != NULL ){
@@ -54716,7 +54743,7 @@ void agk::Add3DPhysicsRagDollTwistJoint( UINT boneAID, UINT boneBID, UINT objBon
 																				AGKToBullet::GetBtVector3( *limtsVec3 ) );
 	}
 	else{
-		Error( "Can not call Add3DPhysicsRagdollTwistJoint before Create3DPhysicsRagDoll" );
+		Error( "Can not call Add3DPhysicsRagDollTwistJoint before Create3DPhysicsRagDoll" );
 	}
 }
 

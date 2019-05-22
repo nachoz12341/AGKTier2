@@ -711,9 +711,9 @@ int agk::FacebookHandleOpenURL( void* url )
     return 1;
 }
 
-void agk::FacebookReceivedNotification( const char* data )
+void agk::HandleDeepLink( const char* link )
 {
-
+    AGK::g_sLastURLSchemeText.SetStr( link );
 }
 
 void agk::PlatformSocialPluginsSetup ( void )

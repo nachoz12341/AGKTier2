@@ -22,6 +22,6 @@ artifacts {
 }
 
 dependencies {
-    compile project(':GooglePlayLicensing')
+    implementation project(':GooglePlayLicensing')
     implementation 'com.android.support:support-v4:26.0.2'
 }

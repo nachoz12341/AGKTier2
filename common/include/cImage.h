@@ -9,6 +9,8 @@
 
 #define MAX_IMAGES 0x7fffffff
 
+struct GifFileType;
+
 // Namespace
 namespace AGK
 {
@@ -17,6 +19,8 @@ namespace AGK
 	bool loadPngImageFromMemory(unsigned char *name, int &outWidth, int &outHeight, bool &outHasAlpha, unsigned char **outData);
 	bool loadPngImage(const char *name, int &outWidth, int &outHeight, bool &outHasAlpha, unsigned char **outData);
 	void write_png(const char *file_name, int width, int height, UINT* bits);
+
+	int ReadGifFile( GifFileType *file, unsigned char *buffer, int length );
 
 	class Point2D;
 	class cImage;
@@ -207,6 +211,8 @@ namespace AGK
 			static void ReloadAllImages();
 			static void SaveAllImages();
 			static void UpdateGifImages();
+
+			static unsigned int GetImageSizeFromFile( const char* filename );
 
 			static int GetSupportsNPOT();
 			static int GetMaxTextureSize();

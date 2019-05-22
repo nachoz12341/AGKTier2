@@ -3064,7 +3064,8 @@ public class AGKHelper {
 		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
-		target.setDataAndType( Uri.fromFile(dst),sMIME );
+		target.setType( sMIME );
+		target.putExtra( Intent.EXTRA_STREAM, Uri.fromFile(dst) );
 		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
 
 		try {

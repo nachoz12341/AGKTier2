@@ -1576,6 +1576,8 @@ int agk::GetDeviceNetworkType()
 //   in its internal storage. In some cases these may be the same. This command returns -1 if the space 
 //   available could not be determined. Currently only implemented on iOS and Android, other platforms will 
 //   return -1.
+// INPUTS
+//   path -- The path to check
 // SOURCE
 int agk::GetStorageRemaining( const char *path )
 //****
@@ -1590,6 +1592,8 @@ int agk::GetStorageRemaining( const char *path )
 //   a path that points to the AGK write folder will return the number of MB in the internal storage. In 
 //   some cases these may be the same. This command returns -1 if the storage size could not be determined. 
 //   Currently only implemented on iOS and Android, other platforms will return -1.
+// INPUTS
+//   path -- The path to check
 // SOURCE
 int agk::GetStorageTotal( const char *path )
 //****
@@ -1690,7 +1694,7 @@ int agk::GetExpansionFileState()
 	return 0;
 }
 
-//****f* Core/Misc/GetExpansionError
+//****f* Core/Misc/GetExpansionFileError
 // FUNCTION
 //   Returns the error code of the most recent error that occurred when downloading the expansion file. Possible errors
 //   include:<br/>
@@ -7634,6 +7638,8 @@ void AGKThread::PlatformSleepSafe( UINT milliseconds )
 //   folder on Android, which is guaranteed to allow write access.<br/><br/>
 //   This command is now deprecated. The preferred method of accessing files outside of the usual write
 //   folder is to use the <i>OpenRawFolder</i> commands and "raw:" file paths.
+// INPUTS
+//   str -- The path to use as the write folder
 // SOURCE
 void agk::SetRawWritePath( const char* str )
 //****
@@ -9450,7 +9456,9 @@ void cEditBox::PlatformUpdateTextEnd()
 
 //****f* HTTP/General/OpenBrowser
 // FUNCTION
-//   Opens the default browser of the current platform with points it to the page given.
+//   Opens the default browser of the current platform and points it to the page given.
+// INPUTS
+//   url -- THe url to open
 // SOURCE
 void agk::OpenBrowser( const char *url )
 //****
@@ -10579,8 +10587,7 @@ char* agk::LoadSharedVariable( const char *varName, const char *defaultValue )
 //   Once the variable is deleted then <i>LoadSharedVariable</i> will return the default value for 
 //   any requests to load it.
 // INPUTS
-//   varName -- The name to use to identify this variable
-//   varValue -- The value to save in this variable
+//   varName -- The name of the variable to delete
 // SOURCE
 void agk::DeleteSharedVariable( const char *varName )
 //****

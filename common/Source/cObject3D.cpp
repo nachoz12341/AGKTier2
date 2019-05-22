@@ -941,7 +941,7 @@ void cObject3D::LoadObject( const char *szFilename, int withChildren,  float hei
 
 		if (pScene->HasMaterials())
 		{
-			for (int ti = 0; ti < pScene->mNumMaterials; ti++)
+			for (unsigned int ti = 0; ti < pScene->mNumMaterials; ti++)
 			{
 				const aiMaterial* pMaterial = pScene->mMaterials[ti];
 

@@ -208,6 +208,7 @@ void AGKShader::ReloadAll()
 		cShaderUniform* pUniform = pShader->m_cUniformList.GetFirst();
 		while ( pUniform )
 		{
+			pUniform->m_bChanged = true;
 			pUniform->m_pNextUniform = pShader->m_pChangedUniforms;
 			pShader->m_pChangedUniforms = pUniform;
 

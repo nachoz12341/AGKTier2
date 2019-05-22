@@ -37,6 +37,7 @@ using namespace AGK;
 HANDLE hDebugConsoleOut = NULL;
 HWND g_hWnd = NULL;
 bool g_bAGKInitialised = false;
+bool bExitLoop = false;
 
 //
 // Windows Application STUB requires entry function, create window and message pump
@@ -489,7 +490,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			agk::WindowMoved();
 			break;
 		}
-
+		
+		case WM_SIZING:
+		{
+			if ( g_bAGKInitialised )
+			{
+				try
+				{
+					if (!agk::IsCapturingImage())
+					{
+						App.Loop();
+					}
+					else
+					{
+						agk::Sleep(10);
+					}
+				}
+				catch (...)
+				{
+					uString err = agk::GetLastError();
+					err.Prepend("(WM_SIZING) Uncaught exception: \n\n");
+					MessageBoxA(NULL, err.GetStr(), "Error", 0);
+					bExitLoop = true;
+				}
+			}
+			break;
+		}
+	
 		case WM_NCHITTEST:
 		{
 			LRESULT result = DefWindowProc(hWnd, message, wParam, lParam);
@@ -909,7 +936,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	agk::SetExtraAGKPlayerAssetsMode ( 2 ); // 0-no assets, 1-minimum assets, 2-extra AGK Player assets
 
 	// call app begin
-	bool bExitLoop = false;
 	try
 	{
 		// initialise graphics API (win32 openGL) for app

@@ -13690,5 +13690,11 @@ case AGKI_GAMECENTERLOGOUT_0_0:
     agk::GameCenterLogout( );
     break;
 }
+case AGKI_GETIMAGESIZEFROMFILE_L_S:
+{
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    m_pStack[ m_iStackPtr++ ].i = agk::GetImageSizeFromFile( param0 );
+    break;
+}
 
 

@@ -778,7 +778,7 @@ void AGKMusicOGG::Update()
 		} while( remaining > 0 && bytes > 0 );
 
 		int samples = (int) ov_pcm_tell( m_pOggFile );
-		if ( samples == m_iTotalSamples && bytes > 0 )
+		if ( samples >= m_iTotalSamples && bytes > 0 )
 		{
 			// reached end of stream, but haven't triggered ov_read to return 0
 			int dump, bitstream;

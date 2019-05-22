@@ -56,6 +56,45 @@ namespace AGK
 	  longjmp(myerr->setjmp_buffer, 1);
 	}
 
+	bool getJpegImageSize(const char *name, int &outWidth, int &outHeight)
+	{
+		jpeg_decompress_struct cinfo;
+		my_error_mgr jerr;
+
+		FILE * infile;
+		//int row_stride;
+
+		if ((infile = AGKfopen(name, "rb")) == NULL)
+		{
+			return false;
+		}
+
+		cinfo.err = jpeg_std_error(&jerr.pub);
+		jerr.pub.error_exit = my_error_exit;
+
+		if (setjmp(jerr.setjmp_buffer))
+		{
+			// If we get here, the JPEG code has signaled an error.
+			// We need to clean up the JPEG object, close the input file, and return.
+			jpeg_destroy_decompress(&cinfo);
+			fclose(infile);
+			return false;
+		}
+
+		jpeg_create_decompress(&cinfo);
+
+		jpeg_stdio_src(&cinfo, infile);
+
+		jpeg_read_header(&cinfo, TRUE);
+		outWidth = cinfo.output_width;
+		outHeight = cinfo.output_height;
+		
+		jpeg_destroy_decompress(&cinfo);
+
+		fclose(infile);
+		return true;
+	}
+
 	bool loadJpegImage(const char *name, int &outWidth, int &outHeight, bool &outHasAlpha, unsigned char **outData)
 	{
 		jpeg_decompress_struct cinfo;
@@ -464,6 +503,57 @@ namespace AGK
 		return true;
 	}
 
+	bool getPngImageSize(const char *name, int &outWidth, int &outHeight) 
+	{
+		png_structp png_ptr;
+		png_infop info_ptr;
+		unsigned int sig_read = 0;
+		FILE *fp;
+
+		if ((fp = AGKfopen(name, "rb")) == NULL)
+		{
+    		return false;
+		}
+
+		png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, no_errmsg, no_warn);
+
+		if (png_ptr == NULL) {
+			fclose(fp);
+			return false;
+		}
+
+		info_ptr = png_create_info_struct(png_ptr);
+		if (info_ptr == NULL) {
+			fclose(fp);
+			png_destroy_read_struct(&png_ptr, 0, 0);
+			return false;
+		}
+
+		png_set_read_fn( png_ptr, NULL, NULL );
+		png_init_io( png_ptr, fp );
+
+		if (setjmp(png_jmpbuf(png_ptr))) {
+			/* Free all of the memory associated
+			 * with the png_ptr and info_ptr */
+			png_destroy_read_struct(&png_ptr, &info_ptr, 0);
+			fclose(fp);
+			/* If we get here, we had a
+			 * problem reading the file */
+			return false;
+		}
+
+		png_set_sig_bytes(png_ptr, sig_read);
+
+		png_read_info(png_ptr, info_ptr);
+		outWidth = png_get_image_width( png_ptr, info_ptr );
+		outHeight = png_get_image_height( png_ptr, info_ptr );
+		
+		png_destroy_read_struct(&png_ptr, &info_ptr, 0);
+
+		fclose(fp);
+		return true;
+	}
+
 	bool loadPngImage(const char *name, int &outWidth, int &outHeight, bool &outHasAlpha, unsigned char **outData) 
 	{
 		png_structp png_ptr;
@@ -641,6 +731,12 @@ namespace AGK
 	   // Finish writing.
 	   png_destroy_write_struct(&png_ptr, &info_ptr);
 	   fclose(fp);
+	}
+
+	int ReadGifFile( GifFileType *file, unsigned char *buffer, int length )
+	{
+		cFile *pFile = (cFile*) file->UserData;
+		return pFile->ReadData( (char*)buffer, length );
 	}
 
 	class ImageCacheItem
@@ -1243,7 +1339,7 @@ cImage::~cImage()
 	// delete gif frames
 	if ( m_pGifFrames )
 	{
-		for( int i = 0; i < m_iGifNumFrames; i++ ) delete m_pGifFrames[ i ];
+		for( unsigned int i = 0; i < m_iGifNumFrames; i++ ) delete m_pGifFrames[ i ];
 		delete [] m_pGifFrames;
 		m_pGifFrames = 0;
 	}
@@ -1504,7 +1600,7 @@ void cImage::UpdateGifImage()
 	}
 	
 	float currTime = agk::Timer();
-	int nextFrame = m_iGifCurrFrame + 1;
+	unsigned int nextFrame = m_iGifCurrFrame + 1;
 	if ( nextFrame >= m_iGifNumFrames ) nextFrame = 0;
 	if ( m_fGifTime + m_pGifFrames[m_iGifCurrFrame]->fDelay < currTime || m_fGifTime-0.1f > currTime ) // currTime may return to 0 at any time due to ResetTimer()
 	{
@@ -1742,6 +1838,60 @@ bool cImage::IsAtlas() const
 //****
 {
 	return m_pSubImages != UNDEF;
+}
+
+// return value will be width and height packed into the top 16bits and low 16bits respectively
+unsigned int cImage::GetImageSizeFromFile( const char* filename )
+{
+	uString sPath( filename );
+
+	if ( !agk::GetRealPath( sPath ) )
+	{
+		uString err; err.Format( "Could not find image: %s", filename );
+		agk::Error( err );
+		return 0;
+	}
+
+	int width;
+	int height;
+	
+	bool result = false;
+	const char *szExt = strrchr( filename, '.' );
+	char *szExtL = agk::Lower( szExt );
+	
+	if ( strcmp( szExtL, ".png" ) == 0 ) result = getPngImageSize( sPath.GetStr(), width, height );
+	else if ( strcmp( szExtL, ".jpg" ) == 0 || strcmp( szExtL, ".jpeg" ) == 0 ) result = getJpegImageSize( sPath.GetStr(), width, height );
+	else if ( strcmp( szExtL, ".gif" ) == 0 )
+	{
+		GifFileType *pGif;
+		//pGif = ::DGifOpenFileName( sPath.GetStr() );
+		cFile sFile; sFile.OpenToRead( filename );
+		pGif = ::DGifOpen( &sFile, ReadGifFile );
+		if ( pGif )
+		{
+			width = pGif->SWidth;
+			height = pGif->SHeight;
+			DGifCloseFile( pGif );
+			result = true;
+		}
+	}
+	else
+	{
+		delete [] szExtL;
+		agk::Error( "Unsupported image format, only PNG, JPG, and GIF are allowed" );
+		return 0;
+	}
+
+	delete [] szExtL;
+
+	if ( !result )
+	{
+		uString err; err.Format( "Failed to load image file: %s", sPath.GetStr() );
+		agk::Error( err );
+		return 0;
+	}
+
+	return (width << 16) | (height & 0xFFFF);
 }
 
 bool cImage::Load( const uString &szFile, bool bBlackToAlpha )
@@ -3441,7 +3591,7 @@ void cImage::Resize( int width, int height )
 		uLong upperBound = compressBound( width * height * 4 );
 		unsigned char *tempbuf = new unsigned char[ upperBound ];
 
-		for( int i = 0; i < m_iGifNumFrames; i++ )
+		for( unsigned int i = 0; i < m_iGifNumFrames; i++ )
 		{
 			if ( m_pGifFrames[ i ]->pData )
 			{
@@ -3699,6 +3849,8 @@ cImage** cImage::GetExtendedFontImages()
 
 bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned int *out_width, unsigned int *out_height )
 {
+	/*
+	// no longer needed now that OpenToRead is being used
 	if ( !cFile::Exists( szFile ) ) return false;
 
 	uString sPath( szFile );
@@ -3707,20 +3859,16 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 		agk::Warning( "Failed to find gif image" );
 		return false;
 	}
+	*/
 
 	GifFileType *pGif;
-	pGif = ::DGifOpenFileName( sPath.GetStr() );
+	//pGif = ::DGifOpenFileName( sPath.GetStr() );
+	cFile sFile; sFile.OpenToRead( szFile );
+	pGif = ::DGifOpen( &sFile, ReadGifFile );
 	if ( !pGif )
 	{
-		sPath.SetStr( szFile );
-		agk::PlatformGetFullPathRead( sPath );
-
-		pGif = ::DGifOpenFileName( sPath.GetStr() );
-		if ( !pGif ) 
-		{
-			agk::Warning( "Failed to load gif image" );
-			return false;
-		}
+		agk::Warning( "Failed to load gif image" );
+		return false;
 	}
 
 	int cxScreen =  pGif->SWidth;
@@ -3810,6 +3958,7 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 						{
 							if (DGifGetLine( pGif, pLine, Width ) == GIF_ERROR)
 							{
+								DGifCloseFile( pGif );
 								return false;
 							}
 
@@ -3841,6 +3990,7 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 					{
 						if (DGifGetLine(pGif, pLine, Width) == GIF_ERROR)
 						{
+							DGifCloseFile( pGif );
 							return false;
 						}
 						
@@ -3870,7 +4020,7 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 				{
 					int newSize = m_iGifFramesArraySize * 3 / 2;
 					cGifFrame ** newFrames = new cGifFrame*[ newSize ];
-					for( int i = 0; i < m_iGifNumFrames; i++ ) newFrames[ i ] = m_pGifFrames[ i ];
+					for( unsigned int i = 0; i < m_iGifNumFrames; i++ ) newFrames[ i ] = m_pGifFrames[ i ];
 					delete [] m_pGifFrames;
 					m_pGifFrames = newFrames;
 					m_iGifFramesArraySize = newSize;
@@ -3906,6 +4056,7 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
         {
 			if (DGifGetExtension(pGif, &ExtCode, &pExtension) == GIF_ERROR)
 			{
+				DGifCloseFile( pGif );
 				return false;
 			}
             int bNetscapeExt = 0;
@@ -3944,6 +4095,7 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 			{
 				if (DGifGetExtensionNext(pGif, &pExtension) == GIF_ERROR)
 				{
+					DGifCloseFile( pGif );
 					return false;
 				}
                 // Process Netscape 2.0 extension (GIF looping)
@@ -3972,13 +4124,13 @@ bool cImage::GetGifFromFile( const char* szFile, unsigned char **pData, unsigned
 
 	delete [] bits;
 
+	DGifCloseFile( pGif );
+
 	if ( !bFound ) 
 	{
 		agk::Warning( "Failed to parse gif image" );
 		return false;
 	}
-
-	DGifCloseFile( pGif );
 
 	return true;
 }

@@ -4017,7 +4017,8 @@ public class AGKHelper {
 		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
-		target.setDataAndType( uri, sMIME );
+		target.setType( sMIME );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
 		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {

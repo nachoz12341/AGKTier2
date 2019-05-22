@@ -52,6 +52,17 @@ using namespace AGK;
 	}
 	[viewController setActive];
     
+    NSDictionary *remoteNotify = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+    if ( remoteNotify )
+    {
+        NSDictionary *aps = [remoteNotify objectForKey:@"aps"];
+        if ( aps )
+        {
+            NSString *deeplink = [aps objectForKey:@"deeplink"];
+            if ( deeplink ) agk::HandleDeepLink( [deeplink UTF8String] );
+        }
+    }
+    
     // success
     return YES;
 }
@@ -181,6 +192,19 @@ using namespace AGK;
     
     // reset the icon badge to 0
 	application.applicationIconBadgeNumber = 0; 
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler
+{
+    // get the whole string from the notification
+    NSDictionary *aps = [userInfo objectForKey:@"aps"];
+    if ( aps )
+    {
+        NSString *deeplink = [aps objectForKey:@"deeplink"];
+        if ( deeplink ) agk::HandleDeepLink( [deeplink UTF8String] );
+    }
+    
+    completionHandler ( UIBackgroundFetchResultNewData );
 }
 
 @end

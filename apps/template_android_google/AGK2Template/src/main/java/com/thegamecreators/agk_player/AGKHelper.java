@@ -2392,8 +2392,15 @@ public class AGKHelper {
 					{
 						if (apiException.getStatusCode() == GoogleSignInStatusCodes.SIGN_IN_REQUIRED) {
 							Log.i("Games Sign In", "Prompting user to sign in");
-							Intent signInIntent = g_GamesSignIn.getSignInIntent();
-							act.startActivityForResult( signInIntent, 10004 );
+							if ( g_GamesSignIn == null )
+							{
+								Log.i("Games Sign In", "GamesSignIn is null");
+							}
+							else
+							{
+								Intent signInIntent = g_GamesSignIn.getSignInIntent();
+								act.startActivityForResult(signInIntent, 10004);
+							}
 						}
 						else
 						{
@@ -2418,6 +2425,12 @@ public class AGKHelper {
 						if ( task.isSuccessful() ) {
 							g_GamesPlayerName = task.getResult().getDisplayName();
 							g_GamesPlayerID = task.getResult().getPlayerId();
+						}
+
+						if ( g_GamesAccount == null )
+						{
+							Log.i("Games Sign In", "GamesAccount is null");
+							return;
 						}
 
 						AchievementsClient achievementsClient = Games.getAchievementsClient( act, g_GamesAccount );
@@ -3546,14 +3559,10 @@ public class AGKHelper {
 		if ( Build.MANUFACTURER.equals("Amazon") ) return 1;
 		else return 0;
 	}
-	
-	// ********************
-	// In App Purchase
-	// ********************
-	
+
 	public static final int MAX_PRODUCTS = 25;
 	public static int g_iPurchaseState = 1;
-	public static int g_iNumProducts = 0; 
+	public static int g_iNumProducts = 0;
 	public static int[] g_iPurchaseProductStates = new int[MAX_PRODUCTS];
 	public static String[] g_sPurchaseProductNames = new String[MAX_PRODUCTS];
 	public static String[] g_sPurchaseProductPrice = new String[MAX_PRODUCTS];
@@ -3566,31 +3575,35 @@ public class AGKHelper {
 	public static Activity g_pAct = null;
 	public static final Object iapLock = new Object();
 	public static int g_iIAPStatus = 0;
-	
-	static IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
-        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
-            Log.d("IAB InventoryFinished", "Query inventory finished.");
-            if (result.isFailure()) {
-                Log.e("IAB InventoryFinished","Failed to query inventory: " + result);
-				g_iIAPStatus = -1;
-                return;
-            }
 
-            Log.d("IAB InventoryFinished", "Query inventory was successful.");
-            
-            for( int i = 0; i < g_iNumProducts; i++ )
-            {
-	            Purchase purchased = inventory.getPurchase(g_sPurchaseProductNames[i]);
-	            if (purchased != null)
-	            {
-	            	// is it consumable?
-	            	if ( g_iPurchaseProductTypes[i] == 1 ) mHelper.consumeAsync(inventory.getPurchase(g_sPurchaseProductNames[i]), mConsumeFinishedListener);
-	            	else 
-	            	{
-	            		g_iPurchaseProductStates[i] = 1;
-	            		Log.d("IAB InventoryFinished", "Remembered purchase: " + g_sPurchaseProductNames[i]);
-	            	}
-	            }
+	static IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+		public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+			Log.d("IAB InventoryFinished", "Query inventory finished.");
+			if (result.isFailure()) {
+				Log.e("IAB InventoryFinished","Failed to query inventory: " + result);
+				g_iIAPStatus = -1;
+				return;
+			}
+
+			Log.d("IAB InventoryFinished", "Query inventory was successful.");
+
+			for( int i = 0; i < g_iNumProducts; i++ )
+			{
+				Purchase purchased = inventory.getPurchase(g_sPurchaseProductNames[i]);
+				if (purchased != null)
+				{
+					// is it consumable?
+					if ( g_iPurchaseProductTypes[i] == 1 )
+					{
+						try { mHelper.consumeAsync(inventory.getPurchase(g_sPurchaseProductNames[i]), mConsumeFinishedListener); }
+						catch( IabHelper.IabAsyncInProgressException e ) { Log.e( "In App Billing", e.toString() ); }
+					}
+					else
+					{
+						g_iPurchaseProductStates[i] = 1;
+						Log.d("IAB InventoryFinished", "Remembered purchase: " + g_sPurchaseProductNames[i]);
+					}
+				}
 
 				SkuDetails details = inventory.getSkuDetails(g_sPurchaseProductNames[i]);
 				if ( details != null )
@@ -3612,7 +3625,7 @@ public class AGKHelper {
 						case '$': price = "$" + price; break;
 						case '£': price = "p" + price; break; // can't transfer pound character to AGK easily, so use a place holder and replace it in AGK
 						case '€': price = "e" + price; break; // can't transfer euro character to AGK easily, so use a place holder and replace it in AGK
-						default: price = price + " " + details.getCurrency();
+						default: price = price + " " + details.getPriceCurrencyCode();
 					}
 
 					synchronized (iapLock)
@@ -3623,92 +3636,96 @@ public class AGKHelper {
 						Log.d("IAB InventoryFinished", "SKU Details for " + g_sPurchaseProductNames[i] + " Desc: " + g_sPurchaseProductDesc[i] + ", Price Raw: " + details.getPrice() + ", Price: " + g_sPurchaseProductPrice[i]);
 					}
 				}
-            }
+			}
 
 			g_iIAPStatus = 2;
-        }
-    };
-    
-    static IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
-        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-            Log.d("IAB PurchaseFinished", "Purchase finished: " + result + ", purchase: " + purchase);
-            if (result.isFailure()) {
-                Log.e("IAB PurchaseFinished","Error purchasing: " + result);
-                if ( result.getMessage().contains("User cancelled") == false ) AGKHelper.ShowMessage(g_pAct, "Purchase Result: " + result.getMessage());
-                g_iPurchaseState = 1;
-                return;
-            }
-            
-            for( int i = 0; i < g_iNumProducts; i++ )
-            {
-            	if ( purchase.getSku().equals(g_sPurchaseProductNames[i]) )
-	            {
-	            	// is it consumable?
-	            	if ( g_iPurchaseProductTypes[i] == 1 ) mHelper.consumeAsync(purchase, mConsumeFinishedListener);
-	            	else 
-	            	{
+		}
+	};
+
+	static IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+		public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+			Log.d("IAB PurchaseFinished", "Purchase finished: " + result + ", purchase: " + purchase);
+			if (result.isFailure()) {
+				Log.e("IAB PurchaseFinished","Error purchasing: " + result);
+				if ( result.getMessage().contains("User cancelled") == false ) AGKHelper.ShowMessage(g_pAct, "Purchase Result: " + result.getMessage());
+				g_iPurchaseState = 1;
+				return;
+			}
+
+			for( int i = 0; i < g_iNumProducts; i++ )
+			{
+				if ( purchase.getSku().equals(g_sPurchaseProductNames[i]) )
+				{
+					// is it consumable?
+					if ( g_iPurchaseProductTypes[i] == 1 )
+					{
+						try	{ mHelper.consumeAsync(purchase, mConsumeFinishedListener); }
+						catch( IabHelper.IabAsyncInProgressException e ) { Log.e( "In App Billing", e.toString() ); }
+					}
+					else
+					{
 						synchronized (iapLock) {
 							g_sPurchaseProductSignature[i] = purchase.getSignature();
 						}
-	            		g_iPurchaseProductStates[i] = 1;
-	            		g_iPurchaseState = 1;
-	            		Log.d("IAB PurchaseFinished", "Purchase successful: " + g_sPurchaseProductNames[i]);
-	            	}
+						g_iPurchaseProductStates[i] = 1;
+						g_iPurchaseState = 1;
+						Log.d("IAB PurchaseFinished", "Purchase successful: " + g_sPurchaseProductNames[i]);
+					}
 
-	            	return;
-	            }
-            }
+					return;
+				}
+			}
 
-            g_iPurchaseState = 1;
-            Log.e("IAB PurchaseFinished", "Purchase failure SKU not found: " + purchase.getSku());
-        }
-    };
-    
-    // Called when consumption is complete
-    static IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
-        public void onConsumeFinished(Purchase purchase, IabResult result) {
-            Log.d("IAB ConsumeFinished", "Consumption finished. Purchase: " + purchase + ", result: " + result);
+			g_iPurchaseState = 1;
+			Log.e("IAB PurchaseFinished", "Purchase failure SKU not found: " + purchase.getSku());
+		}
+	};
 
-            int ID = -1;
-            for( int i = 0; i < g_iNumProducts; i++ )
-            {
-            	if ( purchase.getSku().equals(g_sPurchaseProductNames[i]) ) 
-            	{
-            		ID = i;
-            		break;
-            	}
-            }
-            
-            if ( ID < 0 ) 
-            {
-            	Log.e("IAB ConsumeFinished","Error while consuming: SKU not found " + purchase.getSku());
-            	g_iPurchaseState = 1;
-            	return;
-            }
-            
-            if (result.isSuccess()) {
-            	g_iPurchaseProductStates[ID] = 1;
+	// Called when consumption is complete
+	static IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
+		public void onConsumeFinished(Purchase purchase, IabResult result) {
+			Log.d("IAB ConsumeFinished", "Consumption finished. Purchase: " + purchase + ", result: " + result);
+
+			int ID = -1;
+			for( int i = 0; i < g_iNumProducts; i++ )
+			{
+				if ( purchase.getSku().equals(g_sPurchaseProductNames[i]) )
+				{
+					ID = i;
+					break;
+				}
+			}
+
+			if ( ID < 0 )
+			{
+				Log.e("IAB ConsumeFinished","Error while consuming: SKU not found " + purchase.getSku());
+				g_iPurchaseState = 1;
+				return;
+			}
+
+			if (result.isSuccess()) {
+				g_iPurchaseProductStates[ID] = 1;
 				synchronized (iapLock) {
 					g_sPurchaseProductSignature[ID] = purchase.getSignature();
 				}
-                Log.d("IAB ConsumeFinished", "Consumption successful. Provisioning.");
-            }
-            else {
-                Log.e("IAB ConsumeFinished","Error while consuming: " + result);
-                AGKHelper.ShowMessage(g_pAct, "Error while consuming purchase: " + result);
-            }
-            
-            g_iPurchaseState = 1;
-        }
-    };
-    
-    public static void iapSetKeyData( String publicKey, String developerID )
+				Log.d("IAB ConsumeFinished", "Consumption successful. Provisioning.");
+			}
+			else {
+				Log.e("IAB ConsumeFinished","Error while consuming: " + result);
+				AGKHelper.ShowMessage(g_pAct, "Error while consuming purchase: " + result);
+			}
+
+			g_iPurchaseState = 1;
+		}
+	};
+
+	public static void iapSetKeyData( String publicKey, String developerID )
 	{
 		base64EncodedPublicKey = publicKey;
 		g_iIAPStatus = 0;
 		mHelper = null;
 	}
-	
+
 	public static void iapAddProduct( String name, int ID, int type )
 	{
 		if ( g_iIAPStatus != 0 )
@@ -3725,8 +3742,8 @@ public class AGKHelper {
 		g_iPurchaseProductTypes[ ID ] = type;
 		//Log.i("IAB AddProduct","Added: " + name);
 		if ( ID+1 > g_iNumProducts ) g_iNumProducts = ID+1;
-    }
-	
+	}
+
 	public static void iapSetup( Activity act )
 	{
 		if ( g_iIAPStatus > 0 )
@@ -3748,7 +3765,7 @@ public class AGKHelper {
 		g_pAct = act;
 		mHelper = new IabHelper(act, base64EncodedPublicKey);
 		mHelper.enableDebugLogging(true);
-		
+
 		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
 			public void onIabSetupFinished(IabResult result) {
 				Log.d("In App Billing", "Setup finished.");
@@ -3764,13 +3781,24 @@ public class AGKHelper {
 
 				// create a list of all products
 				ArrayList<String> skus = new ArrayList<String>();
-				for (int i = 0; i < g_iNumProducts; i++) skus.add(g_sPurchaseProductNames[i]);
+				ArrayList<String> subscriptionSkus = new ArrayList<String>();
+				for (int i = 0; i < g_iNumProducts; i++)
+				{
+					if ( g_iPurchaseProductTypes[i] == 2 ) subscriptionSkus.add(g_sPurchaseProductNames[i]);
+					else skus.add(g_sPurchaseProductNames[i]);
+				}
 
-				mHelper.queryInventoryAsync(true, skus, mGotInventoryListener);
+				try {
+					mHelper.queryInventoryAsync(true, skus, subscriptionSkus, mGotInventoryListener);
+				}
+				catch ( IabHelper.IabAsyncInProgressException e )
+				{
+					Log.e( "In App Billing", e.toString() );
+				}
 			}
 		});
-    }
-	
+	}
+
 	public static void iapMakePurchase( Activity act, int ID )
 	{
 		if ( ID < 0 || ID >= g_iNumProducts )
@@ -3807,17 +3835,24 @@ public class AGKHelper {
 		g_sPurchaseProductSignature[ID] = "";
 		g_iIAPID = ID;
 		Log.i("IAB MakePurchase", "Buying " + g_sPurchaseProductNames[ID]);
-		
-		//Intent myIntent = new Intent(act, IAPActivity.class);
-		//act.startActivity(myIntent);
-		AGKHelper.mHelper.launchPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
-    }
-	
+
+		try {
+			if ( g_iPurchaseProductTypes[ ID ] == 2 )
+				AGKHelper.mHelper.launchSubscriptionPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
+			else
+				AGKHelper.mHelper.launchPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
+		}
+		catch( IabHelper.IabAsyncInProgressException e )
+		{
+			Log.e( "In App Billing", e.toString() );
+		}
+	}
+
 	public static int iapCheckPurchaseState()
 	{
 		return g_iPurchaseState;
 	}
-	
+
 	public static int iapCheckPurchase( int ID )
 	{
 		if ( ID < 0 || ID >= MAX_PRODUCTS ) return 0;
@@ -4999,7 +5034,8 @@ public class AGKHelper {
 		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
-		target.setDataAndType( uri, sMIME );
+		target.setType( sMIME );
+		target.putExtra( Intent.EXTRA_STREAM, uri );
 		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {

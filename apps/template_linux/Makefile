@@ -35,7 +35,7 @@ $(ODIR)/%.o: ../interpreter/%.cpp $(DEPS)
 
 # link the .o files
 Executable: | $(OBJS)
-	$(CC) $(OBJS) -o build/LinuxApp$(ARCH) $(LDFLAGS) -Wl,-Bstatic -lAGKLinux -lglfw3 -Wl,-Bdynamic -lGL -lXt -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lXinerama -lXcursor -lopenal -ludev -ldl
+	$(CC) $(OBJS) -o build/LinuxApp$(ARCH) $(LDFLAGS) -Wl,-Bstatic -lAGKLinux -lglfw3 -Wl,-Bdynamic -lGL -lXt -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lXinerama -lXcursor -lopenal -ludev -ldl -no-pie
 
 # delete compiled files
 clean:

@@ -864,7 +864,7 @@ namespace AGK
         
             // social command helpers
             static int FacebookHandleOpenURL( void* url );
-            static void FacebookReceivedNotification( const char* data );
+            static void HandleDeepLink( const char* link );
 
 			// capabilities
 			static int CanUseIntIndices();
@@ -1071,6 +1071,7 @@ namespace AGK
 			static void Message( const char* msg );
 			
 			// image functions
+			static UINT GetImageSizeFromFile( const char* filename );
 			static cImage* GetImagePtr ( UINT iImageIndex );
 			static UINT GetImageTextureID ( UINT iImageIndex );
 			static void LoadImage ( UINT iImageIndex, const char* sImageFilename, int bBlackToAlpha );

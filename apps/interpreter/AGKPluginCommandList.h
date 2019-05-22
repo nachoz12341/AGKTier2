@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2000;
+int g_iNumAGKFunctions = 2001;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -536,6 +536,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETIMAGEHEIGHT_F_L", (AGKVoidFunc) (float(*)(unsigned int)) (agk::GetImageHeight) },
 	{"GETIMAGEMEMORYUSAGE_F_0", (AGKVoidFunc) (float(*)()) (agk::GetImageMemoryUsage) },
 	{"GETIMAGEPTR_P_L", (AGKVoidFunc) (cImage*(*)(unsigned int)) (agk::GetImagePtr) },
+	{"GETIMAGESIZEFROMFILE_L_S", (AGKVoidFunc) (UINT(*)(const char*)) (agk::GetImageSizeFromFile) },
 	{"GETIMAGETEXTUREID_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetImageTextureID) },
 	{"GETIMAGEWIDTH_F_L", (AGKVoidFunc) (float(*)(unsigned int)) (agk::GetImageWidth) },
 	{"GETIMAGE_0_L_F_F_F_F", (AGKVoidFunc) (void(*)(UINT,float,float,float,float)) (agk::GetImage) },

@@ -2,6 +2,7 @@
 #include "OpenGLES2.h"
 
 #import <sys/utsname.h>
+#include <deque>
 
 #include "zlib.h"
 #include "SocialPlugins.h"
@@ -1342,10 +1343,26 @@ namespace AGK { AGKWatchDelegate *g_pWatchDelegate = 0; }
 }
 @end
 
+// text to speech
+namespace AGK
+{
+    AVSpeechSynthesizer *g_pTextToSpeech = 0;
+    float g_fSpeechRate = AVSpeechUtteranceDefaultSpeechRate;
+    AVSpeechSynthesisVoice *g_pSpeechVoice = nil;
+}
+
+struct AGKUtterance
+{
+    AVSpeechUtterance *utterance;
+    float delay; // in seconds
+};
+
 @interface AGKSpeechDelegate : NSObject <AVSpeechSynthesizerDelegate>
 {
     @public int m_iIsSpeaking;
-    @public AVSpeechUtterance *m_pLastUtterance;
+    int m_iFinished;
+    std::deque<AGKUtterance*> m_pUtterances;
+    float m_fLastTime;
 }
 @end
 namespace AGK { AGKSpeechDelegate *g_pSpeechDelegate = 0; }
@@ -1355,18 +1372,68 @@ namespace AGK { AGKSpeechDelegate *g_pSpeechDelegate = 0; }
 {
     self = [super init];
     m_iIsSpeaking = 0;
-    m_pLastUtterance = 0;
+    m_iFinished = 1;
+    m_fLastTime = agk::Timer();
     return self;
+}
+
+- (void)addUtterance:(AGKUtterance*)utterance
+{
+    m_pUtterances.push_back(utterance);
+    m_iIsSpeaking = 1;
+}
+
+- (void)update
+{
+    if ( !g_pTextToSpeech ) return;
+    
+    float timeDelta = agk::Timer() - m_fLastTime;
+    m_fLastTime = agk::Timer();
+    if ( timeDelta < 0 ) timeDelta = 0;
+    
+    if ( !m_iFinished ) return;
+    
+    if ( m_pUtterances.size() == 0 )
+    {
+        m_iIsSpeaking = 0;
+        return;
+    }
+    
+    AGKUtterance *pNextUtterance = m_pUtterances[0];
+    if ( pNextUtterance->delay > 0 ) pNextUtterance->delay -= timeDelta;
+    if ( pNextUtterance->delay <= 0 )
+    {
+        m_pUtterances.pop_front();
+        m_iFinished = 0;
+        [g_pTextToSpeech speakUtterance: pNextUtterance->utterance];
+        [pNextUtterance->utterance release];
+        delete pNextUtterance;
+    }
+}
+
+- (void)stopAll
+{
+    m_iIsSpeaking = 0;
+    m_iFinished = 1;
+    
+    for( int i = 0; i < m_pUtterances.size(); i++ )
+    {
+        [m_pUtterances[i]->utterance release];
+        delete m_pUtterances[i];
+    }
+    m_pUtterances.clear();
+    
+    if ( g_pTextToSpeech ) [g_pTextToSpeech stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
 }
 
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didCancelSpeechUtterance:(AVSpeechUtterance *)utterance
 {
-    if ( utterance == m_pLastUtterance || !m_pLastUtterance ) m_iIsSpeaking = 0;
+    m_iFinished = 1;
 }
 
 - (void)speechSynthesizer:(AVSpeechSynthesizer *)synthesizer didFinishSpeechUtterance:(AVSpeechUtterance *)utterance
 {
-    if ( utterance == m_pLastUtterance || !m_pLastUtterance ) m_iIsSpeaking = 0;
+    m_iFinished = 1;
 }
 @end
 
@@ -2486,6 +2553,8 @@ void agk::PlatformSync()
                            (float) g_pMotionManager.magnetometerData.magneticField.z );
         }
     }
+    
+    if ( g_pSpeechDelegate ) [g_pSpeechDelegate update];
 }
 
 void agk::PlatformCompleteInputInit()
@@ -4567,13 +4636,6 @@ char* agk::ReceiveSmartWatchData()
 }
 
 // Text to speech
-namespace AGK
-{
-    AVSpeechSynthesizer *g_pTextToSpeech = 0;
-    float g_fSpeechRate = AVSpeechUtteranceDefaultSpeechRate;
-    AVSpeechSynthesisVoice *g_pSpeechVoice = nil;
-}
-
 void agk::TextToSpeechSetup()
 //****
 {
@@ -4596,22 +4658,28 @@ void agk::Speak( const char *text )
     AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:[NSString stringWithUTF8String:text]];
     [utterance setRate:g_fSpeechRate];
     [utterance setVoice:g_pSpeechVoice];
-    g_pSpeechDelegate->m_iIsSpeaking = 1;
-    g_pSpeechDelegate->m_pLastUtterance = utterance;
-    [g_pTextToSpeech speakUtterance:utterance];
+    [utterance retain];
+    AGKUtterance *newUtterance = new AGKUtterance();
+    newUtterance->utterance = utterance; 
+    newUtterance->delay = 0;
+    [g_pSpeechDelegate addUtterance:newUtterance];
 }
 
 void agk::Speak( const char *text, int delay )
 //****
 {
+    // using the AVSpeechUtterance delay feature causes a bug if the utterance is stopped whilst in the delay phase
+    // which will cause speech to never be spoken again, so use our own delay method instead
+    
     if ( !g_pTextToSpeech ) return;
     AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:[NSString stringWithUTF8String:text]];
     [utterance setRate:g_fSpeechRate];
     [utterance setVoice:g_pSpeechVoice];
-	[utterance setPreUtteranceDelay:delay / 1000.0];
-    g_pSpeechDelegate->m_iIsSpeaking = 1;
-    g_pSpeechDelegate->m_pLastUtterance = utterance;
-    [g_pTextToSpeech speakUtterance:utterance];
+    [utterance retain];
+    AGKUtterance *newUtterance = new AGKUtterance();
+    newUtterance->utterance = utterance;
+    newUtterance->delay = delay / 1000.0;
+    [g_pSpeechDelegate addUtterance:newUtterance];
 }
 
 void agk::SetSpeechRate( float rate )
@@ -4738,13 +4806,8 @@ int agk::IsSpeaking()
 void agk::StopSpeaking()
 //****
 {
-	if ( !g_pTextToSpeech ) return;
-    [g_pTextToSpeech stopSpeakingAtBoundary:AVSpeechBoundaryImmediate];
-    // hack to workaround speech engine not being able to speak if stopped during a delay
-    [ g_pTextToSpeech release ];
-    g_pTextToSpeech = [[AVSpeechSynthesizer alloc] init];
-    g_pTextToSpeech.delegate = g_pSpeechDelegate;
-    if ( g_pSpeechDelegate ) g_pSpeechDelegate->m_iIsSpeaking = 0;
+	if ( !g_pSpeechDelegate ) return;
+    [g_pSpeechDelegate stopAll];
 }
 
 int uString::ToInt() const

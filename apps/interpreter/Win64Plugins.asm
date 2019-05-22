@@ -22,7 +22,7 @@ mov r13, r9
 mov r14, [rsp+56]
 mov r15d, DWORD PTR [rsp+48]
 
-; RAX = registerCount - modified
+; RAX = registerCount (modified)
 ; RBX = unused
 ; RCX = reserved
 ; RDX = reserved
@@ -95,7 +95,7 @@ mov rax, r13
 mov r10, [rsp+40]
 shl r13, 3
 
-; RAX = stackCount - modified
+; RAX = stackCount (modified)
 ; RBX = unused
 ; RCX = reserved
 ; RDX = reserved

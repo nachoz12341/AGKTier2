@@ -1252,9 +1252,12 @@ void cText::SetSize( float fSize )
 	if ( fSize < 0 ) fSize = 0;
 	m_fOrigSize = fSize;
 	m_fSize = fSize;
+	int updateRequired = 0;
 
 	if ( m_pFTFont )
 	{
+		if ( m_fHorizontalRatio != agk::DeviceToDisplayRatioX() || m_fVerticalRatio != agk::DeviceToDisplayRatioY() ) updateRequired = 1;
+
 		m_fHorizontalRatio = agk::DeviceToDisplayRatioX();
 		m_fVerticalRatio = agk::DeviceToDisplayRatioY();
 		
@@ -1283,7 +1286,7 @@ void cText::SetSize( float fSize )
 		}
 		else
 		{
-			if ( m_fFontScale != newScale )
+			if ( m_fFontScale != newScale || updateRequired )
 			{
 				for ( UINT i = 0; i < m_iNumSprites; i++ )
 				{

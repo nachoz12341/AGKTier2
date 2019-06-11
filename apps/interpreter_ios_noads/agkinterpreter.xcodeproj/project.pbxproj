@@ -17,6 +17,7 @@
 		4A01977119CE6053006204A7 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A01977019CE6053006204A7 /* EventKit.framework */; };
 		4A01977319CE6063006204A7 /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A01977219CE6063006204A7 /* EventKitUI.framework */; };
 		4A01977519CE608F006204A7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A01977419CE608F006204A7 /* CoreTelephony.framework */; };
+		4A02FCFC22B015FD00BECD20 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A02FCFB22B015FD00BECD20 /* UserNotifications.framework */; };
 		4A0A413F1D9EADF90065F425 /* FirebaseAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0A413A1D9EADF90065F425 /* FirebaseAnalytics.framework */; };
 		4A0A41401D9EADF90065F425 /* FirebaseInstanceID.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0A413B1D9EADF90065F425 /* FirebaseInstanceID.framework */; };
 		4A0A41451D9EAE0B0065F425 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0A41441D9EAE0B0065F425 /* libsqlite3.tbd */; };
@@ -79,6 +80,7 @@
 		4A01977019CE6053006204A7 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
 		4A01977219CE6063006204A7 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 		4A01977419CE608F006204A7 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
+		4A02FCFB22B015FD00BECD20 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		4A0A413A1D9EADF90065F425 /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseAnalytics.framework"; sourceTree = "<group>"; };
 		4A0A413B1D9EADF90065F425 /* FirebaseInstanceID.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseInstanceID.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseInstanceID.framework"; sourceTree = "<group>"; };
 		4A0A41441D9EAE0B0065F425 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
@@ -169,6 +171,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A02FCFC22B015FD00BECD20 /* UserNotifications.framework in Frameworks */,
 				4AAAB70921C04875003BE3C8 /* WebKit.framework in Frameworks */,
 				4A58BA69206AA5950038F2F0 /* ARKit.framework in Frameworks */,
 				4A952B131FA00CE2006F2215 /* WatchConnectivity.framework in Frameworks */,
@@ -282,6 +285,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4A02FCFB22B015FD00BECD20 /* UserNotifications.framework */,
 				4AAAB70821C04875003BE3C8 /* WebKit.framework */,
 				4A58BA68206AA5940038F2F0 /* ARKit.framework */,
 				4A952B121FA00CE2006F2215 /* WatchConnectivity.framework */,

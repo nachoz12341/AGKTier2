@@ -4490,7 +4490,7 @@ void cSoundMgr::PlatformUpdate()
 					}
 				}
 
-				if ( pSound->m_iLoop == 0 )
+				if ( pSound->m_bFinished )
 				{
 					// remove this if the above section is uncommented
 					if ( m_pSoundFiles[ pSound->m_iParent ] ) m_pSoundFiles[ pSound->m_iParent ]->m_iInstances--;
@@ -11095,9 +11095,15 @@ void agk::ARSetup()
 		g_iARHeight = m_iRealDeviceHeight;
 		ArSession_setDisplayGeometry( g_pARSession, orien, g_iARWidth, g_iARHeight );
 
-		if ( ArSession_resume(g_pARSession) != AR_SUCCESS )
+		result = ArSession_resume(g_pARSession);
+		if ( result != AR_SUCCESS )
 		{
-			agk::Warning( "Failed to resume ARCore session" );
+			switch( result )
+			{
+				case AR_ERROR_CAMERA_PERMISSION_NOT_GRANTED: agk::Warning( "Failed to resume ARCore session, camera permission not granted" );
+				case AR_ERROR_CAMERA_NOT_AVAILABLE: agk::Warning( "Failed to resume ARCore session, camera not available" );
+				default: agk::Warning( "Failed to resume ARCore session" );
+			}
 			return;
 		}
 	}

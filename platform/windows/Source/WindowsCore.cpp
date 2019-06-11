@@ -5473,7 +5473,7 @@ void cSoundMgr::PlatformUpdate()
 			if ( pSound->m_pSourceVoice ) pSound->m_pSourceVoice->GetState( &state );
 			else pSound->m_pSourceVoiceWin8->GetState( &state, /*XAUDIO2_VOICE_NOSAMPLESPLAYED*/ 0x100 );
 			
-			if ( state.BuffersQueued == 1 && (pSound->m_iLoop == 1 || pSound->m_iLoopCount+1 < pSound->m_iLoop) )
+			if ( state.BuffersQueued <= 1 && (pSound->m_iLoop == 1 || pSound->m_iLoopCount+1 < pSound->m_iLoop) )
 			{
 				pSound->m_iLoopCount++;
 				if ( pSound->m_iLoop == 1 || pSound->m_iLoopCount+1 < pSound->m_iLoop ) 

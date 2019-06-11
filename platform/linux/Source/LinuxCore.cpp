@@ -2366,6 +2366,9 @@ void cSoundMgr::PlatformUpdate()
 		
 		if ( pSound->sourceID )
 		{
+			int state = 0;
+			alGetSourcei( pSound->sourceID, AL_SOURCE_STATE, &state );
+
 			//alGetSourcei(pSound->sourceID, AL_SOURCE_STATE, &state);
 			alGetSourcei(pSound->sourceID, AL_BUFFERS_PROCESSED, &buffers);
 			if ( buffers > 0 )
@@ -2381,11 +2384,11 @@ void cSoundMgr::PlatformUpdate()
 				if ( pSound->m_iLoop == 1 || pSound->m_iLoopCount+1 < pSound->m_iLoop )
 				{
 					alSourceQueueBuffers(pSound->sourceID, 1, &(pSound->bufferID));
+					if ( state != AL_PLAYING ) alSourcePlay(pSound->sourceID);
+					state = AL_PLAYING;
 				}
 			}
 
-			int state = 0;
-			alGetSourcei( pSound->sourceID, AL_SOURCE_STATE, &state );
 			if ( state != AL_PLAYING )
 			{
 				pSound->m_iLoopCount++;

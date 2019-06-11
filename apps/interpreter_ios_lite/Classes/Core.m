@@ -1,9 +1,12 @@
 // Common Includes
-#import "core.h"
+#import "Core.h"
 #import "EAGLView.h"
 #include "interpreter.h"
-
 #include "MediaPlayer/MediaPlayer.h"
+#import <UserNotifications/UNNotificationResponse.h>
+#import <UserNotifications/UNNotification.h>
+#import <UserNotifications/UNNotificationRequest.h>
+#import <UserNotifications/UNNotificationContent.h>
 
 // Platform specific
 void Output ( char const* pdasds )
@@ -27,10 +30,6 @@ using namespace AGK;
 	App.g_dwDeviceWidth = [UIScreen mainScreen].bounds.size.width * scale;
 	App.g_dwDeviceHeight = [UIScreen mainScreen].bounds.size.height * scale;
 	
-	// Platform specific iOS method of changing size of device resolution (before app starts)
-	// and method of changing window title and window/fullscreen
-	// NOT RELEVANT TO IOS PLATFORM
-
 	// Tell the UIDevice to send notifications when the orientation changes
 	[[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
 	[[NSNotificationCenter defaultCenter] addObserver:self 
@@ -57,15 +56,57 @@ using namespace AGK;
 	}
 	[viewController setActive];
     
+    NSDictionary *remoteNotify = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+    if ( remoteNotify )
+    {
+        NSDictionary *aps = [remoteNotify objectForKey:@"aps"];
+        if ( aps )
+        {
+            NSString *deeplink = [aps objectForKey:@"deeplink"];
+            if ( deeplink ) agk::HandleDeepLink( [deeplink UTF8String] );
+        }
+    }
     
+    // Add to manage notification-related behaviors on iOS 10
+    [UNUserNotificationCenter currentNotificationCenter].delegate = self;
 	
 	// success
     return YES;
 }
 
+//Called when a notification is delivered to a foreground app.
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
+{
+    //NSLog(@"User Info : %@",notification.request.content.userInfo);
+    completionHandler(UNAuthorizationOptionSound | UNAuthorizationOptionAlert | UNAuthorizationOptionBadge);
+}
+
+//Called to let your app know which action was selected by the user for a given notification.
+-(void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void(^)())completionHandler
+{
+    //NSLog(@"User Info : %@",response.notification.request.content.userInfo);
+    
+    // get the whole string from the notification
+    NSDictionary *aps = [response.notification.request.content.userInfo objectForKey:@"aps"];
+    if ( aps )
+    {
+        NSString *deeplink = [aps objectForKey:@"deeplink"];
+        if ( deeplink ) agk::HandleDeepLink( [deeplink UTF8String] );
+    }
+    
+    completionHandler();
+}
+
 - (NSUInteger)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window 
 {
     return UIInterfaceOrientationMaskAll;
+}
+
+- (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
+    if ( (notificationSettings.types & UIRemoteNotificationTypeAlert) != 0 )
+    {
+        [application registerForRemoteNotifications];
+    }
 }
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken

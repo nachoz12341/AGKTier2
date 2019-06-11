@@ -39756,6 +39756,8 @@ unsigned short agk::InternalGetMemblockPosOffset( cMemblock *pMem )
 				break;
 			}
 
+			delete [] str;
+
 			if ( pMem->m_pData[ offset + 0 ] == 1 ) ++attribOffset;
 			else attribOffset += pMem->m_pData[ offset + 1 ];
 
@@ -39801,6 +39803,8 @@ unsigned short agk::InternalGetMemblockNormOffset( cMemblock *pMem )
 				delete [] str;
 				break;
 			}
+
+			delete [] str;
 
 			if ( pMem->m_pData[ offset + 0 ] == 1 ) ++attribOffset;
 			else attribOffset += pMem->m_pData[ offset + 1 ];
@@ -39848,6 +39852,8 @@ unsigned short agk::InternalGetMemblockUVOffset( cMemblock *pMem )
 				break;
 			}
 
+			delete [] str;
+
 			if ( pMem->m_pData[ offset + 0 ] == 1 ) ++attribOffset;
 			else attribOffset += pMem->m_pData[ offset + 1 ];
 
@@ -39865,7 +39871,7 @@ unsigned short agk::InternalGetMemblockColorOffset( cMemblock *pMem )
 	unsigned short colorOffset = (pMem->m_iUser4 >> 16) & 0xffff;
 	if ( colorCheck != 0xffff )
 	{
-		if ( pMem->m_pData[ colorCheck ] != 'n'
+		if ( pMem->m_pData[ colorCheck ] != 'c'
 		  || pMem->m_pData[ colorCheck + 1 ] != 'o' ) 
 		{
 			colorCheck = 0xffff;
@@ -39889,10 +39895,12 @@ unsigned short agk::InternalGetMemblockColorOffset( cMemblock *pMem )
 			{
 				colorCheck = offset+4;
 				colorOffset = attribOffset;
-				pMem->m_iUser2 = (colorOffset << 16) | colorCheck;
+				pMem->m_iUser4 = (colorOffset << 16) | colorCheck;
 				delete [] str;
 				break;
 			}
+
+			delete [] str;
 
 			if ( pMem->m_pData[ offset + 0 ] == 1 ) ++attribOffset;
 			else attribOffset += pMem->m_pData[ offset + 1 ];
@@ -40136,7 +40144,7 @@ void agk::SetMeshMemblockVertexColor( UINT memID, UINT vertexIndex, int red, int
 	if ( vertexOffset + vertexSize > pMem->m_iSize )
 	{
 		uString errStr;
-		errStr.Format( "Failed to set memblock %d vertex UV, memblock is not holding a mesh or it is not formatted correctly", memID );
+		errStr.Format( "Failed to set memblock %d vertex color, memblock is not holding a mesh or it is not formatted correctly", memID );
 		Error( errStr );
 		return;
 	}

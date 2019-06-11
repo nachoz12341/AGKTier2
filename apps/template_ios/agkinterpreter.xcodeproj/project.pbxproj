@@ -14,6 +14,7 @@
 		28FD14FE0DC6FC130079059D /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 28FD14FD0DC6FC130079059D /* EAGLView.m */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
+		4A02FD0422B01A7E00BECD20 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A02FD0322B01A7D00BECD20 /* UserNotifications.framework */; };
 		4A055BE11C7DF7C300877019 /* AmazonAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A055BE01C7DF7C300877019 /* AmazonAd.framework */; };
 		4A0770C21AFA78600076C749 /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0770C11AFA78600076C749 /* GoogleMobileAds.framework */; };
 		4A0A411E1D9EA50F0065F425 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4A0A411D1D9EA50F0065F425 /* GoogleService-Info.plist */; };
@@ -86,6 +87,7 @@
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* agkinterpreter_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agkinterpreter_Prefix.pch; sourceTree = "<group>"; };
+		4A02FD0322B01A7D00BECD20 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		4A055BE01C7DF7C300877019 /* AmazonAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AmazonAd.framework; path = "../../platform/apple/Source/Social Plugins/AmazonAd.framework"; sourceTree = "<group>"; };
 		4A0770C11AFA78600076C749 /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = "../../platform/apple/Source/Social Plugins/GoogleMobileAds.framework"; sourceTree = "<group>"; };
 		4A0A41121D9966B70065F425 /* AGK 2 Template.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "AGK 2 Template.entitlements"; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A02FD0422B01A7E00BECD20 /* UserNotifications.framework in Frameworks */,
 				4AB6380920CAD7CD007F0A18 /* WebKit.framework in Frameworks */,
 				4A769D4C20DAB84900843C60 /* JavaScriptCore.framework in Frameworks */,
 				4A769D4A20DAB83D00843C60 /* SafariServices.framework in Frameworks */,
@@ -312,6 +315,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4A02FD0322B01A7D00BECD20 /* UserNotifications.framework */,
 				4A769D4B20DAB84900843C60 /* JavaScriptCore.framework */,
 				4A769D4920DAB83D00843C60 /* SafariServices.framework */,
 				4AB6380A20CAD82A007F0A18 /* PersonalizedAdConsent.framework */,

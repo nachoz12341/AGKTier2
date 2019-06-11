@@ -12,6 +12,7 @@
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		28FD14FE0DC6FC130079059D /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 28FD14FD0DC6FC130079059D /* EAGLView.m */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
+		4A02FCFE22B0185000BECD20 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A02FCFD22B0185000BECD20 /* UserNotifications.framework */; };
 		4A0E7D191DF8652D007BC5C8 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0E7D181DF8652D007BC5C8 /* GLKit.framework */; };
 		4A0E7D1B1DF86536007BC5C8 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0E7D1A1DF86536007BC5C8 /* MobileCoreServices.framework */; };
 		4A0E7D1D1DF8658B007BC5C8 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0E7D1C1DF8658B007BC5C8 /* CFNetwork.framework */; };
@@ -73,6 +74,7 @@
 		28FD15070DC6FC5B0079059D /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* agkinterpreter_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = agkinterpreter_Prefix.pch; sourceTree = "<group>"; };
+		4A02FCFD22B0185000BECD20 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		4A0E7D181DF8652D007BC5C8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		4A0E7D1A1DF86536007BC5C8 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		4A0E7D1C1DF8658B007BC5C8 /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
@@ -162,6 +164,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A02FCFE22B0185000BECD20 /* UserNotifications.framework in Frameworks */,
 				4AAAB70B21C048B9003BE3C8 /* WebKit.framework in Frameworks */,
 				4AB6381220CAE01E007F0A18 /* PersonalizedAdConsent.framework in Frameworks */,
 				4AB6381020CADF9A007F0A18 /* Security.framework in Frameworks */,
@@ -271,6 +274,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4A02FCFD22B0185000BECD20 /* UserNotifications.framework */,
 				4AAAB70A21C048B8003BE3C8 /* WebKit.framework */,
 				4AB6381120CAE01E007F0A18 /* PersonalizedAdConsent.framework */,
 				4AB6380E20CADBF1007F0A18 /* Security.framework */,

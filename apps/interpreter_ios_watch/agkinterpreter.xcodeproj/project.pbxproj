@@ -17,6 +17,7 @@
 		4A01977119CE6053006204A7 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A01977019CE6053006204A7 /* EventKit.framework */; };
 		4A01977319CE6063006204A7 /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A01977219CE6063006204A7 /* EventKitUI.framework */; };
 		4A01977519CE608F006204A7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A01977419CE608F006204A7 /* CoreTelephony.framework */; };
+		4A02FD0222B0195C00BECD20 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A02FD0122B0195C00BECD20 /* UserNotifications.framework */; };
 		4A0710FC1C78CB1700FB45C4 /* AmazonAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0710FB1C78CB1700FB45C4 /* AmazonAd.framework */; };
 		4A0770C01AFA768A0076C749 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0770BF1AFA768A0076C749 /* FacebookSDK.framework */; };
 		4A0A41141D9EA1920065F425 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4A0A41131D9EA1920065F425 /* GoogleService-Info.plist */; };
@@ -145,6 +146,7 @@
 		4A01977019CE6053006204A7 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
 		4A01977219CE6063006204A7 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
 		4A01977419CE608F006204A7 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
+		4A02FD0122B0195C00BECD20 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		4A0710FB1C78CB1700FB45C4 /* AmazonAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AmazonAd.framework; path = "../../platform/apple/Source/Social Plugins/AmazonAd.framework"; sourceTree = "<group>"; };
 		4A0770BF1AFA768A0076C749 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = "../../platform/apple/Source/Social Plugins/FacebookSDK/FacebookSDK.framework"; sourceTree = "<group>"; };
 		4A0A41131D9EA1920065F425 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -265,6 +267,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A02FD0222B0195C00BECD20 /* UserNotifications.framework in Frameworks */,
 				4AF55AC92188C3E6004FDC97 /* WebKit.framework in Frameworks */,
 				4AF55AC72188C358004FDC97 /* SafariServices.framework in Frameworks */,
 				4AF55AC52188C331004FDC97 /* JavaScriptCore.framework in Frameworks */,
@@ -405,6 +408,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4A02FD0122B0195C00BECD20 /* UserNotifications.framework */,
 				4AF55ACA2188C415004FDC97 /* PersonalizedAdConsent.framework */,
 				4AF55AC82188C3E6004FDC97 /* WebKit.framework */,
 				4AF55AC62188C357004FDC97 /* SafariServices.framework */,

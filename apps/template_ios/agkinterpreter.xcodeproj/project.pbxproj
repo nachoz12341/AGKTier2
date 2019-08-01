@@ -55,6 +55,9 @@
 		4AB6380920CAD7CD007F0A18 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380820CAD7CD007F0A18 /* WebKit.framework */; };
 		4AB6380B20CAD82B007F0A18 /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380A20CAD82A007F0A18 /* PersonalizedAdConsent.framework */; };
 		4AB6380D20CAD842007F0A18 /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4AB6380C20CAD842007F0A18 /* PersonalizedAdConsent.bundle */; };
+		4AF8AEA922F2162D00CC735F /* GoogleUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEA622F2162D00CC735F /* GoogleUtilities.framework */; };
+		4AF8AEAA22F2162D00CC735F /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEA722F2162D00CC735F /* nanopb.framework */; };
+		4AF8AEAB22F2162D00CC735F /* GoogleAppMeasurement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEA822F2162D00CC735F /* GoogleAppMeasurement.framework */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
 		D80B81BE16FD2615009D21D8 /* libAGKiOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D80B81BD16FD2615009D21D8 /* libAGKiOS.a */; };
@@ -129,6 +132,9 @@
 		4AB6380820CAD7CD007F0A18 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		4AB6380A20CAD82A007F0A18 /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
 		4AB6380C20CAD842007F0A18 /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
+		4AF8AEA622F2162D00CC735F /* GoogleUtilities.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleUtilities.framework; path = "../../platform/apple/Source/Social Plugins/GoogleUtilities.framework"; sourceTree = "<group>"; };
+		4AF8AEA722F2162D00CC735F /* nanopb.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = nanopb.framework; path = "../../platform/apple/Source/Social Plugins/nanopb.framework"; sourceTree = "<group>"; };
+		4AF8AEA822F2162D00CC735F /* GoogleAppMeasurement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleAppMeasurement.framework; path = "../../platform/apple/Source/Social Plugins/GoogleAppMeasurement.framework"; sourceTree = "<group>"; };
 		726A37B215B8DA0D002F8919 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		72EF411814632D6400C96B0A /* UntitledViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UntitledViewController.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* agkinterpreter-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "agkinterpreter-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -191,6 +197,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AF8AEA922F2162D00CC735F /* GoogleUtilities.framework in Frameworks */,
+				4AF8AEAA22F2162D00CC735F /* nanopb.framework in Frameworks */,
+				4AF8AEAB22F2162D00CC735F /* GoogleAppMeasurement.framework in Frameworks */,
 				4A02FD0422B01A7E00BECD20 /* UserNotifications.framework in Frameworks */,
 				4AB6380920CAD7CD007F0A18 /* WebKit.framework in Frameworks */,
 				4A769D4C20DAB84900843C60 /* JavaScriptCore.framework in Frameworks */,
@@ -315,6 +324,9 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AF8AEA822F2162D00CC735F /* GoogleAppMeasurement.framework */,
+				4AF8AEA622F2162D00CC735F /* GoogleUtilities.framework */,
+				4AF8AEA722F2162D00CC735F /* nanopb.framework */,
 				4A02FD0322B01A7D00BECD20 /* UserNotifications.framework */,
 				4A769D4B20DAB84900843C60 /* JavaScriptCore.framework */,
 				4A769D4920DAB83D00843C60 /* SafariServices.framework */,

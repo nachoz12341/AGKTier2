@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      android:versionCode="86"
-      android:versionName="2019.06.11" package="com.thegamecreators.agk_player2" android:installLocation="preferExternal">
+      android:versionCode="87"
+      android:versionName="2019.08.01" package="com.thegamecreators.agk_player2" android:installLocation="preferExternal">
     <uses-feature android:glEsVersion="0x00020000"></uses-feature>
-    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="26" />
     
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
@@ -35,6 +34,9 @@
         
         <meta-data android:name="com.google.android.gms.games.APP_ID"
             	   android:value="@string/games_app_id" />
+
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID"
+                   android:value="@string/admob_app_id" />
 
         <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="false"/>
 
@@ -70,8 +72,6 @@
 
         <activity android:name="com.amazon.device.ads.AdActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
         
-        <service android:name="com.thegamecreators.agk_player.FCMService" />
-
         <service android:name="com.thegamecreators.agk_player.NotificationService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
@@ -93,7 +93,7 @@
         <receiver android:name="com.thegamecreators.agk_player.NotificationAlarmReceiver" />
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">

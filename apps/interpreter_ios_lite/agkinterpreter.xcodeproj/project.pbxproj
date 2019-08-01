@@ -42,6 +42,9 @@
 		4AB6381020CADF9A007F0A18 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380E20CADBF1007F0A18 /* Security.framework */; };
 		4AB6381220CAE01E007F0A18 /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6381120CAE01E007F0A18 /* PersonalizedAdConsent.framework */; };
 		4AB6381420CAE036007F0A18 /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4AB6381320CAE036007F0A18 /* PersonalizedAdConsent.bundle */; };
+		4AF8AE9D22F209EC00CC735F /* GoogleUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AE9A22F209EB00CC735F /* GoogleUtilities.framework */; };
+		4AF8AE9E22F209EC00CC735F /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AE9B22F209EB00CC735F /* nanopb.framework */; };
+		4AF8AE9F22F209EC00CC735F /* GoogleAppMeasurement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AE9C22F209EB00CC735F /* GoogleAppMeasurement.framework */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
 		9B0A5AAF13269BF4006B5FB6 /* interpreter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A5AAD13269BF4006B5FB6 /* interpreter.cpp */; };
@@ -104,6 +107,9 @@
 		4AB6380E20CADBF1007F0A18 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		4AB6381120CAE01E007F0A18 /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
 		4AB6381320CAE036007F0A18 /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
+		4AF8AE9A22F209EB00CC735F /* GoogleUtilities.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleUtilities.framework; path = "../../platform/apple/Source/Social Plugins/GoogleUtilities.framework"; sourceTree = "<group>"; };
+		4AF8AE9B22F209EB00CC735F /* nanopb.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = nanopb.framework; path = "../../platform/apple/Source/Social Plugins/nanopb.framework"; sourceTree = "<group>"; };
+		4AF8AE9C22F209EB00CC735F /* GoogleAppMeasurement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleAppMeasurement.framework; path = "../../platform/apple/Source/Social Plugins/GoogleAppMeasurement.framework"; sourceTree = "<group>"; };
 		726A37B215B8DA0D002F8919 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		72EF411814632D6400C96B0A /* UntitledViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UntitledViewController.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* agkinterpreter-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "agkinterpreter-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -164,6 +170,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AF8AE9D22F209EC00CC735F /* GoogleUtilities.framework in Frameworks */,
+				4AF8AE9E22F209EC00CC735F /* nanopb.framework in Frameworks */,
+				4AF8AE9F22F209EC00CC735F /* GoogleAppMeasurement.framework in Frameworks */,
 				4A02FCFE22B0185000BECD20 /* UserNotifications.framework in Frameworks */,
 				4AAAB70B21C048B9003BE3C8 /* WebKit.framework in Frameworks */,
 				4AB6381220CAE01E007F0A18 /* PersonalizedAdConsent.framework in Frameworks */,
@@ -274,6 +283,9 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4AF8AE9C22F209EB00CC735F /* GoogleAppMeasurement.framework */,
+				4AF8AE9A22F209EB00CC735F /* GoogleUtilities.framework */,
+				4AF8AE9B22F209EB00CC735F /* nanopb.framework */,
 				4A02FCFD22B0185000BECD20 /* UserNotifications.framework */,
 				4AAAB70A21C048B8003BE3C8 /* WebKit.framework */,
 				4AB6381120CAE01E007F0A18 /* PersonalizedAdConsent.framework */,

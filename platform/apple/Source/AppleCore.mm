@@ -3732,7 +3732,7 @@ void cSoundMgr::PlatformInit()
 	if ( !audioDevice )
 	{
 		AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-		[audioSession setCategory:AVAudioSessionCategoryAmbient error:nil];
+		[audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
 		[audioSession setActive:YES error:nil];
 		
 		audioDevice = alcOpenDevice(NULL); // select the "preferred device"

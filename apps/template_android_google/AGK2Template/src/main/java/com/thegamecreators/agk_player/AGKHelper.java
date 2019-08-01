@@ -4,6 +4,8 @@ package com.thegamecreators.agk_player;
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
@@ -13,11 +15,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 
 import com.google.android.gms.games.AchievementsClient;
@@ -28,8 +28,6 @@ import com.google.android.gms.games.Player;
 import com.google.android.gms.games.PlayersClient;
 import com.google.android.gms.games.achievement.Achievement;
 import com.google.android.gms.games.achievement.AchievementBuffer;
-import com.google.android.gms.games.achievement.Achievements;
-import com.google.android.gms.games.achievement.Achievements.LoadAchievementsResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
@@ -96,7 +94,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -109,10 +106,9 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
-import android.support.annotation.Keep;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.FileProvider;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -160,7 +156,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
 import android.content.DialogInterface;
@@ -3167,6 +3162,7 @@ public class AGKHelper {
 	static int m_iAdMobConsentStatus = -2; // -2=startup value triggers consent load, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
 	static String m_sAdMobPrivacyPolicy = "";
 	static ConsentForm m_pAdMobConsentForm = null;
+	static int m_iAdMobInitialized = 0;
 
 	public static void SetAdMobTestMode( int mode )
 	{
@@ -3285,6 +3281,11 @@ public class AGKHelper {
 
 	public static void CreateAd(Activity act, String publisherID, int horz, int vert, int offsetX, int offsetY, int type)
 	{
+		if ( m_iAdMobInitialized == 0 ) {
+			m_iAdMobInitialized = 1;
+			MobileAds.initialize(act);
+		}
+
 		RunnableAd run = new RunnableAd();
 		run.pubID = publisherID;
 		run.horz = horz;
@@ -3299,6 +3300,11 @@ public class AGKHelper {
 	
 	public static void CacheFullscreenAd(Activity act, String publisherID)
 	{
+		if ( m_iAdMobInitialized == 0 ) {
+			m_iAdMobInitialized = 1;
+			MobileAds.initialize(act);
+		}
+
 		RunnableAd run = new RunnableAd();
 		run.pubID = publisherID;
 		run.action = 10;
@@ -3308,6 +3314,11 @@ public class AGKHelper {
 	
 	public static void CreateFullscreenAd(Activity act, String publisherID)
 	{
+		if ( m_iAdMobInitialized == 0 ) {
+			m_iAdMobInitialized = 1;
+			MobileAds.initialize(act);
+		}
+
 		RunnableAd run = new RunnableAd();
 		run.pubID = publisherID;
 		run.action = 9;
@@ -3317,6 +3328,11 @@ public class AGKHelper {
 
 	public static void CacheRewardAd(Activity act, String publisherID)
 	{
+		if ( m_iAdMobInitialized == 0 ) {
+			m_iAdMobInitialized = 1;
+			MobileAds.initialize(act);
+		}
+
 		RunnableAd run = new RunnableAd();
 		run.rewardpubID = publisherID;
 		run.action = 12;
@@ -3326,6 +3342,11 @@ public class AGKHelper {
 
 	public static void ShowRewardAd(Activity act, String publisherID)
 	{
+		if ( m_iAdMobInitialized == 0 ) {
+			m_iAdMobInitialized = 1;
+			MobileAds.initialize(act);
+		}
+
 		m_iRewardAdRewarded = 0;
 
 		RunnableAd run = new RunnableAd();

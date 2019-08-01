@@ -232,6 +232,7 @@ using namespace AGK;
 @implementation GADInterstitial : NSObject @end
 @implementation GADAdSize : NSObject @end
 @implementation GADExtras : NSObject @end
+@implementation GADMobileAds : NSObject @end
 GADAdSize const *kGADAdSizeBanner;
 GADAdSize const *kGADAdSizeLargeBanner;
 GADAdSize const *kGADAdSizeMediumRectangle;

@@ -20,6 +20,8 @@
     #import <FirebaseAnalytics/FIRApp.h>
     #import <FirebaseAnalytics/FIRAnalytics.h>
     #import "FacebookSDK/FBAppEvents.h"
+
+    #include <SCSDKCreativeKit/SCSDKCreativeKit.h>
 #endif
 
 #import <SystemConfiguration/SystemConfiguration.h>
@@ -8042,3 +8044,102 @@ void agk::ARDeleteAnchor( int anchorID )
     if ( pAnchor ) delete pAnchor;
 }
 
+int agk::GetAppInstalled( const char *packageName )
+//****
+{
+	// not possible since iOS 9?
+	return 0;
+}
+
+// SnapChat
+
+#ifndef LITEVERSION
+namespace AGK
+{
+    SCSDKSnapAPI *g_pSnapChatAPI = 0;
+    float g_fSnapChatStickerX = 0.5f;
+    float g_fSnapChatStickerY = 0.5f;
+    float g_fSnapChatStickerAngle = 0;
+    UIImage *g_pSnapChatImage = 0;
+    UIImage *g_pSnapChatStickerImage = 0;
+    SCSDKSnapPhoto *g_pSnapChatPhoto = 0;
+    SCSDKPhotoSnapContent *g_pSnapChatContent = 0;
+    SCSDKSnapSticker *g_pSnapChatSticker = 0;
+}
+#endif
+
+void agk::SetSnapChatStickerSettings( float x, float y, int width, int height, float angle )
+//****
+{
+#ifndef LITEVERSION
+    g_fSnapChatStickerX = x;
+    g_fSnapChatStickerY = y;
+    g_fSnapChatStickerAngle = angle;
+#endif
+}
+
+void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, const char* caption, const char* url )
+//****
+{
+#ifndef LITEVERSION
+    uString sPath( imageFile );
+    if ( !GetRealPath( sPath ) )
+    {
+        uString err; err.Format( "Could not find image at path: %s", imageFile );
+        agk::Error( err );
+        return;
+    }
+    
+    if ( !g_pSnapChatAPI ) g_pSnapChatAPI = [[SCSDKSnapAPI alloc] init];
+    
+    if ( g_pSnapChatImage ) return;
+    
+    NSString *imagePath = [NSString stringWithUTF8String:sPath.GetStr()];
+    g_pSnapChatImage = [UIImage imageWithContentsOfFile:imagePath];
+    [g_pSnapChatImage retain];
+    g_pSnapChatPhoto = [[SCSDKSnapPhoto alloc] initWithImage:g_pSnapChatImage];
+    g_pSnapChatContent = [[SCSDKPhotoSnapContent alloc] initWithSnapPhoto:g_pSnapChatPhoto];
+    
+    if ( stickerFile && *stickerFile )
+    {
+        sPath.SetStr( stickerFile );
+        if ( !GetRealPath( sPath ) )
+        {
+            uString err; err.Format( "Could not find sticker image at path: %s", stickerFile );
+            agk::Error( err );
+            return;
+        }
+        
+        NSString *stickerPath = [NSString stringWithUTF8String:sPath.GetStr()];
+        g_pSnapChatStickerImage = [UIImage imageWithContentsOfFile:stickerPath];
+        [g_pSnapChatStickerImage retain];
+        g_pSnapChatSticker = [[SCSDKSnapSticker alloc] initWithStickerImage:g_pSnapChatStickerImage];
+        [g_pSnapChatSticker setPosX:g_fSnapChatStickerX];
+        [g_pSnapChatSticker setPosY:g_fSnapChatStickerY];
+        [g_pSnapChatSticker setRotation:g_fSnapChatStickerAngle];
+        [g_pSnapChatContent setSticker:g_pSnapChatSticker];
+    }
+    
+    if ( caption && *caption ) g_pSnapChatContent.caption = [NSString stringWithUTF8String:caption];
+    else g_pSnapChatContent.caption = nil;
+    if ( url && *url ) g_pSnapChatContent.attachmentUrl = [NSString stringWithUTF8String:url];
+    else g_pSnapChatContent.attachmentUrl = nil;
+    
+    [g_pSnapChatAPI startSendingContent:g_pSnapChatContent completionHandler:^(NSError *error) {
+        if ( error ) NSLog( @"%@", [error debugDescription] );
+        else NSLog( @"Success" );
+        
+        if ( g_pSnapChatImage ) [g_pSnapChatImage release];
+        if ( g_pSnapChatPhoto ) [g_pSnapChatPhoto release];
+        if ( g_pSnapChatContent ) [g_pSnapChatContent release];
+        if ( g_pSnapChatStickerImage ) [g_pSnapChatStickerImage release];
+        if ( g_pSnapChatSticker ) [g_pSnapChatSticker release];
+        
+        g_pSnapChatImage = 0;
+        g_pSnapChatPhoto = 0;
+        g_pSnapChatContent = 0;
+        g_pSnapChatStickerImage = 0;
+        g_pSnapChatSticker = 0;
+    }];
+#endif
+}

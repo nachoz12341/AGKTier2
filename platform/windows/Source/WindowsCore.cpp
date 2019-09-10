@@ -2637,14 +2637,8 @@ void agk::SetVSync( int mode )
 		}
 	}
 
-	/* some monitors can go up to 240Hz with vsync enabled
-	if ( mode > 0 )
-	{
-		// assuming a vsync rate of 60fps we should set the sync rate to slightly higher to catch any 
-		// devices that ignore the vsync command
-		m_fSyncTime = 1 / 200.0f;
-	}
-	*/
+	if ( m_bUsingVSync ) m_iSyncMode = 2;
+	else m_iSyncMode = 0;
 }
 
 //****f* Core/Display/GetMaxDeviceWidth
@@ -9596,7 +9590,7 @@ UINT agk::GetAppRunning( UINT appID )
 void agk::TerminateApp( UINT appID )
 //****
 {
-	HANDLE hProc = OpenProcess( 0, TRUE, appID );
+	HANDLE hProc = OpenProcess( PROCESS_TERMINATE, TRUE, appID );
 	if ( !hProc ) return;
 
 	TerminateProcess( hProc, 0 );
@@ -11186,3 +11180,54 @@ void agk::ARDeleteAnchor( int anchorID )
 	
 }
 
+//****f* Core/Misc/GetAppInstalled
+// FUNCTION
+//   Returns 1 if the specified app is installed and enabled on the device. For Android this should be the 
+//   package name of the app, e.g. com.faceboook.katana for the Facebook App.
+//   Currently this only works on Android
+// INPUTS
+//   packageName -- The package name of the app to check
+// SOURCE
+int agk::GetAppInstalled( const char *packageName )
+//****
+{
+	return 0;
+}
+
+// SnapChat
+
+//****f* Extras/SnapChat/SetSnapChatStickerSettings
+// FUNCTION
+//   Sets the properties for any sticker images that are added to future calls to <i>ShareSnapChatImage</i>.
+//   The X and Y parameters should be in the range 0.0 to 1.0 for example in the X direction 1.0 is the far 
+//   right of the image and 0.0 is the far left of the image.
+// INPUTS
+//   x -- The X position of the sticker, default 0.5
+//   y -- The Y position of the sticker, default 0.5
+//   width -- The width of the sticker, default 250
+//   height -- The height of the sticker, default 250
+//   angle -- The angle of the sticker, default 0
+// SOURCE
+void agk::SetSnapChatStickerSettings( float x, float y, int width, int height, float angle )
+//****
+{
+
+}
+
+//****f* Extras/SnapChat/ShareSnapChatImage
+// FUNCTION
+//   Sends the specified image to the SnapChat app on the current device, along with an optional sticker file, 
+//   caption, and URL. The user can then modify the image using the SnapChat app and decide whether to share 
+//   it with friends. If the user does not have the SnapChat app installed then the app store will be opened
+//   instead on the SnapChat app page. This command will only work on Android and iOS 10 or above
+// INPUTS
+//   imageFile -- The path to the image you want to share
+//   stickerFile -- The path to a sticker image to add to the image, can be an empty string
+//   caption -- The caption to add to the image, can be an empty string
+//   url -- The URL to add to the image, can be an empty string
+// SOURCE
+void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, const char* caption, const char* url )
+//****
+{
+
+}

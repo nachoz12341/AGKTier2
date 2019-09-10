@@ -259,3 +259,9 @@ NSString * CBLocationGameScreen;
  @implementation FIRApp : NSObject @end
  @implementation FIRAnalytics : NSObject @end
  */
+
+/*
+// use this if you want to remove the SnapChat commands
+@implementation SCSDKPhotoSnapContent : NSObject @end
+@implementation SCSDKSnapPhoto : NSObject @end
+*/

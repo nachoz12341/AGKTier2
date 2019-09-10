@@ -3982,4 +3982,26 @@ public class AGKHelper {
 	{
 		return Environment.getExternalStorageDirectory().getAbsolutePath();
 	}
+
+	public static int GetPackageInstalled( Activity act, String packageName )
+	{
+		try {
+			if ( act.getPackageManager().getApplicationInfo(packageName, 0).enabled ) return 1;
+			else return 0;
+		} catch (PackageManager.NameNotFoundException e) {
+			return 0;
+		}
+	}
+
+	// SnapChat
+
+	public static void SetSnapChatStickerSettings( float x, float y, int width, int height, float angle )
+	{
+
+	}
+
+	public static void ShareSnapChat( Activity act, String image, String sticker, String caption, String url )
+	{
+
+	}
 }

@@ -12048,3 +12048,88 @@ void agk::ARDeleteAnchor( int anchorID )
 	AGKAndroidARAnchor *pAnchor = g_pARAnchorList.RemoveItem( anchorID );
 	if ( pAnchor ) delete pAnchor;
 }
+
+int agk::GetAppInstalled( const char *packageName )
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetPackageInstalled", "(Landroid/app/Activity;Ljava/lang/String;)V" );
+
+	// call our java class method
+	jstring strPackageName = lJNIEnv->NewStringUTF( packageName );
+	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, method, lNativeActivity, strPackageName );
+	lJNIEnv->DeleteLocalRef( strPackageName );
+
+	vm->DetachCurrentThread();
+
+	return result;
+}
+
+// SnapChat
+
+void agk::SetSnapChatStickerSettings( float x, float y, int width, int height, float angle )
+//****
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "SetSnapChatStickerSettings", "(Landroid/app/Activity;FFIIF)V" );
+
+	// call our java class method
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method,  lNativeActivity, x, y, width, height, angle );
+
+	vm->DetachCurrentThread();
+}
+
+void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, const char* caption, const char* url )
+//****
+{
+	if ( !imageFile || !*imageFile ) return;
+	if ( !stickerFile ) stickerFile = "";
+	if ( !caption ) caption = "";
+	if ( !url ) url = "";
+
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "ShareSnapChat", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V" );
+
+	// call our java class method
+	jstring strImage = lJNIEnv->NewStringUTF( imageFile );
+	jstring strSticker = lJNIEnv->NewStringUTF( stickerFile );
+	jstring strCaption = lJNIEnv->NewStringUTF( caption );
+	jstring strURL = lJNIEnv->NewStringUTF( url );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, strImage, strSticker, strCaption, strURL );
+	lJNIEnv->DeleteLocalRef( strImage );
+	lJNIEnv->DeleteLocalRef( strSticker );
+	lJNIEnv->DeleteLocalRef( strCaption );
+	lJNIEnv->DeleteLocalRef( strURL );
+
+	vm->DetachCurrentThread();
+}

@@ -128,6 +128,14 @@ import com.google.android.vending.expansion.downloader.impl.BroadcastDownloaderC
 
 import com.google.api.services.drive.model.FileList;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.snapchat.kit.sdk.SnapCreative;
+import com.snapchat.kit.sdk.creative.api.SnapCreativeKitApi;
+import com.snapchat.kit.sdk.creative.exceptions.SnapMediaSizeException;
+import com.snapchat.kit.sdk.creative.exceptions.SnapStickerSizeException;
+import com.snapchat.kit.sdk.creative.media.SnapMediaFactory;
+import com.snapchat.kit.sdk.creative.media.SnapPhotoFile;
+import com.snapchat.kit.sdk.creative.media.SnapSticker;
+import com.snapchat.kit.sdk.creative.models.SnapPhotoContent;
 import com.thegamecreators.agk_player.iap.*;
 
 import com.facebook.*;
@@ -5149,7 +5157,7 @@ public class AGKHelper {
 		File src = new File(sPath);
 
 		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
-		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".fileprovider", src);
 
 		Intent target = new Intent( Intent.ACTION_VIEW );
 		target.setDataAndType( uri, sMIME );
@@ -5185,7 +5193,7 @@ public class AGKHelper {
 
 		File src = new File(sPath);
 
-		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".fileprovider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
@@ -5208,7 +5216,7 @@ public class AGKHelper {
 		else sFileName = sPath;
 
 		File src = new File(sPath);
-		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".fileprovider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( "image/*" );
@@ -5239,7 +5247,7 @@ public class AGKHelper {
 		File src = new File(sPath);
 
 		String sMIME = MimeTypeMap.getSingleton().getMimeTypeFromExtension(sExt);
-		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".provider", src);
+		Uri uri = FileProvider.getUriForFile(act, act.getApplicationContext().getPackageName() + ".fileprovider", src);
 
 		Intent target = new Intent( Intent.ACTION_SEND );
 		target.setType( sMIME );
@@ -5256,5 +5264,67 @@ public class AGKHelper {
 	public static String GetExternalDir()
 	{
 		return Environment.getExternalStorageDirectory().getAbsolutePath();
+	}
+
+	public static int GetPackageInstalled( Activity act, String packageName )
+	{
+		try {
+			if ( act.getPackageManager().getApplicationInfo(packageName, 0).enabled ) return 1;
+			else return 0;
+		} catch (PackageManager.NameNotFoundException e) {
+			return 0;
+		}
+	}
+
+	// SnapChat
+	public static float m_fSnapChatStickerX = 0.5f; // between 0 and 1
+	public static float m_fSnapChatStickerY = 0.5f;
+	public static int m_iSnapChatStickerWidth = 250;
+	public static int m_iSnapChatStickerHeight = 250;
+	public static float m_fSnapChatStickerAngle = 0;
+
+	public static void SetSnapChatStickerSettings( float x, float y, int width, int height, float angle )
+	{
+		m_fSnapChatStickerX = x;
+		m_fSnapChatStickerY = y;
+		m_iSnapChatStickerWidth = width;
+		m_iSnapChatStickerHeight = height;
+		m_fSnapChatStickerAngle = angle;
+	}
+
+	public static void ShareSnapChat( Activity act, String image, String sticker, String caption, String url )
+	{
+		SnapCreativeKitApi snapCreativeKitApi = SnapCreative.getApi( act );
+		SnapMediaFactory snapMediaFactory = SnapCreative.getMediaFactory( act );
+
+		SnapPhotoFile photoFile;
+		try {
+			photoFile = snapMediaFactory.getSnapPhotoFromFile( new File(image) );
+		} catch (SnapMediaSizeException e) {
+			Log.e("SnapChat API", "Photo file is too large");
+			return;
+		}
+
+		SnapPhotoContent snapPhotoContent = new SnapPhotoContent(photoFile);
+
+		if ( sticker != null && !sticker.equals("") ) {
+			SnapSticker snapSticker = null;
+			try {
+				snapSticker = snapMediaFactory.getSnapStickerFromFile(new File(sticker));
+				snapSticker.setWidth(m_iSnapChatStickerWidth);
+				snapSticker.setHeight(m_iSnapChatStickerHeight);
+				snapSticker.setPosX(m_fSnapChatStickerX); // between 0 and 1
+				snapSticker.setPosY(m_fSnapChatStickerY);
+				snapSticker.setRotationDegreesClockwise(0); // degrees clockwise
+				snapPhotoContent.setSnapSticker(snapSticker);
+			} catch (SnapStickerSizeException e) {
+				Log.e("SnapChat API", "Sticker file is too large");
+			}
+		}
+
+		if ( caption != null && !caption.equals("") ) snapPhotoContent.setCaptionText( caption );
+		if ( url != null && !url.equals("") ) snapPhotoContent.setAttachmentUrl( url );
+
+		snapCreativeKitApi.send(snapPhotoContent);
 	}
 }

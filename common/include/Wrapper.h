@@ -3427,6 +3427,32 @@ namespace AGK
 			static void ARFixObjectToAnchor( int objID, int anchorID );
 			static int ARGetAnchorStatus( int anchorID );
 			static void ARDeleteAnchor( int anchorID );
+
+			// AGK Studio commands
+			static void SetObjectMeshCastShadow( int objID, int meshID, int mode );
+			static void SetObjectShaderConstantArrayFloatByName( int objID, const char* varName, int index, float f1 );
+			static void SetObjectShaderConstantArrayVec2ByName( int objID, const char* varName, int index, float f1, float f2 );
+			static void SetObjectShaderConstantArrayVec3ByName( int objID, const char* varName, int index, float f1, float f2, float f3 );
+			static void SetObjectShaderConstantArrayVec4ByName( int objID, const char* varName, int index, float f1, float f2, float f3, float f4 );
+			static void SetShaderErrorMode( int mode );
+			static void SetShaderConstantArrayFloatByName( int shaderID, const char* varName, int index, float f1 );
+			static void SetShaderConstantArrayVec2ByName( int shaderID, const char* varName, int index, float f1, float f2 );
+			static void SetShaderConstantArrayVec3ByName( int shaderID, const char* varName, int index, float f1, float f2, float f3 );
+			static void SetShaderConstantArrayVec4ByName( int shaderID, const char* varName, int index, float f1, float f2, float f3, float f4 );
+			static int IsInvertedDepth();
+			static int GetClipSpaceMode();
+			static int IsTopLeftOrigin();
+			static float GetDrawing3DSetupTime();
+			static uint32_t MakeColor(uint32_t red, uint32_t green, uint32_t blue, uint32_t alpha);
+			static int GetColorAlpha(int color);
+			static void SetPresentMode( int mode );
+			static void ForcePresent();
+
+			static int GetAppInstalled( const char *packageName );
+
+			// SnapChat
+			static void SetSnapChatStickerSettings( float x, float y, int width, int height, float angle );
+			static void ShareSnapChatImage( const char* imageFile, const char* stickerFile, const char* caption, const char* url );
 	};
 }
 

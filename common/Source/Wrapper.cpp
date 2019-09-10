@@ -4371,7 +4371,7 @@ void agk::Swap()
 		}
 	}
 #else
-	if ( m_fSyncTime > 0 )
+	if ( m_fSyncTime > 0 && m_iSyncMode < 2 ) // m_iSyncMode=2 is vsync
 	{
 		PlatformUpdateTime();
 
@@ -35578,7 +35578,7 @@ void agk::SetAdMobTesting ( int mode )
 void agk::ShowFullscreenAdvertAdMob()
 //****
 {
-    if ( agk::PlatformHasAdMob() && m_sAdMobCode.GetLength() > 0 )
+    if ( agk::PlatformHasAdMob() )
 	{
 		agk::PlatformAdMobFullscreen();
 	}
@@ -52265,6 +52265,25 @@ void agk::SetObject3DPhysicsMaxLinearVelocity( UINT objID, float maxLinearVeloci
 	( ( AGKMotionState* )body->getMotionState() )->SetMaxLinearVelocity(btScalar( maxLinearVelocity ) );
 }
 
+//****f* 3DPhysics/RigidBodies/GetObject3DPhysicsMaxLinearVelocity
+// FUNCTION
+//  Returns the max linear velocity for the physics object.
+// INPUTS
+//  objID -- object ID
+// SOURCE
+float agk::GetObject3DPhysicsMaxLinearVelocity( uint32_t objID )
+//****
+{
+	if ( !AGKToBullet::AssertValidPhysicsWorld() )
+		return 0;
+	if ( !AGKToBullet::AssertValidObject( objID, "GetObject3DPhysicsMaxLinearVelocity: Object ID Is Not Valid" ) )
+		return 0;
+	btRigidBody* body = rigidBodyManager.GetItem( objID ) ? rigidBodyManager.GetItem( objID )->GetRigidBody() : NULL;
+	if ( !AGKToBullet::AssertValidBody( body, "GetObject3DPhysicsMaxLinearVelocity: Object does not have a Physics body" ) )
+		return 0;
+	return ( ( AGKMotionState* )body->getMotionState() )->GetMaxLinearVelocity();
+}
+
 //****f* 3DPhysics/RigidBodies/SetObject3DPhysicsLinearVelocity
 // FUNCTION
 //  Sets the linear velocity vector for the object.
@@ -55423,6 +55442,121 @@ void agk::Set3DPhysicsCharacterControllerPosition( UINT objID, float posX, float
 	}
 }
 
+
+// AGK Studio commands
+void agk::SetObjectMeshCastShadow( int objID, int meshID, int mode )
+//****
+{
+
+}
+
+void agk::SetObjectShaderConstantArrayFloatByName( int objID, const char* varName, int index, float f1 )
+//****
+{
+	SetObjectShaderConstantArrayByName( objID, varName, index, f1, 0, 0, 0 );
+}
+
+void agk::SetObjectShaderConstantArrayVec2ByName( int objID, const char* varName, int index, float f1, float f2 )
+//****
+{
+	SetObjectShaderConstantArrayByName( objID, varName, index, f1, f2, 0, 0 );
+}
+
+void agk::SetObjectShaderConstantArrayVec3ByName( int objID, const char* varName, int index, float f1, float f2, float f3 )
+//****
+{
+	SetObjectShaderConstantArrayByName( objID, varName, index, f1, f2, f3, 0 );
+}
+
+void agk::SetObjectShaderConstantArrayVec4ByName( int objID, const char* varName, int index, float f1, float f2, float f3, float f4 )
+//****
+{
+	SetObjectShaderConstantArrayByName( objID, varName, index, f1, f2, f3, f4 );
+}
+
+void agk::SetShaderErrorMode( int mode )
+//****
+{
+
+}
+
+void agk::SetShaderConstantArrayFloatByName( int shaderID, const char* varName, int index, float f1 )
+//****
+{
+
+}
+
+void agk::SetShaderConstantArrayVec2ByName( int shaderID, const char* varName, int index, float f1, float f2 )
+//****
+{
+
+}
+
+void agk::SetShaderConstantArrayVec3ByName( int shaderID, const char* varName, int index, float f1, float f2, float f3 )
+//****
+{
+
+}
+
+void agk::SetShaderConstantArrayVec4ByName( int shaderID, const char* varName, int index, float f1, float f2, float f3, float f4 )
+//****
+{
+
+}
+
+int agk::IsInvertedDepth()
+//****
+{
+	return 0;
+}
+
+int agk::GetClipSpaceMode()
+//****
+{
+	return 0;
+}
+
+int agk::IsTopLeftOrigin()
+//****
+{
+	return 0;
+}
+
+float agk::GetDrawing3DSetupTime()
+//****
+{
+	return 0;
+}
+
+uint32_t agk::MakeColor(uint32_t red, uint32_t green, uint32_t blue, uint32_t alpha)
+//****
+{
+	uint32_t color = alpha << 8;
+	color |= blue; 
+	color <<= 8;
+	color |= green; 
+	color <<= 8;
+	color |= red;
+	return color;
+}
+
+int agk::GetColorAlpha(int color)
+//****
+{
+	return (color >> 24) & 0xff;
+}
+
+void agk::SetPresentMode( int mode )
+//****
+{
+
+}
+
+void agk::ForcePresent()
+//****
+{
+
+}
 
 
 } 

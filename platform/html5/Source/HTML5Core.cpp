@@ -5189,3 +5189,22 @@ void agk::ARDeleteAnchor( int anchorID )
 	
 }
 
+int agk::GetAppInstalled( const char *packageName )
+//****
+{
+	return 0;
+}
+
+// SnapChat
+
+void agk::SetSnapChatStickerSettings( float x, float y, int width, int height, float angle )
+//****
+{
+
+}
+
+void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, const char* caption, const char* url )
+//****
+{
+
+}

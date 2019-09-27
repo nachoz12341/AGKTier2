@@ -21,7 +21,9 @@
     #import <FirebaseAnalytics/FIRAnalytics.h>
     #import "FacebookSDK/FBAppEvents.h"
 
+  #if !defined(__i386__) && !defined(__x86_64__)
     #include <SCSDKCreativeKit/SCSDKCreativeKit.h>
+  #endif
 #endif
 
 #import <SystemConfiguration/SystemConfiguration.h>
@@ -8054,6 +8056,7 @@ int agk::GetAppInstalled( const char *packageName )
 // SnapChat
 
 #ifndef LITEVERSION
+#if !defined(__i386__) && !defined(__x86_64__)
 namespace AGK
 {
     SCSDKSnapAPI *g_pSnapChatAPI = 0;
@@ -8067,14 +8070,17 @@ namespace AGK
     SCSDKSnapSticker *g_pSnapChatSticker = 0;
 }
 #endif
+#endif
 
 void agk::SetSnapChatStickerSettings( float x, float y, int width, int height, float angle )
 //****
 {
 #ifndef LITEVERSION
+  #if !defined(__i386__) && !defined(__x86_64__)
     g_fSnapChatStickerX = x;
     g_fSnapChatStickerY = y;
     g_fSnapChatStickerAngle = angle;
+  #endif
 #endif
 }
 
@@ -8082,6 +8088,7 @@ void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, co
 //****
 {
 #ifndef LITEVERSION
+  #if !defined(__i386__) && !defined(__x86_64__)
     uString sPath( imageFile );
     if ( !GetRealPath( sPath ) )
     {
@@ -8141,5 +8148,6 @@ void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, co
         g_pSnapChatStickerImage = 0;
         g_pSnapChatSticker = 0;
     }];
+  #endif
 #endif
 }

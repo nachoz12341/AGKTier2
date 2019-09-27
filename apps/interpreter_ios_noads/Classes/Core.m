@@ -56,7 +56,18 @@ using namespace AGK;
 	}
 	[viewController setActive];
     
-    NSDictionary *remoteNotify = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+    NSDictionary *localNotify = launchOptions[UIApplicationLaunchOptionsLocalNotificationKey];
+    if ( localNotify )
+    {
+        NSDictionary *aps = [localNotify objectForKey:@"aps"];
+        if ( aps )
+        {
+            NSString *deeplink = [aps objectForKey:@"deeplink"];
+            if ( deeplink ) agk::HandleDeepLink( [deeplink UTF8String] );
+        }
+    }
+
+	NSDictionary *remoteNotify = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
     if ( remoteNotify )
     {
         NSDictionary *aps = [remoteNotify objectForKey:@"aps"];

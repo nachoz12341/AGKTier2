@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2023;
+int g_iNumAGKFunctions = 2024;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -1495,6 +1495,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SETJOYSTICKDEADZONE_0_F", (AGKVoidFunc) (void(*)(float)) (agk::SetJoystickDeadZone) },
 	{"SETJOYSTICKSCREENPOSITION_0_F_F_F", (AGKVoidFunc) (void(*)(float,float,float)) (agk::SetJoystickScreenPosition) },
 	{"SETLOCALNOTIFICATION_0_L_L_S", (AGKVoidFunc) (void(*)(int,int,const char *)) (agk::SetLocalNotification) },
+	{"SETLOCALNOTIFICATION_0_L_L_S_S", (AGKVoidFunc) (void(*)(int,int,const char *,const char *)) (agk::SetLocalNotification) },
 	{"SETMEMBLOCKBYTESIGNED_0_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,int)) (agk::SetMemblockByteSigned) },
 	{"SETMEMBLOCKBYTE_0_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,int)) (agk::SetMemblockByte) },
 	{"SETMEMBLOCKFLOAT_0_L_L_F", (AGKVoidFunc) (void(*)(UINT,UINT,float)) (agk::SetMemblockFloat) },

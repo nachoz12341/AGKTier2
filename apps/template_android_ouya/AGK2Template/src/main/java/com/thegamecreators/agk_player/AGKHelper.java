@@ -1969,6 +1969,11 @@ public class AGKHelper {
 	}
 
 	// local notifications
+	public static void SetNotification( Activity act, int id, int unixtime, String message, String deeplink )
+	{
+
+	}
+
 	public static void SetNotification( Activity act, int id, int unixtime, String message )
 	{
 

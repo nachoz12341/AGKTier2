@@ -2191,7 +2191,7 @@ extern int agk_LocalNotificationsSetup;
 
 // local notifications
 
-void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage )
+void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage, const char *szDeepLink )
 {
     static int first = 1;
     if ( first )
@@ -2219,10 +2219,18 @@ void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *sz
 	localNotification.alertBody                  = [ NSString stringWithUTF8String: szMessage ];
 	localNotification.soundName                  = UILocalNotificationDefaultSoundName;
 	localNotification.applicationIconBadgeNumber = 0;
-	
-    // set up data in KeyID
-	NSDictionary* infoDict = [ NSDictionary dictionaryWithObject:[NSNumber numberWithInt:iID] forKey:@"KeyID" ];
-    localNotification.userInfo = infoDict;
+
+	// set up data in KeyID
+	NSMutableDictionary* infoDict = [NSMutableDictionary dictionaryWithCapacity:2];
+	[ infoDict setObject:[NSNumber numberWithInt:iID] forKey:@"KeyID" ];
+    
+	if ( szDeepLink && *szDeepLink )
+	{
+		NSDictionary* deeplinkDict = [ NSDictionary dictionaryWithObject:[NSString stringWithUTF8String:szDeepLink] forKey:@"deeplink" ];
+		[infoDict setObject:deeplinkDict forKey:@"aps"];
+	}
+
+	localNotification.userInfo = infoDict;
 	
     // schedule the notification
 	[ [ UIApplication sharedApplication ] scheduleLocalNotification: localNotification ];

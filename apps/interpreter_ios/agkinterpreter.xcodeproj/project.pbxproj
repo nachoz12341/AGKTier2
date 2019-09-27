@@ -38,10 +38,8 @@
 		4A58BA5A206AA23C0038F2F0 /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA53206AA23C0038F2F0 /* nanopb.framework */; };
 		4A58BA5B206AA23C0038F2F0 /* GoogleToolboxForMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA54206AA23C0038F2F0 /* GoogleToolboxForMac.framework */; };
 		4A58BA5D206AA2970038F2F0 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA5C206AA2970038F2F0 /* libsqlite3.tbd */; };
-		4A5C2D66230AE9F900E42FE5 /* SCSDKCreativeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */; settings = {ATTRIBUTES = (Required, ); }; };
-		4A5C2D6A230B4A2600E42FE5 /* SCSDKCreativeKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		4A5C2D6E230B4A7C00E42FE5 /* SCSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */; settings = {ATTRIBUTES = (Required, ); }; };
-		4A5C2D6F230B4A7C00E42FE5 /* SCSDKCoreKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4A5C2D66230AE9F900E42FE5 /* SCSDKCreativeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		4A5C2D6E230B4A7C00E42FE5 /* SCSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A5FF6F61F6C2F0F00BFF8C8 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5FF6F51F6C2F0F00BFF8C8 /* ReplayKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A653C1F20642CFE008B519B /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A653C1E20642CFE008B519B /* ARKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A6879F11EB0F72000281DB2 /* Default-375w-667h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F01EB0F72000281DB2 /* Default-375w-667h@2x.png */; };
@@ -56,6 +54,8 @@
 		4A687A031EB0F81A00281DB2 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879FA1EB0F81A00281DB2 /* Default@2x.png */; };
 		4A769D4620DAB68400843C60 /* SafariServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A769D4520DAB68400843C60 /* SafariServices.framework */; };
 		4A769D4820DAB6A700843C60 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A769D4720DAB6A700843C60 /* JavaScriptCore.framework */; };
+		4A92A6912332654C00955DFD /* SCSDKCoreKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4A92A6922332654C00955DFD /* SCSDKCreativeKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4A952B111FA00CC2006F2215 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A952B101FA00CC2006F2215 /* WatchConnectivity.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A9A52821FDF6BEE00E3AE27 /* Icons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A9A52811FDF6BEE00E3AE27 /* Icons.xcassets */; };
 		4A9D50791996814400473873 /* ProgramData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A9D50781996814400473873 /* ProgramData.cpp */; };
@@ -89,8 +89,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				4A5C2D6A230B4A2600E42FE5 /* SCSDKCreativeKit.framework in Embed Frameworks */,
-				4A5C2D6F230B4A7C00E42FE5 /* SCSDKCoreKit.framework in Embed Frameworks */,
+				4A92A6912332654C00955DFD /* SCSDKCoreKit.framework in Embed Frameworks */,
+				4A92A6922332654C00955DFD /* SCSDKCreativeKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;

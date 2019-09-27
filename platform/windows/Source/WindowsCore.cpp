@@ -3949,7 +3949,7 @@ bool cImage::CaptureFromCamera()
 //****f* Image/Capture/GetNumDeviceCameras
 // FUNCTION
 //   Returns the number of cameras available for SetDeviceCameraToImage.
-//   Currently oinly works on Android
+//   Currently only works on Android, iOS, and Windows
 // SOURCE
 int agk::GetNumDeviceCameras()
 //****

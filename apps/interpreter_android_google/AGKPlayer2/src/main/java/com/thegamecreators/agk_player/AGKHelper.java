@@ -1915,19 +1915,24 @@ class AGKLocationListener implements GoogleApiClient.ConnectionCallbacks,
 	public void onConnected(Bundle dataBundle) {
 		Log.i("GPS","Connected");
 		Location mCurrentLocation;
-		mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(AGKHelper.m_GPSClient);
-		if ( mCurrentLocation != null )
-		{
-			AGKHelper.m_fGPSLatitude = (float) mCurrentLocation.getLatitude();
-			AGKHelper.m_fGPSLongitude = (float) mCurrentLocation.getLongitude();
+		try {
+			mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(AGKHelper.m_GPSClient);
+			if ( mCurrentLocation != null )
+			{
+				AGKHelper.m_fGPSLatitude = (float) mCurrentLocation.getLatitude();
+				AGKHelper.m_fGPSLongitude = (float) mCurrentLocation.getLongitude();
+			}
+
+			LocationRequest mLocationRequest = LocationRequest.create();
+			mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+			mLocationRequest.setInterval(5000);
+			mLocationRequest.setFastestInterval(1000);
+
+			LocationServices.FusedLocationApi.requestLocationUpdates(AGKHelper.m_GPSClient, mLocationRequest, this);
 		}
-
-		LocationRequest mLocationRequest = LocationRequest.create();
-		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-		mLocationRequest.setInterval(5000);
-		mLocationRequest.setFastestInterval(1000);
-
-		LocationServices.FusedLocationApi.requestLocationUpdates(AGKHelper.m_GPSClient, mLocationRequest, this);
+		catch( SecurityException e ) {
+			Log.e( "GPS", "User has not granted location permission" );
+		}
 	}
 
 	public void onDisconnected() {
@@ -2157,7 +2162,7 @@ public class AGKHelper {
 			Intent intent2 = new Intent(act, AGKActivity.class);
 			PendingIntent pIntent = PendingIntent.getActivity(act, 0, intent2, 0);
 			try {
-				int result = DownloaderService.startDownloadServiceIfRequired(act, "default", pIntent, g_sExpansionSalt, g_sExpansionKey);
+				int result = DownloaderService.startDownloadServiceIfRequired(act, "expansion", pIntent, g_sExpansionSalt, g_sExpansionKey);
 				if (DownloaderService.NO_DOWNLOAD_REQUIRED == result) {
 					g_iExpansionState = 3;
 					if ( mExpansionClient != null ) {
@@ -3514,7 +3519,7 @@ public class AGKHelper {
 
 	// local notifications
 	static NotificationChannel mNotificationChannel = null;
-	public static void SetNotification( Activity act, int id, int unixtime, String message )
+	public static void SetNotification( Activity act, int id, int unixtime, String message, String deeplink )
 	{
 		if (mNotificationChannel == null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
 		{
@@ -3528,11 +3533,17 @@ public class AGKHelper {
 		intent.putExtra("title", act.getString(R.string.app_name) );
 		intent.putExtra("message", message);
 		intent.putExtra("id",id);
+		intent.putExtra("deeplink",deeplink);
 		PendingIntent sender = PendingIntent.getBroadcast(act, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		// Get the AlarmManager service
 		AlarmManager am = (AlarmManager) act.getSystemService(Context.ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, unixtime * 1000L, sender);
+	}
+
+	public static void SetNotification( Activity act, int id, int unixtime, String message )
+	{
+		SetNotification( act, id, unixtime, message, "" );
 	}
 
 	public static void CancelNotification( Activity act, int id )
@@ -4212,6 +4223,9 @@ public class AGKHelper {
 	static byte[] g_sExpansionSalt = new byte[] { 1, 42, -12, -1, 54, 98, -100, -12, 43, 2, -8, -4, 9, 5, -106, -107, -33, 45, -1, 84 };
 	static DownloaderClient mExpansionClient = null;
 	static ZipResourceFile g_pExpansionFile = null;
+	static NotificationChannel g_pExpansionChannel = null;
+	static String g_sExpansionNotificationName = "Additional App Files";
+	static String g_sExpansionNotificationDesc = "Additional App Files Download Status";
 
 	static class DownloaderClient extends BroadcastDownloaderClient {
 
@@ -4259,6 +4273,12 @@ public class AGKHelper {
 	public static void setExpansionKey( String key )
 	{
 		g_sExpansionKey = key;
+	}
+
+	public static void setExpansionNotificationDescription( String name, String desc )
+	{
+		g_sExpansionNotificationName = name;
+		g_sExpansionNotificationDesc = desc;
 	}
 	
 	public static void SetExpansionVersion(int version)
@@ -4312,6 +4332,16 @@ public class AGKHelper {
     	
     	try
     	{
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+			{
+				if ( g_pExpansionChannel == null ) {
+					NotificationManager mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
+					g_pExpansionChannel = new NotificationChannel("expansion", g_sExpansionNotificationName, NotificationManager.IMPORTANCE_DEFAULT);
+					g_pExpansionChannel.setDescription(g_sExpansionNotificationDesc);
+					mNotificationManager.createNotificationChannel(g_pExpansionChannel);
+				}
+			}
+
     		if ( mExpansionClient == null )
 			{
 				mExpansionClient = new DownloaderClient();
@@ -4319,15 +4349,7 @@ public class AGKHelper {
 				mExpansionClient.register( act );
 			}
 
-			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
-			{
-				NotificationManager mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
-				NotificationChannel channel = new NotificationChannel("dts","DTS Downloader", NotificationManager.IMPORTANCE_DEFAULT );
-				channel.setDescription("DTS File Downloader Status");
-				mNotificationManager.createNotificationChannel(channel);
-			}
-
-    		int result = DownloaderService.startDownloadServiceIfRequired(act, "dts", pIntent, g_sExpansionSalt, g_sExpansionKey );
+			int result = DownloaderService.startDownloadServiceIfRequired(act, "expansion", pIntent, g_sExpansionSalt, g_sExpansionKey );
     		if ( DownloaderService.NO_DOWNLOAD_REQUIRED == result )
     		{
     			g_iExpansionState = 3;

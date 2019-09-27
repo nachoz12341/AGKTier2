@@ -1,4 +1,4 @@
-APP_PLATFORM := android-15
+APP_PLATFORM := android-19
 APP_MODULES := AGKBullet
 APP_OPTIM := release
 APP_ABI := armeabi-v7a arm64-v8a

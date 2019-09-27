@@ -37220,7 +37220,9 @@ void agk::NotificationReset()
 //   by ID and can be overwritten by creating a new notification with the same ID as the notification you 
 //   want to overwrite. If a notification triggers whilst the app is open then the notification will not 
 //   appear and it will silently disappear from the list of scheduled notifications. If the app is not open
-//   then a notification will display to the user and tapping on it will open up your app.
+//   then a notification will display to the user and tapping on it will open up your app. If you set the
+//   deeplink parameter then that URL will be sent to the app when the notification is tapped. The URL can be 
+//   retrieved by using the <i>GetURLSchemeText</i> command.
 //   The datetime parameter should be specified in unix time, which is measured in seconds since 1st Jan 1970,
 //   you can use the command <i>GetUnixTime</i> to return the current date and time then modify it as needed.
 //   If the date and time is in the past then the notification will be ignored, it will not overwrite any 
@@ -37230,8 +37232,9 @@ void agk::NotificationReset()
 //   iID -- The ID to use to reference this notification in future
 //   datetime -- The date and time to show this notification in unix time
 //   szMessage -- The message to display in the notification
+//   szDeepLink -- The URL to send to the app if the notification is tapped
 // SOURCE
-void agk::SetLocalNotification( int iID, int datetime, const char *szMessage )
+void agk::SetLocalNotification( int iID, int datetime, const char *szMessage, const char *szDeepLink )
 //****
 {
 	if ( iID < 1 || iID > 50 )
@@ -37251,7 +37254,32 @@ void agk::SetLocalNotification( int iID, int datetime, const char *szMessage )
 	agkFile.WriteString2( szMessage );
 	agkFile.Close();
 
-	PlatformCreateLocalNotification( iID, datetime, szMessage );
+	PlatformCreateLocalNotification( iID, datetime, szMessage, szDeepLink );
+}
+
+//****f* Extras/LocalNotifications/SetLocalNotification
+// FUNCTION
+//   Creates a local notification that will appear at some point in the future. Notifications are referenced 
+//   by ID and can be overwritten by creating a new notification with the same ID as the notification you 
+//   want to overwrite. If a notification triggers whilst the app is open then the notification will not 
+//   appear and it will silently disappear from the list of scheduled notifications. If the app is not open
+//   then a notification will display to the user and tapping on it will open up your app. If you set the
+//   deeplink parameter then that URL will be sent to the app when the notification is tapped. The URL can be 
+//   retrieved by using the <i>GetURLSchemeText</i> command.
+//   The datetime parameter should be specified in unix time, which is measured in seconds since 1st Jan 1970,
+//   you can use the command <i>GetUnixTime</i> to return the current date and time then modify it as needed.
+//   If the date and time is in the past then the notification will be ignored, it will not overwrite any 
+//   existing notification.
+//   The ID must be in the range 1 to 50 inclusive.
+// INPUTS
+//   iID -- The ID to use to reference this notification in future
+//   datetime -- The date and time to show this notification in unix time
+//   szMessage -- The message to display in the notification
+// SOURCE
+void agk::SetLocalNotification( int iID, int datetime, const char *szMessage )
+//****
+{
+	SetLocalNotification( iID, datetime, szMessage, "" );
 }
 
 //****f* Extras/LocalNotifications/CancelLocalNotification
@@ -47307,7 +47335,7 @@ char* agk::GetObjectName( UINT objID )
 //   All shader values have 1 to 4 components, this command accepts 4 values and discards any that are not used 
 //   by the named variable.
 // INPUTS
-//   objID -- The ID of the shader to modify.
+//   objID -- The ID of the object to modify.
 //   szName -- The name of the constant to change, as defined in the shader source file.
 //   value1 -- The X or R component of the new value, this value will always be used.
 //   value2 -- The Y or G component of the new value, if the constant only uses 1 component this value is discarded.
@@ -47333,10 +47361,10 @@ void agk::SetObjectShaderConstantByName( unsigned int objID, const char *szName,
 
 //****f* 3D/Objects/SetObjectShaderConstantArrayByName
 // FUNCTION
-//   Sets a shader constant array index by name, the constant must be marked as "uniform" in the shader source.
+//   Sets a shader constant for an object by name, the constant must be marked as "uniform" in the shader source.
+//   The object will set the specified constant to this value for any shader that it is applied to it.
 //   Array indices start at 0, if the array index is out of bounds then it will be ignored and no changes will 
 //   be made.
-//   This will affect all objects drawn using this shader.
 //   All shader values have 1 to 4 components, this command accepts 4 values and discards any that are not used 
 //   by the named variable.
 // INPUTS
@@ -47369,7 +47397,7 @@ void agk::SetObjectShaderConstantArrayByName( unsigned int objID, const char *sz
 // FUNCTION
 //   Stops an object setting the given constant name in its shaders and uses the shader's default value from now on.
 // INPUTS
-//   objID -- The ID of the shader to modify.
+//   objID -- The ID of the object to modify.
 //   szName -- The name of the constant to stop changing.
 // SOURCE
 void agk::SetObjectShaderConstantDefault( unsigned int objID, const char *szName )
@@ -55483,25 +55511,25 @@ void agk::SetShaderErrorMode( int mode )
 void agk::SetShaderConstantArrayFloatByName( int shaderID, const char* varName, int index, float f1 )
 //****
 {
-
+	SetShaderConstantArrayByName( shaderID, varName, index, f1, 0, 0, 0 );
 }
 
 void agk::SetShaderConstantArrayVec2ByName( int shaderID, const char* varName, int index, float f1, float f2 )
 //****
 {
-
+	SetShaderConstantArrayByName( shaderID, varName, index, f1, f2, 0, 0 );
 }
 
 void agk::SetShaderConstantArrayVec3ByName( int shaderID, const char* varName, int index, float f1, float f2, float f3 )
 //****
 {
-
+	SetShaderConstantArrayByName( shaderID, varName, index, f1, f2, f3, 0 );
 }
 
 void agk::SetShaderConstantArrayVec4ByName( int shaderID, const char* varName, int index, float f1, float f2, float f3, float f4 )
 //****
 {
-
+	SetShaderConstantArrayByName( shaderID, varName, index, f1, f2, f3, f4 );
 }
 
 int agk::IsInvertedDepth()

@@ -3061,7 +3061,7 @@ public class AGKHelper {
 
 	// local notifications
 	static NotificationChannel mNotificationChannel = null;
-	public static void SetNotification( Activity act, int id, int unixtime, String message )
+	public static void SetNotification( Activity act, int id, int unixtime, String message, String deeplink )
 	{
 		if (mNotificationChannel == null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
 		{
@@ -3075,11 +3075,17 @@ public class AGKHelper {
 		intent.putExtra("title", act.getString(R.string.app_name));
 		intent.putExtra("message", message);
 		intent.putExtra("id",id);
+		intent.putExtra("deeplink",deeplink);
 		PendingIntent sender = PendingIntent.getBroadcast(act, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		// Get the AlarmManager service
 		AlarmManager am = (AlarmManager) act.getSystemService(Context.ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, unixtime * 1000L, sender);
+	}
+
+	public static void SetNotification( Activity act, int id, int unixtime, String message )
+	{
+		SetNotification( act, id, unixtime, message, "" );
 	}
 
 	public static void CancelNotification( Activity act, int id )

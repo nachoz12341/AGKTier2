@@ -5316,7 +5316,7 @@ bool  agk::PlatformHasTwitter             ( void )
 
 // local notifications
 
-void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage )
+void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage, const char *szDeepLink )
 {
 	
 }

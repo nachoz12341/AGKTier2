@@ -56,7 +56,18 @@ using namespace AGK;
 	}
 	[viewController setActive];
 	
-    NSDictionary *remoteNotify = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
+    NSDictionary *localNotify = launchOptions[UIApplicationLaunchOptionsLocalNotificationKey];
+    if ( localNotify )
+    {
+        NSDictionary *aps = [localNotify objectForKey:@"aps"];
+        if ( aps )
+        {
+            NSString *deeplink = [aps objectForKey:@"deeplink"];
+            if ( deeplink ) agk::HandleDeepLink( [deeplink UTF8String] );
+        }
+    }
+
+	NSDictionary *remoteNotify = launchOptions[UIApplicationLaunchOptionsRemoteNotificationKey];
     if ( remoteNotify )
     {
         NSDictionary *aps = [remoteNotify objectForKey:@"aps"];
@@ -96,31 +107,6 @@ using namespace AGK;
 	
     completionHandler();
 }
-
-/*
-// Display notification and place it in notification center on iOS 10
-- (void)userNotificationCenter:(UNUserNotificationCenter *)center
-       willPresentNotification:(UNNotification *)notification
-         withCompletionHandler:(void (^)(UNNotificationPresentationOptions options))completionHandler
-{
-    completionHandler(UNNotificationPresentationOptionAlert | UNNotificationPresentationOptionSound);
-}
-*/
-
-/*
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler
-{
-    // get the whole string from the notification
-    NSDictionary *aps = [userInfo objectForKey:@"aps"];
-    if ( aps )
-    {
-        NSString *deeplink = [aps objectForKey:@"deeplink"];
-        if ( deeplink ) agk::HandleDeepLink( [deeplink UTF8String] );
-    }
-	
-    completionHandler ( UIBackgroundFetchResultNewData );
-}
-*/
 
 - (NSUInteger)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window
 {
@@ -262,6 +248,8 @@ using namespace AGK;
  @implementation GADRequest : NSObject @end
  @implementation GADInterstitial : NSObject @end
  @implementation GADAdSize : NSObject @end
+ @implementation GADExtras : NSObject @end
+ @implementation GADMobileAds : NSObject @end
  GADAdSize const *kGADAdSizeBanner;
  GADAdSize const *kGADAdSizeLargeBanner;
  GADAdSize const *kGADAdSizeMediumRectangle;
@@ -271,6 +259,8 @@ using namespace AGK;
  GADAdSize const *kGADAdSizeSmartBannerLandscape;
  GADAdSize const *kGADAdSizeFluid;
  @implementation GADRewardBasedVideoAd : NSObject @end
+ @implementation PACConsentForm : NSObject @end
+ @implementation PACConsentInformation : NSObject @end
  */
 
 // use this if you want to remove the Chartboost framework (also remove AdSupport.framework)
@@ -290,6 +280,12 @@ using namespace AGK;
 /*
 @implementation FIRApp : NSObject @end
 @implementation FIRAnalytics : NSObject @end
+*/
+
+/*
+// use this if you want to remove the SnapChat commands
+@implementation SCSDKPhotoSnapContent : NSObject @end
+@implementation SCSDKSnapPhoto : NSObject @end
 */
 
 #if defined(__i386__) || defined(__x86_64__)

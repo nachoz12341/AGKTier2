@@ -602,7 +602,7 @@ namespace AGK
 			static bool  PlatformHasTwitter		              ( void );
 
 			// local notifications
-			static void PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage );
+			static void PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage, const char *szDeepLink );
 			static void PlatformCancelLocalNotification( int iID );
 
 			static int PlatformGetIP( uString &sIP );
@@ -2614,6 +2614,7 @@ namespace AGK
 			static void  SetNotificationText          ( const char* pText );
 
 			// local notifications
+			static void SetLocalNotification( int iID, int datetime, const char *szMessage, const char* szDeepLink );
 			static void SetLocalNotification( int iID, int datetime, const char *szMessage );
 			static void CancelLocalNotification( int iID );
 			static int GetLocalNotificationExists( int iID );

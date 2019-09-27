@@ -9788,7 +9788,7 @@ bool  agk::PlatformHasTwitter             ( void )
 
 // local notifications
 
-void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage )
+void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *szMessage, const char *szDeepLink )
 {
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
@@ -9801,12 +9801,14 @@ void agk::PlatformCreateLocalNotification( int iID, int datetime, const char *sz
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
 
 	// get the method from our java class
-	jmethodID setNotif = lJNIEnv->GetStaticMethodID( AGKHelper, "SetNotification","(Landroid/app/Activity;IILjava/lang/String;)V" );
+	jmethodID setNotif = lJNIEnv->GetStaticMethodID( AGKHelper, "SetNotification","(Landroid/app/Activity;IILjava/lang/String;Ljava/lang/String;)V" );
 
 	// call our java class method
-	jstring strID = lJNIEnv->NewStringUTF(szMessage);
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, setNotif, lNativeActivity, iID, datetime, strID );
-	lJNIEnv->DeleteLocalRef( strID );
+	jstring strMsg = lJNIEnv->NewStringUTF(szMessage);
+	jstring strDeepLink = lJNIEnv->NewStringUTF(szDeepLink);
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, setNotif, lNativeActivity, iID, datetime, strMsg, strDeepLink );
+	lJNIEnv->DeleteLocalRef( strDeepLink );
+	lJNIEnv->DeleteLocalRef( strMsg );
 
 	// detatch thread from Java VM before we leave
 	vm->DetachCurrentThread();
@@ -12091,10 +12093,10 @@ void agk::SetSnapChatStickerSettings( float x, float y, int width, int height, f
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
 
 	// get the method from our java class
-	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "SetSnapChatStickerSettings", "(Landroid/app/Activity;FFIIF)V" );
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "SetSnapChatStickerSettings", "(FFIIF)V" );
 
 	// call our java class method
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, method,  lNativeActivity, x, y, width, height, angle );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, x, y, width, height, angle );
 
 	vm->DetachCurrentThread();
 }
@@ -12106,6 +12108,71 @@ void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, co
 	if ( !stickerFile ) stickerFile = "";
 	if ( !caption ) caption = "";
 	if ( !url ) url = "";
+
+	uString sPath( imageFile );
+    if ( !GetRealPath( sPath ) )
+    {
+        uString err; err.Format( "Could not find image at path: %s", imageFile );
+        agk::Error( err );
+        return;
+    }
+
+	if ( cFile::ExistsRead( imageFile ) && !cFile::ExistsWrite( imageFile ) ) 
+	{
+		// move file to write folder to avoid APK assets folder
+		cFile cSrcFile;
+		cSrcFile.OpenToRead( imageFile );
+
+		cFile cDstFile;
+		cDstFile.OpenToWrite( imageFile );
+
+		char buf[ 4096 ];
+		do
+		{
+			int written = cSrcFile.ReadData( buf, 4096 );
+			cDstFile.WriteData( buf, written );
+		} while( !cSrcFile.IsEOF() );
+
+		cDstFile.Close();
+		cSrcFile.Close();
+
+		sPath.SetStr( imageFile );
+		agk::PlatformGetFullPathWrite( sPath );
+	}
+
+	uString sPathSticker( stickerFile );
+	if ( stickerFile && *stickerFile )
+	{
+		if ( !GetRealPath( sPathSticker ) )
+		{
+			uString err; err.Format( "Could not find sticker image at path: %s", stickerFile );
+			agk::Error( err );
+			return;
+		}
+
+		if ( cFile::ExistsRead( stickerFile ) && !cFile::ExistsWrite( stickerFile ) ) 
+		{
+			// move file to write folder to avoid APK assets folder
+			cFile cSrcFile;
+			cSrcFile.OpenToRead( stickerFile );
+
+			cFile cDstFile;
+			cDstFile.OpenToWrite( stickerFile );
+
+			char buf[ 4096 ];
+			do
+			{
+				int written = cSrcFile.ReadData( buf, 4096 );
+				cDstFile.WriteData( buf, written );
+			} while( !cSrcFile.IsEOF() );
+
+			cDstFile.Close();
+			cSrcFile.Close();
+
+			sPathSticker.SetStr( stickerFile );
+			agk::PlatformGetFullPathWrite( sPathSticker );
+		}
+	}
 
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
@@ -12121,8 +12188,8 @@ void agk::ShareSnapChatImage( const char* imageFile, const char* stickerFile, co
 	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "ShareSnapChat", "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V" );
 
 	// call our java class method
-	jstring strImage = lJNIEnv->NewStringUTF( imageFile );
-	jstring strSticker = lJNIEnv->NewStringUTF( stickerFile );
+	jstring strImage = lJNIEnv->NewStringUTF( sPath.GetStr() );
+	jstring strSticker = lJNIEnv->NewStringUTF( sPathSticker.GetStr() );
 	jstring strCaption = lJNIEnv->NewStringUTF( caption );
 	jstring strURL = lJNIEnv->NewStringUTF( url );
 	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, strImage, strSticker, strCaption, strURL );

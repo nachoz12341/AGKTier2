@@ -13871,5 +13871,14 @@ case AGKI_SHARESNAPCHATIMAGE_0_S_S_S_S:
     agk::ShareSnapChatImage( param0, param1, param2, param3 );
     break;
 }
+case AGKI_SETLOCALNOTIFICATION_0_L_L_S_S:
+{
+    const char* param3 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    const char* param2 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetLocalNotification( param0, param1, param2, param3 );
+    break;
+}
 
 

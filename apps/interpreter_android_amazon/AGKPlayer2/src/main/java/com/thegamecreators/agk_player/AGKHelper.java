@@ -2263,36 +2263,36 @@ public class AGKHelper {
 	public static void SetInputText( Activity act, String text, int cursorpos )
 	{
 		//if ( mTextInput == null ) return;
-		/*
+
 		RunnableKeyboard run = new RunnableKeyboard();
 		run.act = act;
 		run.action = 3;
 		run.text = text;
 		run.cursorpos = cursorpos;
-		act.runOnUiThread( run );*/
-
+		act.runOnUiThread( run );
+/*
 		if ( AGKHelper.mTextInput != null )
 		{
 			AGKHelper.mTextInput.setText(text);
 			if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
-		}
+		}*/
 	}
 
 	public static void SetInputTextCursor( Activity act, int cursorpos )
 	{
 		//if ( mTextInput == null ) return;
-		/*
+
 		RunnableKeyboard run = new RunnableKeyboard();
 		run.act = act;
 		run.action = 5;
 		run.cursorpos = cursorpos;
 		act.runOnUiThread( run );
-		*/
 
+		/*
 		if ( AGKHelper.mTextInput != null )
 		{
 			if ( cursorpos >= 0 ) AGKHelper.mTextInput.setSelection(cursorpos);
-		}
+		}*/
 	}
 
 	public static void ShowKeyboard( Activity act, int multiline, int inputType )

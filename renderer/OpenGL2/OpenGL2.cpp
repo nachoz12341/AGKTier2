@@ -722,7 +722,7 @@ int agk::CanUseShadowSamplers()
 
 //****f* Core/Misc/SetAntialiasMode
 // FUNCTION
-//   Sets whether the device should using anti-aliasing when rendering to the back buffer. Currently 
+//   Sets whether the device should use anti-aliasing when rendering to the back buffer. Currently 
 //   this only applies to Windows, Mac, and Linux, and only 4x multi-sampling is available.
 //   This does not apply to any objects drawn to an image with SetRenderToImage, only the back buffer 
 //   is anti-aliased.

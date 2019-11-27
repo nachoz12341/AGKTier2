@@ -7,7 +7,8 @@ android {
     defaultConfig {
         applicationId "com.thegamecreators.agk_player"
         minSdkVersion 15
-        targetSdkVersion 26
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 16
     }
 
     buildTypes {

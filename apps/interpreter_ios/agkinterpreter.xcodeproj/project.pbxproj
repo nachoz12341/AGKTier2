@@ -598,6 +598,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2091;
 				DEVELOPMENT_TEAM = 4245WA8N82;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -630,6 +631,7 @@
 					../../platform/apple/Lib/Debug,
 					../../platform/apple/Lib/Release,
 				);
+				MARKETING_VERSION = 2019.11.27;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.thegamecreators.agk2player;
@@ -655,6 +657,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = 2091;
 				DEVELOPMENT_TEAM = 4245WA8N82;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -681,6 +684,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "\"../../platform/apple/Lib/Release\"";
+				MARKETING_VERSION = 2019.11.27;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.thegamecreators.agk2player;

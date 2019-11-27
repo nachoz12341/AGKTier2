@@ -839,25 +839,33 @@ void agk::PlatformInitFilePaths()
 	g_pFileManager = [[NSFileManager alloc] init];
 	
 	// get app name and size for write folder
-	strcpy( szAppFolderName, "Unknown" );
+	//strcpy( szAppFolderName, "Unknown" );
+	m_sAppName.SetStr( "Unknown" );
 	char szRoot[ MAX_PATH ];
 	uint32_t size = MAX_PATH;
 	if ( _NSGetExecutablePath(szRoot, &size) == 0 )
 	{
 		realpath( szRoot, szRootDir );
-		
-		const char *szEXE = strrchr( szRootDir, '/' );
-		if ( szEXE )
+
+		char *szEXE = strrchr( szRootDir, '.' );
+		if ( szEXE ) 
 		{
-			szEXE++;
-			m_sAppName.SetStr( szEXE );
-			m_sAppName.Trunc( '.' );
+			*szEXE = 0;
+			while( szEXE > szRootDir && *szEXE != '/' ) szEXE--;
 		}
-		else m_sAppName.SetStr( "Unknown" );
+		else 
+		{
+			szEXE = strrchr( szRootDir, '/' );
+			if ( !szEXE ) szEXE = szRootDir;
+		}		
 		
-		uString sModule( szRootDir );
-		sModule.Strip( "\\/. \t" );
-		strcpy( szAppFolderName, sModule.GetStr() );
+		if ( *szEXE == '/' ) szEXE++;
+		
+		m_sAppName.SetStr( szEXE );
+						
+		//uString sModule( szRootDir );
+		//sModule.Strip( "\\/. \t" );
+		//strcpy( szAppFolderName, sModule.GetStr() );
 	}
 	
 	// get main bundle resource path
@@ -871,6 +879,11 @@ void agk::PlatformInitFilePaths()
 	const char* szAppSupport = [ supportDirectoryPath UTF8String ];
 	strcpy( szWriteDir, szAppSupport );
 	strcat( szWriteDir, "/" );
+	if ( m_sCompanyName.GetLength() > 0 )
+	{
+		strcat( szWriteDir, m_sCompanyName.GetStr() );
+		strcat( szWriteDir, "/" );
+	}
 	strcat( szWriteDir, m_sAppName );
 	strcat( szWriteDir, "/" );
 	//strcat( szWriteDir, szAppFolderName );
@@ -4739,6 +4752,7 @@ void agk::SetRawMousePosition( float x, float y )
     float screenX = realX + window.frame.origin.x;
     float screenY = realY + (screenRect.size.height - window.frame.origin.y - [[window contentView] frame].size.height);
     CGWarpMouseCursorPosition(CGPointMake(screenX,screenY));
+    CGAssociateMouseAndMouseCursorPosition(true);
     
     x = agk::DeviceToScreenX( realX );
     y = agk::DeviceToScreenY( realY );

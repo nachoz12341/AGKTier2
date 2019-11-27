@@ -3744,7 +3744,7 @@ void cSoundMgr::PlatformInit()
 		else 
 		{
 			audioContext = alcCreateContext(audioDevice, NULL);
-			if(!audioContext) agk::Error( "" );
+			if(!audioContext) agk::Error( "Failed to create audio context" );
 			alcMakeContextCurrent(audioContext);
 		}
 	}

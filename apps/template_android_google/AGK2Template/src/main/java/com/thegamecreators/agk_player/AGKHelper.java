@@ -23,6 +23,7 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.games.AchievementsClient;
 import com.google.android.gms.games.AnnotatedData;
 import com.google.android.gms.games.Games;
+import com.google.android.gms.games.GamesClient;
 import com.google.android.gms.games.LeaderboardsClient;
 import com.google.android.gms.games.Player;
 import com.google.android.gms.games.PlayersClient;
@@ -2420,6 +2421,9 @@ public class AGKHelper {
 
 	public static void GameCenterCompleteLogin( final Activity act )
 	{
+		GamesClient gamesClient = Games.getGamesClient( act, g_GamesAccount );
+		gamesClient.setViewForPopups( act.getWindow().getDecorView() );
+
 		PlayersClient playersClient = Games.getPlayersClient( act, g_GamesAccount );
 		Task<Player> playerTask = playersClient.getCurrentPlayer().addOnCompleteListener(
 				new OnCompleteListener<Player>() {

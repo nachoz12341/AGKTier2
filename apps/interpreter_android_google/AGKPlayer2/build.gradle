@@ -8,7 +8,7 @@ android {
     sourceSets.main.jni.srcDirs = []
     defaultConfig {
         applicationId "com.thegamecreators.agk_player2"
-        minSdkVersion 19
+        minSdkVersion 16
         targetSdkVersion 28
         ndk{
             abiFilters "armeabi-v7a", "arm64-v8a"

@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2024;
+int g_iNumAGKFunctions = 2038;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -47,6 +47,8 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ADDTWEENCHAINTEXT_0_L_L_L_F", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,float)) (agk::AddTweenChainText) },
 	{"ADDVIRTUALBUTTON_0_L_F_F_F", (AGKVoidFunc) (void(*)(UINT,float,float,float)) (agk::AddVirtualButton) },
 	{"ADDVIRTUALJOYSTICK_0_L_F_F_F", (AGKVoidFunc) (void(*)(UINT,float,float,float)) (agk::AddVirtualJoystick) },
+	{"ADDVULKANDEVICEEXTENSIONS_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::AddVulkanDeviceExtensions) },
+	{"ADDVULKANINSTANCEEXTENSIONS_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::AddVulkanInstanceExtensions) },
 	{"ADDZIPENTRY_0_L_S_S", (AGKVoidFunc) (void(*)(UINT,const char*,const char*)) (agk::AddZipEntry) },
 	{"ARCONTROLCAMERA_0_0", (AGKVoidFunc) (void(*)()) (agk::ARControlCamera) },
 	{"ARCREATEANCHORFROMHITTEST_L_L", (AGKVoidFunc) (int(*)(int)) (agk::ARCreateAnchorFromHitTest) },
@@ -613,6 +615,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETNETWORKCLIENTDISCONNECTED_L_L_L", (AGKVoidFunc) (UINT(*)(UINT,UINT)) (agk::GetNetworkClientDisconnected) },
 	{"GETNETWORKCLIENTFLOAT_F_L_L_S", (AGKVoidFunc) (float(*)(UINT,UINT,const char *)) (agk::GetNetworkClientFloat) },
 	{"GETNETWORKCLIENTINTEGER_L_L_L_S", (AGKVoidFunc) (int(*)(UINT,UINT,const char *)) (agk::GetNetworkClientInteger) },
+	{"GETNETWORKCLIENTIP_S_L_L", (AGKVoidFunc) (char*(*)(uint32_t,uint32_t)) (agk::GetNetworkClientIP) },
 	{"GETNETWORKCLIENTNAME_S_L_L", (AGKVoidFunc) (char*(*)(UINT,UINT)) (agk::GetNetworkClientName) },
 	{"GETNETWORKCLIENTPING_F_L_L", (AGKVoidFunc) (float(*)(UINT,UINT)) (agk::GetNetworkClientPing) },
 	{"GETNETWORKCLIENTUSERDATA_L_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT,UINT)) (agk::GetNetworkClientUserData) },
@@ -629,6 +632,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETNETWORKNEXTCLIENT_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkNextClient) },
 	{"GETNETWORKNUMCLIENTS_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkNumClients) },
 	{"GETNETWORKSERVERID_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkServerID) },
+	{"GETNETWORKSERVERIP_S_L", (AGKVoidFunc) (char*(*)(uint32_t)) (agk::GetNetworkServerIP) },
 	{"GETNEXTCONTACT_L_0", (AGKVoidFunc) (int(*)()) (agk::GetNextContact) },
 	{"GETNEXTFILE_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetNextFile) },
 	{"GETNEXTFOLDER_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetNextFolder) },
@@ -763,6 +767,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETOBJECTX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetObjectX) },
 	{"GETOBJECTY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetObjectY) },
 	{"GETOBJECTZ_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetObjectZ) },
+	{"GETOPENGLIMAGEID_L_L", (AGKVoidFunc) (uint32_t(*)(uint32_t)) (agk::GetOpenGLImageID) },
 	{"GETORIENTATION_L_0", (AGKVoidFunc) (int(*)()) (agk::GetOrientation) },
 	{"GETPARTICLEDRAWNPOINTCOUNT_L_0", (AGKVoidFunc) (UINT(*)()) (agk::GetParticleDrawnPointCount) },
 	{"GETPARTICLEDRAWNQUADCOUNT_L_0", (AGKVoidFunc) (UINT(*)()) (agk::GetParticleDrawnQuadCount) },
@@ -835,6 +840,12 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETRAWMAGNETICX_F_0", (AGKVoidFunc) (float(*)()) (agk::GetRawMagneticX) },
 	{"GETRAWMAGNETICY_F_0", (AGKVoidFunc) (float(*)()) (agk::GetRawMagneticY) },
 	{"GETRAWMAGNETICZ_F_0", (AGKVoidFunc) (float(*)()) (agk::GetRawMagneticZ) },
+	{"GETRAWMOUSEFIFTHPRESSED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseFifthPressed) },
+	{"GETRAWMOUSEFIFTHRELEASED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseFifthReleased) },
+	{"GETRAWMOUSEFIFTHSTATE_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseFifthState) },
+	{"GETRAWMOUSEFOURTHPRESSED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseFourthPressed) },
+	{"GETRAWMOUSEFOURTHRELEASED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseFourthReleased) },
+	{"GETRAWMOUSEFOURTHSTATE_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseFourthState) },
 	{"GETRAWMOUSELEFTPRESSED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseLeftPressed) },
 	{"GETRAWMOUSELEFTRELEASED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseLeftReleased) },
 	{"GETRAWMOUSELEFTSTATE_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRawMouseLeftState) },
@@ -877,6 +888,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETRAYCASTX_F_0", (AGKVoidFunc) (float(*)()) (agk::GetRayCastX) },
 	{"GETRAYCASTY_F_0", (AGKVoidFunc) (float(*)()) (agk::GetRayCastY) },
 	{"GETREADPATH_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetReadPath) },
+	{"GETRENDERERNAME_S_0", (AGKVoidFunc) (char*(*)()) (agk::GetRendererName) },
 	{"GETRESUMED_L_0", (AGKVoidFunc) (int(*)()) (agk::GetResumed) },
 	{"GETREWARDADLOADEDADMOB_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRewardAdLoadedAdMob) },
 	{"GETREWARDADLOADEDCHARTBOOST_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRewardAdLoadedChartboost) },
@@ -1093,6 +1105,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETVIRTUALJOYSTICKX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetVirtualJoystickX) },
 	{"GETVIRTUALJOYSTICKY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetVirtualJoystickY) },
 	{"GETVIRTUALWIDTH_L_0", (AGKVoidFunc) (int(*)()) (agk::GetVirtualWidth) },
+	{"GETVULKANVRIMAGEDATA_0_L", (AGKVoidFunc) (void*(*)(uint32_t)) (agk::GetVulkanVRImageData) },
 	{"GETWINDOWHEIGHT_L_0", (AGKVoidFunc) (int(*)()) (agk::GetWindowHeight) },
 	{"GETWINDOWSDRIVE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetWindowsDrive) },
 	{"GETWINDOWWIDTH_L_0", (AGKVoidFunc) (int(*)()) (agk::GetWindowWidth) },
@@ -1917,6 +1930,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SETVIRTUALJOYSTICKSIZE_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::SetVirtualJoystickSize) },
 	{"SETVIRTUALJOYSTICKVISIBLE_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::SetVirtualJoystickVisible) },
 	{"SETVIRTUALRESOLUTION_0_L_L", (AGKVoidFunc) (void(*)(int,int)) (agk::SetVirtualResolution) },
+	{"SETVRIMAGE_0_L_L", (AGKVoidFunc) (void(*)(uint32_t,int)) (agk::SetVRImage) },
 	{"SETVSYNC_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetVSync) },
 	{"SETWINDOWALLOWRESIZE_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetWindowAllowResize) },
 	{"SETWINDOWPOSITION_0_L_L", (AGKVoidFunc) (void(*)(int,int)) (agk::SetWindowPosition) },

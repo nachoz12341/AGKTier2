@@ -736,7 +736,6 @@ namespace AGK
 			static float m_fDrawingTime;
 
 			static int m_iNumProcessors;
-			static int m_iFilePathsInitialised;
 
 		public:
 
@@ -800,6 +799,8 @@ namespace AGK
 			static void MouseLeftButton(UINT ID, int state);
 			static void MouseRightButton(UINT ID, int state);
 			static void MouseMiddleButton(UINT ID, int state);
+			static void MouseFourthButton(uint32_t ID, int state);
+			static void MouseFifthButton(uint32_t ID, int state);
 			static void MouseMove(UINT ID, int x, int y);
 			static void MouseWheel(UINT ID, float w);
 		
@@ -885,6 +886,9 @@ namespace AGK
 			static int m_iGPSSensorExists;
 
 			// core functions
+			static void AddVulkanDeviceExtensions( const char* szExtensions );
+			static void AddVulkanInstanceExtensions( const char* szExtensions );
+			static char* GetRendererName();
 			static void SetScreenResolution( int width, int height );
 			static void SetWindowPosition( int x, int y );
 			static void SetWindowSize( int width, int height, int fullscreen );
@@ -1074,6 +1078,9 @@ namespace AGK
 			static UINT GetImageSizeFromFile( const char* filename );
 			static cImage* GetImagePtr ( UINT iImageIndex );
 			static UINT GetImageTextureID ( UINT iImageIndex );
+			static uint32_t GetOpenGLImageID ( uint32_t iImageIndex );
+			static void* GetVulkanVRImageData ( uint32_t iImageIndex );
+			static void SetVRImage ( uint32_t iImageIndex, int mode );
 			static void LoadImage ( UINT iImageIndex, const char* sImageFilename, int bBlackToAlpha );
 			static UINT LoadImage ( const char* sImageFilename, int bBlackToAlpha );
 			static void LoadImage ( UINT iImageIndex, const char* sImageFilename );
@@ -1884,6 +1891,12 @@ namespace AGK
 			static int GetRawMouseMiddlePressed();
 			static int GetRawMouseMiddleState();
 			static int GetRawMouseMiddleReleased();
+			static int GetRawMouseFourthPressed();
+			static int GetRawMouseFourthState();
+			static int GetRawMouseFourthReleased();
+			static int GetRawMouseFifthPressed();
+			static int GetRawMouseFifthState();
+			static int GetRawMouseFifthReleased();
 			static void SetRawMouseVisible( int visible );
 			static void SetRawMousePosition( float x, float y );
 		
@@ -2291,8 +2304,10 @@ namespace AGK
 			static UINT GetNetworkClientDisconnected( UINT iNetID, UINT client );
 			static void DeleteNetworkClient( UINT iNetID, UINT client );
 			static char* GetNetworkClientName( UINT iNetID, UINT client );
+			static char* GetNetworkClientIP( uint32_t iNetID, uint32_t client );
 			static float GetNetworkClientPing( UINT iNetID, UINT client );
 			static UINT GetNetworkServerID( UINT iNetID );
+			static char* GetNetworkServerIP( uint32_t iNetID );
 			
 			static void SetNetworkLocalInteger( UINT iNetID, const char *name, int i );
 			static void SetNetworkLocalInteger( UINT iNetID, const char *name, int i, int mode );

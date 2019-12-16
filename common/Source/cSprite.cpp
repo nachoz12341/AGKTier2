@@ -916,10 +916,10 @@ bool cSprite::GetActive( void )
 bool cSprite::GetHitTest( float x, float y )
 //****
 {
-	if ( m_bFlags & AGK_SPRITE_SCROLL )
+	if ( (m_bFlags & AGK_SPRITE_SCROLL) == 0 )
 	{
-		x = agk::ScreenToWorldX( x );
-		y = agk::ScreenToWorldY( y );
+		x = agk::WorldToScreenX( x );
+		y = agk::WorldToScreenY( y );
 	}
 
 	// scissor test

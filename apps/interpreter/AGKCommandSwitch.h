@@ -13880,5 +13880,59 @@ case AGKI_SETLOCALNOTIFICATION_0_L_L_S_S:
     agk::SetLocalNotification( param0, param1, param2, param3 );
     break;
 }
+case AGKI_GETRENDERERNAME_S_0:
+{
+    char *szReturnStr = agk::GetRendererName( );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_GETNETWORKCLIENTIP_S_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetNetworkClientIP( param0, param1 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_GETNETWORKSERVERIP_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetNetworkServerIP( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_GETRAWMOUSEFOURTHPRESSED_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFourthPressed( );
+    break;
+}
+case AGKI_GETRAWMOUSEFOURTHSTATE_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFourthState( );
+    break;
+}
+case AGKI_GETRAWMOUSEFOURTHRELEASED_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFourthReleased( );
+    break;
+}
+case AGKI_GETRAWMOUSEFIFTHPRESSED_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFifthPressed( );
+    break;
+}
+case AGKI_GETRAWMOUSEFIFTHSTATE_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFifthState( );
+    break;
+}
+case AGKI_GETRAWMOUSEFIFTHRELEASED_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFifthReleased( );
+    break;
+}
 
 

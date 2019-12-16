@@ -506,7 +506,6 @@ int agk::m_iRotationSensorExists = 0;
 int agk::m_iGPSSensorExists = 0;
 
 int agk::m_iNumProcessors = 0;
-int agk::m_iFilePathsInitialised = 0;
 
 // ************************************
 // Internal public functions (should only be called by automated processes)
@@ -1084,7 +1083,7 @@ void agk::TouchPressed(UINT id, int x, int y)
 	for ( UINT i = 0; i < 4; i++ )
 	{
 		if ( !m_pVirtualJoystick[ i ] ) continue;
-		if ( m_pVirtualJoystick[ i ]->GetHitTest( fRealX, fRealY ) )
+		if ( m_pVirtualJoystick[ i ]->GetHitTest( fWorldX, fWorldY ) )
 		{
 			pPoint->CaptureTouch();
 			m_pVirtualJoystick[ i ]->CaptureTouch( pPoint );
@@ -1095,7 +1094,7 @@ void agk::TouchPressed(UINT id, int x, int y)
 	for ( UINT i = 0; i < AGK_MAX_VIRTUAL_BUTTONS; i++ )
 	{
 		if ( !m_pVirtualButton[ i ] ) continue;
-		if ( m_pVirtualButton[ i ]->GetHitTest( fRealX, fRealY ) )
+		if ( m_pVirtualButton[ i ]->GetHitTest( fWorldX, fWorldY ) )
 		{
 			pPoint->CaptureTouch();
 			m_pVirtualButton[ i ]->CaptureTouch( pPoint );
@@ -1231,7 +1230,7 @@ void agk::MouseLeftButton(UINT id, int state)
 		for ( UINT i = 0; i < 4; i++ )
 		{
 			if ( !m_pVirtualJoystick[ i ] ) continue;
-			if ( m_pVirtualJoystick[ i ]->GetHitTest( m_pMouse[ id ]->GetX(), m_pMouse[ id ]->GetY() ) )
+			if ( m_pVirtualJoystick[ i ]->GetHitTest( fWorldX, fWorldY ) )
 			{
 				m_pMouse[ id ]->CaptureMouse();
 				m_pVirtualJoystick[ i ]->CaptureMouse( m_pMouse[ id ] );
@@ -1241,7 +1240,7 @@ void agk::MouseLeftButton(UINT id, int state)
 		for ( UINT i = 0; i < AGK_MAX_VIRTUAL_BUTTONS; i++ )
 		{
 			if ( !m_pVirtualButton[ i ] ) continue;
-			if ( m_pVirtualButton[ i ]->GetHitTest( m_pMouse[ id ]->GetX(), m_pMouse[ id ]->GetY() ) )
+			if ( m_pVirtualButton[ i ]->GetHitTest( fWorldX, fWorldY ) )
 			{
 				m_pMouse[ id ]->CaptureMouse();
 				m_pVirtualButton[ i ]->CaptureMouse( m_pMouse[ id ] );
@@ -1258,17 +1257,6 @@ void agk::MouseLeftButton(UINT id, int state)
 				if ( bFound ) pEditBox->SetFocus( false );
 				else
 				{
-					/*
-					float fWorldX = m_pMouse[ id ]->GetX();
-					float fWorldY = m_pMouse[ id ]->GetY();
-
-					if ( !pEditBox->GetFixed() )
-					{
-						fWorldX = agk::ScreenToWorldX( m_pMouse[ id ]->GetX() );
-						fWorldY = agk::ScreenToWorldY( m_pMouse[ id ]->GetY() );
-					}
-					*/
-				
 					if ( !pEditBox->GetHitTest( fWorldX, fWorldY ) || !pEditBox->GetVisible() || !pEditBox->GetActive() ) pEditBox->SetFocus( false );
 					else
 					{
@@ -1303,6 +1291,26 @@ void agk::MouseMiddleButton(UINT id, int state)
 
 	if ( !m_pMouse[ id ] ) m_pMouse[ id ] = new cMouse();
 	m_pMouse[ id ]->SetButton( 2, state );
+}
+
+void agk::MouseFourthButton(uint32_t id, int state)
+{
+	if ( id > 3 ) return;
+
+	if ( m_bInputStarted && state == 1 ) return;
+
+	if ( !m_pMouse[ id ] ) m_pMouse[ id ] = new cMouse();
+	m_pMouse[ id ]->SetButton( 3, state );
+}
+
+void agk::MouseFifthButton(uint32_t id, int state)
+{
+	if ( id > 3 ) return;
+
+	if ( m_bInputStarted && state == 1 ) return;
+
+	if ( !m_pMouse[ id ] ) m_pMouse[ id ] = new cMouse();
+	m_pMouse[ id ]->SetButton( 4, state );
 }
 
 void agk::MouseMove(UINT id, int x, int y)
@@ -2007,9 +2015,6 @@ void agk::InitConsole()
 
 void agk::InitFilePaths()
 {
-	if ( m_iFilePathsInitialised ) return;
-	m_iFilePathsInitialised = 1;
-
 	PlatformInitFilePaths();
 	cFileEntry::InitFileList();
 }
@@ -2311,6 +2316,40 @@ void agk::ResumedOpenGL( int mode )
 	};
 
 	agk::PlatformResumedOpenGL();
+}
+
+void agk::AddVulkanDeviceExtensions( const char* szExtensions )
+//***2
+{
+
+}
+
+void agk::AddVulkanInstanceExtensions( const char* szExtensions )
+//***2
+{
+
+}
+
+//****f* Core/Display/GetRendererName
+// FUNCTION
+//   Returns the name of the current renderer, e.g. "OpenGL" or "OpenGLES"
+// SOURCE
+char* agk::GetRendererName()
+//****
+{
+	char *str = new char[ 20 ];
+	
+	char* name = GetDeviceBaseName();
+	if ( strcmp( name, "windows" ) == 0 ) strcpy( str, "OpenGL" );
+	else if ( strcmp( name, "mac" ) == 0 ) strcpy( str, "OpenGL" );
+	else if ( strcmp( name, "linux" ) == 0 ) strcpy( str, "OpenGL" );
+	else if ( strcmp( name, "android" ) == 0 ) strcpy( str, "OpenGLES" );
+	else if ( strcmp( name, "iOS" ) == 0 ) strcpy( str, "OpenGLES" );
+	else if ( strcmp( name, "html5" ) == 0 ) strcpy( str, "WebGL" );
+	else if ( strcmp( name, "pi" ) == 0 ) strcpy( str, "OpenGLES" );
+	else strcpy( str, "Unknown" );
+
+	return str;
 }
 
 //****f* Core/Display/SetOrientationAllowed
@@ -5423,6 +5462,28 @@ UINT agk::GetImageTextureID ( UINT iImageIndex )
 {
 	cImage *pImage = m_cImageList.GetItem( iImageIndex );
 	return pImage ? pImage->GetTextureID() : 0;
+}
+
+// for Tier 2 use only
+uint32_t agk::GetOpenGLImageID ( uint32_t iImageIndex )
+//***2
+{
+	cImage *pImage = m_cImageList.GetItem( iImageIndex );
+	return pImage ? pImage->GetTextureID() : 0;
+}
+
+// for Tier 2 use only
+void* agk::GetVulkanVRImageData ( uint32_t iImageIndex )
+//***2
+{
+	return 0;
+}
+
+// for Tier 2 use only
+void agk::SetVRImage ( uint32_t iImageIndex, int mode )
+//***2
+{
+
 }
 
 //****f* Image/General/GetImageSizeFromFile
@@ -29045,6 +29106,44 @@ char* agk::GetNetworkClientName( UINT iNetID, UINT client )
 	}
 }
 
+//****f* Multiplayer/Properties/GetNetworkClientIP
+// FUNCTION
+//   Returns the IP address being used by the specified client. This command only works on the server as clients do not connect directly to each other
+// INPUTS
+//   iNetID -- The ID of the network to check.
+//   client -- the ID of the client to check.
+// SOURCE
+char* agk::GetNetworkClientIP( uint32_t iNetID, uint32_t client )
+//****
+{
+	cNetwork *pNetwork = m_cNetworkList.GetItem( iNetID );
+	if ( !pNetwork )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to get network client IP, Network ID %d does not exist", iNetID );
+		agk::Error( err );
+#endif
+		char *str = new char[1];
+		*str = '\0';
+		return str;
+	}
+
+	uString sIP;
+	if ( pNetwork->GetClientIP( client, sIP ) )
+	{
+		char *szIP = new char[ sIP.GetLength() + 1 ];
+		strcpy( szIP, sIP.GetStr() );
+		return szIP;
+	}
+	else 
+	{
+		char *str = new char[1];
+		*str = 0;
+		return str;
+	}
+}
+
 //****f* Multiplayer/Properties/GetNetworkClientPing
 // FUNCTION
 //   Returns the ping between the given client and the host. To get the total transit time of data from one client
@@ -29094,6 +29193,44 @@ UINT agk::GetNetworkServerID( UINT iNetID )
 	}
 
 	return pNetwork->GetServerID();
+}
+
+//****f* Multiplayer/Properties/GetNetworkServerIP
+// FUNCTION
+//   Returns the IP address being used by the server. This command only works on clients as the server can get its own 
+//   IP using <i>GetDeviceIP</i> and <i>GetDeviceIPv6</i>.
+// INPUTS
+//   iNetID -- The ID of the network to check.
+// SOURCE
+char* agk::GetNetworkServerIP( uint32_t iNetID )
+//****
+{
+	cNetwork *pNetwork = m_cNetworkList.GetItem( iNetID );
+	if ( !pNetwork )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to get network server IP, Network ID %d does not exist", iNetID );
+		agk::Error( err );
+#endif
+		char *str = new char[1];
+		*str = '\0';
+		return str;
+	}
+
+	uString sIP;
+	if ( pNetwork->GetServerIP( sIP ) )
+	{
+		char *szIP = new char[ sIP.GetLength() + 1 ];
+		strcpy( szIP, sIP.GetStr() );
+		return szIP;
+	}
+	else 
+	{
+		char *str = new char[1];
+		*str = 0;
+		return str;
+	}
 }
 
 //****f* Multiplayer/Properties/SetNetworkLocalInteger
@@ -30729,6 +30866,75 @@ int agk::GetRawMouseMiddleReleased()
 	return m_pMouse[ 0 ]->GetMiddleReleased() ? 1 : 0;
 }
 
+//****f* Input-Raw/Mouse/GetRawMouseFourthPressed
+// FUNCTION
+//   Returns 1 if the fourth mouse button has been pressed, then returns 0 whilst the button is held down. If no mouse exists 
+//   it will always return 0.
+// SOURCE
+int agk::GetRawMouseFourthPressed() 
+//****
+{ 
+	if ( !m_pMouse[ 0 ] ) return 0;
+	return m_pMouse[ 0 ]->GetFourthPressed() ? 1 : 0;
+}
+
+//****f* Input-Raw/Mouse/GetRawMouseFourthState
+// FUNCTION
+//   Returns 1 if the fourth mouse button is currently down, 0 if not. If no mouse exists it will always return 0.
+// SOURCE
+int agk::GetRawMouseFourthState() 
+//****
+{ 
+	if ( !m_pMouse[ 0 ] ) return 0;
+	return m_pMouse[ 0 ]->GetFourthState() ? 1 : 0;
+}
+
+//****f* Input-Raw/Mouse/GetRawMouseFourthReleased
+// FUNCTION
+//   Returns 1 if the fourth mouse button has been released, then returns 0 whilst the button is up. If no mouse exists 
+//   it will always return 0.
+// SOURCE
+int agk::GetRawMouseFourthReleased() 
+//****
+{ 
+	if ( !m_pMouse[ 0 ] ) return 0;
+	return m_pMouse[ 0 ]->GetFourthReleased() ? 1 : 0;
+}
+
+//****f* Input-Raw/Mouse/GetRawMouseFifthPressed
+// FUNCTION
+//   Returns 1 if the fifth mouse button has been pressed, then returns 0 whilst the button is held down. If no mouse exists 
+//   it will always return 0.
+// SOURCE
+int agk::GetRawMouseFifthPressed() 
+//****
+{ 
+	if ( !m_pMouse[ 0 ] ) return 0;
+	return m_pMouse[ 0 ]->GetFifthPressed() ? 1 : 0;
+}
+
+//****f* Input-Raw/Mouse/GetRawMouseFifthState
+// FUNCTION
+//   Returns 1 if the fifth mouse button is currently down, 0 if not. If no mouse exists it will always return 0.
+// SOURCE
+int agk::GetRawMouseFifthState() 
+//****
+{ 
+	if ( !m_pMouse[ 0 ] ) return 0;
+	return m_pMouse[ 0 ]->GetFifthState() ? 1 : 0;
+}
+
+//****f* Input-Raw/Mouse/GetRawMouseFifthReleased
+// FUNCTION
+//   Returns 1 if the fifth mouse button has been released, then returns 0 whilst the button is up. If no mouse exists 
+//   it will always return 0.
+// SOURCE
+int agk::GetRawMouseFifthReleased() 
+//****
+{ 
+	if ( !m_pMouse[ 0 ] ) return 0;
+	return m_pMouse[ 0 ]->GetFifthReleased() ? 1 : 0;
+}
 
 /*
 float agk::GetRawMouseX( UINT index ) 
@@ -47210,7 +47416,7 @@ int agk::GetObjectReceiveShadowMode( int objID )
 	return pObject->GetShadowReceiveMode();
 }
 
-//****f* 3D/Shadows/GetObjectColorRed
+//****f* 3D/Objects/GetObjectColorRed
 // FUNCTION
 //   Returns the current red value of this object's color, as set by <i>SetObjectColor</i>.
 // INPUTS
@@ -47233,7 +47439,7 @@ int agk::GetObjectColorRed( int objID )
 	return pObject->GetColorRed();
 }
 
-//****f* 3D/Shadows/GetObjectColorGreen
+//****f* 3D/Objects/GetObjectColorGreen
 // FUNCTION
 //   Returns the current green value of this object's color, as set by <i>SetObjectColor</i>.
 // INPUTS
@@ -47256,7 +47462,7 @@ int agk::GetObjectColorGreen( int objID )
 	return pObject->GetColorGreen();
 }
 
-//****f* 3D/Shadows/GetObjectColorBlue
+//****f* 3D/Objects/GetObjectColorBlue
 // FUNCTION
 //   Returns the current blue value of this object's color, as set by <i>SetObjectColor</i>.
 // INPUTS
@@ -47279,7 +47485,7 @@ int agk::GetObjectColorBlue( int objID )
 	return pObject->GetColorBlue();
 }
 
-//****f* 3D/Shadows/GetObjectAlpha
+//****f* 3D/Objects/GetObjectAlpha
 // FUNCTION
 //   Returns the current alpha value of this object's color, as set by <i>SetObjectColor</i> or <i>SetObjectAlpha</i>.
 // INPUTS

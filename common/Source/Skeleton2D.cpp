@@ -4,8 +4,10 @@ using namespace AGK;
 
 // slot
 
-Slot2D::Slot2D()
+Slot2D::Slot2D( Skeleton2D* parent )
 {
+	m_pSkeleton = parent;
+
 	m_pParent = 0;
 	m_bFlags = AGK_SLOT_ANIMATE;
 
@@ -38,9 +40,11 @@ Slot2D::Slot2D()
 	m_iPrevFrameRotation = 0;
 	m_iPrevFramePosition = 0;
 	m_iPrevFrameScale = 0;
+	m_iPrevFrameOffset = 0;
 	m_iCurrFrameRotation = 0;
 	m_iCurrFramePosition = 0;
 	m_iCurrFrameScale = 0;
+	m_iCurrFrameOffset = 0;
 }
 
 Slot2D::~Slot2D()
@@ -65,10 +69,15 @@ void Slot2D::Tween( float prevtime, float currtime, float s )
 	float oldAngle = 0;
 	float oldSX = 1;
 	float oldSY = 1;
+	float oldOffsetX = 0;
+	float oldOffsetY = 0;
 
 	int posChanged = 0;
 	int angChanged = 0;
 	int scaleChanged = 0;
+	int offsetChanged = 0;
+	
+	if ( m_pSkeleton->IsSpriter() && !m_pPrevAnim && !m_pAnim ) return;
 	
 	if ( m_pPrevAnim && (m_bFlags & AGK_SLOT_ANIMATE) )
 	{
@@ -219,6 +228,7 @@ void Slot2D::Tween( float prevtime, float currtime, float s )
 		if ( m_iPrevFramePosition >= m_pPrevAnim->m_iNumPositions ) m_iPrevFramePosition = 0;
 		if ( m_iPrevFrameRotation >= m_pPrevAnim->m_iNumRotations ) m_iPrevFrameRotation = 0;
 		if ( m_iPrevFrameScale >= m_pPrevAnim->m_iNumScales ) m_iPrevFrameScale = 0;
+		if ( m_iPrevFrameOffset >= m_pPrevAnim->m_iNumOffsets ) m_iPrevFrameOffset = 0;
 
 		// positions
 		if ( m_pPrevAnim->m_iNumPositions > 0 && m_pPrevAnim->m_pPositions[ 0 ]->m_fTime <= prevtime )
@@ -366,6 +376,56 @@ void Slot2D::Tween( float prevtime, float currtime, float s )
 				}
 			}
 		}
+
+		// offsets
+		if ( m_pPrevAnim->m_iNumOffsets > 0 && m_pPrevAnim->m_pOffsets[ 0 ]->m_fTime <= prevtime )
+		{
+			offsetChanged = 1;
+			if ( m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fTime == prevtime || m_pPrevAnim->m_iNumOffsets == 1 )
+			{
+				// animation frame exactly matches time we are looking for, no interpolation required
+				oldOffsetX = m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fOffsetX;
+				oldOffsetY = m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fOffsetY;
+	}
+			else
+			{
+				if ( m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fTime < prevtime )
+				{
+					// time is ahead of our pointer, advance until we find the right frame
+					while ( m_iPrevFrameOffset < m_pPrevAnim->m_iNumOffsets-1 
+						 && m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset+1 ]->m_fTime < prevtime ) m_iPrevFrameOffset++;
+				}
+				else
+				{
+					// time is behind our pointer, go backwards until we find the right frame
+					while ( m_iPrevFrameOffset > 0
+						 && m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fTime > prevtime ) m_iPrevFrameOffset--;
+				}
+
+				if ( m_iPrevFrameOffset == m_pPrevAnim->m_iNumOffsets-1 )
+				{
+					// reached last keyframe and animation hasn't looped yet, must be some dead time for this bone
+					oldOffsetX = m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fOffsetX;
+					oldOffsetY = m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fOffsetY;
+				}
+				else
+				{
+					float timeDiff = m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset+1 ]->m_fTime - m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fTime;
+					if ( timeDiff <= 0 )
+					{
+						// key frames have the same time, should never happen but account for it anyway
+						oldOffsetX = m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset+1 ]->m_fOffsetX;
+						oldOffsetY = m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset+1 ]->m_fOffsetY;
+					}
+					else
+					{
+						// interpolate between these key frames
+						float t = (prevtime - m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->m_fTime) / timeDiff;
+						m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset ]->Interpolate( m_pPrevAnim->m_pOffsets[ m_iPrevFrameOffset+1 ], t, oldOffsetX, oldOffsetY );
+					}
+				}
+			}
+		}
 	}
 
 	// now the new transform
@@ -380,10 +440,13 @@ void Slot2D::Tween( float prevtime, float currtime, float s )
 	float newAngle = 0;
 	float newSX = 1;
 	float newSY = 1;
+	float newOffsetX = 0;
+	float newOffsetY = 0;
 
 	int newPosChanged = 0;
 	int newAngChanged = 0;
 	int newScaleChanged = 0;
+	int newOffsetChanged = 0;
 
 	if ( m_pAnim && (m_bFlags & AGK_SLOT_ANIMATE) )
 	{
@@ -453,6 +516,7 @@ void Slot2D::Tween( float prevtime, float currtime, float s )
 		if ( m_iCurrFramePosition >= m_pAnim->m_iNumPositions ) m_iCurrFramePosition = 0;
 		if ( m_iCurrFrameRotation >= m_pAnim->m_iNumRotations ) m_iCurrFrameRotation = 0;
 		if ( m_iCurrFrameScale >= m_pAnim->m_iNumScales ) m_iCurrFrameScale = 0;
+		if ( m_iCurrFrameOffset >= m_pAnim->m_iNumOffsets ) m_iCurrFrameOffset = 0;
 
 		// positions
 		if ( m_pAnim->m_iNumPositions > 0 && m_pAnim->m_pPositions[ 0 ]->m_fTime <= currtime )
@@ -600,6 +664,56 @@ void Slot2D::Tween( float prevtime, float currtime, float s )
 				}
 			}
 		}
+
+		// offsets
+		if ( m_pAnim->m_iNumOffsets > 0 && m_pAnim->m_pOffsets[ 0 ]->m_fTime <= currtime )
+		{
+			newOffsetChanged = 1;
+			if ( m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime == currtime || m_pAnim->m_iNumOffsets == 1 )
+			{
+				// animation frame exactly matches time we are looking for, no interpolation required
+				newOffsetX = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetX;
+				newOffsetY = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetY;
+	}
+			else
+			{
+				if ( m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime < currtime )
+				{
+					// time is ahead of our pointer, advance until we find the right frame
+					while ( m_iCurrFrameOffset < m_pAnim->m_iNumOffsets-1 
+						 && m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fTime < currtime ) m_iCurrFrameOffset++;
+				}
+				else
+				{
+					// time is behind our pointer, go backwards until we find the right frame
+					while ( m_iCurrFrameOffset > 0
+						 && m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime > currtime ) m_iCurrFrameOffset--;
+				}
+
+				if ( m_iCurrFrameOffset == m_pAnim->m_iNumOffsets-1 )
+				{
+					// reached last keyframe and animation hasn't looped yet, must be some dead time for this bone
+					newOffsetX = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetX;
+					newOffsetY = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetY;
+				}
+				else
+				{
+					float timeDiff = m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fTime - m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime;
+					if ( timeDiff <= 0 )
+					{
+						// key frames have the same time, should never happen but account for it anyway
+						newOffsetX = m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fOffsetX;
+						newOffsetY = m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fOffsetY;
+					}
+					else
+					{
+						// interpolate between these key frames
+						float t = (currtime - m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime) / timeDiff;
+						m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->Interpolate( m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ], t, newOffsetX, newOffsetY );
+					}
+				}
+			}
+		}
 	}
 
 	UINT red = agk::Round( oldRed + (newRed-oldRed)*s );
@@ -663,15 +777,45 @@ void Slot2D::Tween( float prevtime, float currtime, float s )
 		sY = newSY;
 	}
 	
+	if ( offsetChanged && newOffsetChanged )
+	{
+		offsetX = oldOffsetX + (newOffsetX-oldOffsetX)*s;
+		offsetY = oldOffsetY + (newOffsetY-oldOffsetY)*s;
+	}
+	else if ( offsetChanged )
+	{
+		offsetX = oldOffsetX;
+		offsetY = oldOffsetY;
+	}
+	else if ( newOffsetChanged )
+	{
+		offsetX = newOffsetX;
+		offsetY = newOffsetY;
+	}
+	
 	if ( m_pSprite ) 
 	{
 		m_pSprite->SetColor( red, green, blue, alpha );
 		m_pSprite->SetVisible( true );
 		m_pSprite->SetBone( m_pParent );
 		if ( posChanged || newPosChanged ) m_pSprite->SetPositionByOffset( x, y );
-		if ( angChanged || newAngChanged ) m_pSprite->SetAngle( angle );
-		if ( scaleChanged || newScaleChanged ) m_pSprite->SetScaleByOffset( sX, sY );
+
+		float modifiedAngle = angle;
+		if ( m_pSkeleton->IsSpriter() && m_pParent && m_pParent->worldSX * m_pParent->worldSY < 0 ) modifiedAngle = -angle;
+		if ( angChanged || newAngChanged ) m_pSprite->SetAngle( modifiedAngle );
+
+		float modifiedOffsetX = offsetX;
+		if ( m_pSkeleton->IsSpriter() && sX < 0 ) modifiedOffsetX = 1 - offsetX;
+		float modifiedOffsetY = offsetY;
+		if ( m_pSkeleton->IsSpriter() && sY < 0 ) modifiedOffsetY = 1 - offsetY;
+		if ( offsetChanged || newOffsetChanged ) m_pSprite->SetOffset( modifiedOffsetX*m_pSprite->GetWidth(), modifiedOffsetY*m_pSprite->GetHeight() );
+
+		if ( scaleChanged || newScaleChanged ) 
+		{
+			m_pSprite->SetScaleByOffset( agk::Abs(sX), agk::Abs(sY) );
+			m_pSprite->SetFlip( (sX < 0) ? 1 : 0, (sY < 0) ? 1 : 0 );
 	}
+}
 }
 
 void Slot2D::Interpolate( float currtime )
@@ -688,10 +832,15 @@ void Slot2D::Interpolate( float currtime )
 	float newAngle = 0;
 	float newSX = 1;
 	float newSY = 1;
+	float newOffsetX = 0;
+	float newOffsetY = 0;
 
 	int posChanged = 0;
 	int angChanged = 0;
 	int scaleChanged = 0;
+	int offsetChanged = 0;
+
+	if ( m_pSkeleton->IsSpriter() && !m_pAnim ) return;
 
 	if ( m_pAnim && (m_bFlags & AGK_SLOT_ANIMATE) )
 	{
@@ -842,6 +991,7 @@ void Slot2D::Interpolate( float currtime )
 		if ( m_iCurrFramePosition >= m_pAnim->m_iNumPositions ) m_iCurrFramePosition = 0;
 		if ( m_iCurrFrameRotation >= m_pAnim->m_iNumRotations ) m_iCurrFrameRotation = 0;
 		if ( m_iCurrFrameScale >= m_pAnim->m_iNumScales ) m_iCurrFrameScale = 0;
+		if ( m_iCurrFrameOffset >= m_pAnim->m_iNumOffsets ) m_iCurrFrameOffset = 0;
 
 		// positions
 		if ( m_pAnim->m_iNumPositions > 0 && m_pAnim->m_pPositions[ 0 ]->m_fTime <= currtime )
@@ -989,6 +1139,56 @@ void Slot2D::Interpolate( float currtime )
 				}
 			}
 		}
+
+		// offsets
+		if ( m_pAnim->m_iNumOffsets > 0 && m_pAnim->m_pOffsets[ 0 ]->m_fTime <= currtime )
+		{
+			offsetChanged = 1;
+			if ( m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime == currtime || m_pAnim->m_iNumOffsets == 1 )
+			{
+				// animation frame exactly matches time we are looking for, no interpolation required
+				newOffsetX = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetX;
+				newOffsetY = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetY;
+	}
+			else
+			{
+				if ( m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime < currtime )
+				{
+					// time is ahead of our pointer, advance until we find the right frame
+					while ( m_iCurrFrameOffset < m_pAnim->m_iNumOffsets-1 
+						 && m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fTime < currtime ) m_iCurrFrameOffset++;
+				}
+				else
+				{
+					// time is behind our pointer, go backwards until we find the right frame
+					while ( m_iCurrFrameOffset > 0
+						 && m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime > currtime ) m_iCurrFrameOffset--;
+				}
+
+				if ( m_iCurrFrameOffset == m_pAnim->m_iNumOffsets-1 )
+				{
+					// reached last keyframe and animation hasn't looped yet, must be some dead time for this bone
+					newOffsetX = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetX;
+					newOffsetY = m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fOffsetY;
+				}
+				else
+				{
+					float timeDiff = m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fTime - m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime;
+					if ( timeDiff <= 0 )
+					{
+						// key frames have the same time, should never happen but account for it anyway
+						newOffsetX = m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fOffsetX;
+						newOffsetY = m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ]->m_fOffsetY;
+					}
+					else
+					{
+						// interpolate between these key frames
+						float t = (currtime - m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->m_fTime) / timeDiff;
+						m_pAnim->m_pOffsets[ m_iCurrFrameOffset ]->Interpolate( m_pAnim->m_pOffsets[ m_iCurrFrameOffset+1 ], t, newOffsetX, newOffsetY );
+					}
+				}
+			}
+		}
 	}
 
 	m_iColor = newRed;
@@ -1004,6 +1204,8 @@ void Slot2D::Interpolate( float currtime )
 	angle = newAngle;
 	sX = newSX;
 	sY = newSY;
+	offsetX = newOffsetX;
+	offsetY = newOffsetY;
 	
 	m_pSprite = newSprite;
 	
@@ -1013,15 +1215,31 @@ void Slot2D::Interpolate( float currtime )
 		m_pSprite->SetVisible( true );
 		m_pSprite->SetBone( m_pParent );
 		if ( posChanged ) m_pSprite->SetPositionByOffset( x, y );
-		if ( angChanged ) m_pSprite->SetAngle( angle );
-		if ( scaleChanged ) m_pSprite->SetScaleByOffset( sX, sY );
+
+		float modifiedAngle = angle;
+		if ( m_pSkeleton->IsSpriter() && m_pParent && m_pParent->worldSX * m_pParent->worldSY < 0 ) modifiedAngle = -angle;
+		if ( angChanged ) m_pSprite->SetAngle( modifiedAngle );
+		
+		float modifiedOffsetX = offsetX;
+		if ( m_pSkeleton->IsSpriter() && sX < 0 ) modifiedOffsetX = 1 - offsetX;
+		float modifiedOffsetY = offsetY;
+		if ( m_pSkeleton->IsSpriter() && sY < 0 ) modifiedOffsetY = 1 - offsetY;
+		if ( offsetChanged ) m_pSprite->SetOffset( modifiedOffsetX*m_pSprite->GetWidth(), modifiedOffsetY*m_pSprite->GetHeight() );
+		
+		if ( scaleChanged ) 
+		{
+			m_pSprite->SetScaleByOffset( agk::Abs(sX), agk::Abs(sY) );
+			m_pSprite->SetFlip( (sX < 0) ? 1 : 0, (sY < 0) ? 1 : 0 );
 	}
+}
 }
 
 // bone
 
 Bone2D::Bone2D()
 {
+	m_pSkeleton = 0;
+
 	origX = 0;
 	origY = 0;
 	origAngle = 0;
@@ -1416,6 +1634,8 @@ void Bone2D::Tween( float prevtime, float currtime, float s )
 		// no parent tweening
 	}
 
+	m_pParent = oldParent;
+
 	if ( oldAngle < newAngle )
 	{
 		while ( newAngle - oldAngle > 180 ) oldAngle += 360;
@@ -1430,8 +1650,6 @@ void Bone2D::Tween( float prevtime, float currtime, float s )
 	angle = origAngle + oldAngle + (newAngle-oldAngle)*s;
 	sX = (oldSX + (newSX-oldSX)*s)*origSX;
 	sY = (oldSY + (newSY-oldSY)*s)*origSY;
-
-	m_pParent = oldParent;
 }
 
 void Bone2D::Interpolate( float currtime )
@@ -1633,6 +1851,9 @@ void Bone2D::Interpolate( float currtime )
 
 void Bone2D::UpdateWorldMatrix( int flipH, int flipV )
 {
+	if ( m_bFlags & AGK_BONE_UPDATED ) return;
+	m_bFlags |= AGK_BONE_UPDATED;
+
 	if ( !m_pParent )
 	{
 		if ( flipH == 1 ) worldX = origX - (x - origX);
@@ -1645,9 +1866,11 @@ void Bone2D::UpdateWorldMatrix( int flipH, int flipV )
 	}
 	else
 	{
+		m_pParent->UpdateWorldMatrix( flipH, flipV );
 		worldX = m_pParent->m00 * x + m_pParent->m01 * y + m_pParent->worldX;
 		worldY = m_pParent->m10 * x + m_pParent->m11 * y + m_pParent->worldY;
 		worldAngle = angle;
+		if ( m_pSkeleton->IsSpriter() && m_pParent->worldSX * m_pParent->worldSY < 0 ) worldAngle = -angle;
 		if ( m_bFlags & AGK_BONE_INHERIT_ROTATION ) worldAngle += m_pParent->worldAngle;
 		worldSX = sX;
 		worldSY = sY;
@@ -1692,17 +1915,13 @@ void Bone2D::ResetToOrig()
 
 Skeleton2D::Skeleton2D()
 {
+	m_isSpriter = 0;
+
 	m_iNumBones = 0;
 	m_pBones = 0;
 
-	m_iNumSprites = 0;
-	m_pSprites = 0;
-
 	m_iNumAnimations = 0;
 	m_pAnimations = 0;
-
-	m_iNumSlots = 0;
-	m_pSlots = 0;
 
 	m_pFirstExtSprite = 0;
 
@@ -1726,23 +1945,30 @@ Skeleton2D::Skeleton2D()
 Skeleton2D::~Skeleton2D()
 {
 	if ( m_pBones ) delete [] m_pBones;
-	if ( m_pSprites ) 
+	
+	for ( UINT i = 0; i < m_pFolders.NumItems(); i++ ) 
 	{
-		// one image was created per sprite
-		for ( UINT i = 0; i < m_iNumSprites; i++ )
+		for( UINT j = 0; j < m_pFolders[i]->m_pFiles.NumItems(); j++ )
 		{
-			cImage *pImage = m_pSprites[i].GetImagePtr();
-			if ( pImage )
+			// one image was shared among the sprites
+			cImage *pImage = 0;
+			for( UINT k = 0; k < m_pFolders[i]->m_pFiles[j]->m_pSprites.NumItems(); k++ )
 			{
-				m_pSprites[i].SetImage(0);
-				delete pImage;
+				cSprite *pSprite = m_pFolders[i]->m_pFiles[j]->m_pSprites[k].m_pSprite;
+				if ( k == 0 ) pImage = pSprite->GetImagePtr();
+				delete pSprite;
 			}
+			if ( pImage ) delete pImage;
 		}
-		
-		delete [] m_pSprites;
+		delete m_pFolders[ i ];
 	}
+	m_pFolders.Clear();
+	m_pSprites.Clear();
+		
 	if ( m_pAnimations ) delete [] m_pAnimations;
-	if ( m_pSlots ) delete [] m_pSlots;
+
+	for ( UINT i = 0; i < m_pSlots.NumItems(); i++ ) delete m_pSlots[ i ];
+	m_pSlots.Clear();
 
 	while( m_pFirstExtSprite )
 	{
@@ -1788,6 +2014,8 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 	m_pBones = new Bone2D[ pBones->m_iNumElements ];
 	for ( UINT i = 0; i < pBones->m_iNumElements; i++ )
 	{
+		m_pBones[ i ].m_pSkeleton = this;
+
 		pElement = pBones->GetElement( i );
 		if ( pElement->GetType() != 1 )
 		{
@@ -1883,11 +2111,13 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 		return;
 	}
 
-	m_iNumSlots = pSlots->m_iNumElements;
-	m_pSlots = new Slot2D[ pSlots->m_iNumElements ];
+	m_pSlots.Resize( pSlots->m_iNumElements );
 	for ( UINT i = 0; i < pSlots->m_iNumElements; i++ )
 	{
-		m_pSlots[ i ].m_iZOrder = i;
+		Slot2D* pSlot2D = new Slot2D( this );
+		m_pSlots.PushItem( pSlot2D );
+
+		pSlot2D->m_iZOrder = i;
 
 		pElement = pSlots->GetElement( i );
 		if ( pElement->GetType() != 1 )
@@ -1920,7 +2150,7 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 			return;
 		}
 
-		m_pSlots[ i ].m_sName.SetStr( ((JSONString*)pElement)->m_sValue );
+		pSlot2D->m_sName.SetStr( ((JSONString*)pElement)->m_sValue );
 		
 		pElement = pSlot->GetElement( "bone" );
 		if ( !pElement ) 
@@ -1937,8 +2167,8 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 			return;
 		}
 
-		m_pSlots[ i ].m_pParent = GetBone( ((JSONString*)pElement)->m_sValue );
-		if ( !m_pSlots[ i ].m_pParent )
+		pSlot2D->m_pParent = GetBone( ((JSONString*)pElement)->m_sValue );
+		if ( !pSlot2D->m_pParent )
 		{
 			agk::Error( "Failed to load Spine skeleton, slot bone does not exist" );
 			delete pRoot;
@@ -1948,19 +2178,19 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 		pElement = pSlot->GetElement( "color" );
 		if ( pElement && pElement->GetType() == 3 ) 
 		{
-			sscanf( ((JSONString*)pElement)->m_sValue, "%x", &(m_pSlots[ i ].m_iColor) );
+			sscanf( ((JSONString*)pElement)->m_sValue, "%x", &(pSlot2D->m_iColor) );
 		}
-		else m_pSlots[ i ].m_iColor = 0xffffffff;
+		else pSlot2D->m_iColor = 0xffffffff;
 
-		m_pSlots[ i ].m_iOrigColor = m_pSlots[ i ].m_iColor;
-		m_pSlots[ i ].m_pOrigBone = m_pSlots[ i ].m_pParent;
+		pSlot2D->m_iOrigColor = pSlot2D->m_iColor;
+		pSlot2D->m_pOrigBone = pSlot2D->m_pParent;
 
 		/*
 		pElement = pSlot->GetElement( "attachment" );
 		if ( pElement && pElement->GetType() == 3 ) 
 		{
-			m_pSlots[ i ].m_pSprite = GetSprite( ((JSONString*)pElement)->m_sValue );
-			if ( m_pSlots[ i ].m_pSprite ) m_pSlots[ i ].m_pSprite->SetBone( m_pSlots[ i ].m_pParent );
+			pSlot2D->m_pSprite = GetSprite( ((JSONString*)pElement)->m_sValue );
+			if ( pSlot2D->m_pSprite ) pSlot2D->m_pSprite->SetBone( pSlot2D->m_pParent );
 		}
 		*/
 	}
@@ -1987,18 +2217,13 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 
 				if ( count > 0 )
 				{
-					m_iNumSprites = count;
-					m_pSprites = new cSprite[ count ];
-					for ( int i = 0; i < count; i++ ) 
-					{
-						m_pSprites[ i ].SetVisible( false );
-						m_pSprites[ i ].SetTransparency( 1 );
-					}
+					m_pSprites.Resize( count );
+
 					count = 0;
 
-					for ( UINT i = 0; i < m_iNumSlots; i++ )
+					for ( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 					{
-						pElement = pSkin->GetElement( m_pSlots[ i ].m_sName );
+						pElement = pSkin->GetElement( m_pSlots[ i ]->m_sName );
 						if ( pElement && pElement->GetType() == 1 )
 						{
 							JSONObject *pSlot = (JSONObject*) pElement;
@@ -2011,10 +2236,15 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 									pElement = pAttachment->GetElement( "type" );
 									if ( pElement && pElement->GetType() == 3 && ((JSONString*)pElement)->m_sValue.CompareTo( "region" ) != 0 ) continue;
 
-									uString name( m_pSlots[ i ].m_sName );
+									cSprite* newSprite = new cSprite();
+									newSprite->SetVisible( false );
+									newSprite->SetTransparency( 1 );
+									m_pSprites.PushItem( newSprite );
+
+									uString name( m_pSlots[ i ]->m_sName );
 									name.Append( ":" );
 									name.Append( pSlot->m_pPairs[ j ]->m_sName );
-									m_pSprites[ count ].SetName( name );
+									newSprite->SetName( name );
 
 									if ( pAtlas ) 
 									{
@@ -2030,7 +2260,7 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 										}
 										else
 										{
-											m_pSprites[ count ].SetImage( pSubImage );
+											newSprite->SetImage( pSubImage );
 										}
 									}
 
@@ -2040,10 +2270,10 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 									if ( pElement && pElement->GetType() == 4 ) x = ((JSONNumber*)pElement)->m_fValue*scale;
 									pElement = pAttachment->GetElement( "y" );
 									if ( pElement && pElement->GetType() == 4 ) y = -((JSONNumber*)pElement)->m_fValue*scale;
-									m_pSprites[ count ].SetPositionByOffset( x, y );
+									newSprite->SetPositionByOffset( x, y );
 
 									pElement = pAttachment->GetElement( "rotation" );
-									if ( pElement && pElement->GetType() == 4 ) m_pSprites[ count ].SetAngle( -((JSONNumber*)pElement)->m_fValue );
+									if ( pElement && pElement->GetType() == 4 ) newSprite->SetAngle( -((JSONNumber*)pElement)->m_fValue );
 
 									float width = 10;
 									float height = 10;
@@ -2051,7 +2281,7 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 									if ( pElement && pElement->GetType() == 4 ) width = ((JSONNumber*)pElement)->m_fValue*scale;
 									pElement = pAttachment->GetElement( "height" );
 									if ( pElement && pElement->GetType() == 4 ) height = ((JSONNumber*)pElement)->m_fValue*scale;
-									m_pSprites[ count ].SetSize( width, height );
+									newSprite->SetSize( width, height );
 
 									float scaleX = 1;
 									float scaleY = 1;
@@ -2060,20 +2290,12 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 									pElement = pAttachment->GetElement( "scaleY" );
 									if ( pElement && pElement->GetType() == 4 ) scaleY = ((JSONNumber*)pElement)->m_fValue;
 
-									int flipH = 0;
-									int flipV = 0;
-									if ( scaleX < 0 ) { flipH = 1; scaleX = -scaleX; }
-									if ( scaleY < 0 ) { flipV = 1; scaleY = -scaleY; }
-									m_pSprites[ count ].SetScaleByOffset( scaleX, scaleY );
-									m_pSprites[ count ].SetFlip( flipH, flipV );
-
-									count++;
+									newSprite->SetScaleByOffset( agk::Abs(scaleX), agk::Abs(scaleY) );
+									newSprite->SetFlip( (scaleX < 0) ? 1 : 0, (scaleY < 0) ? 1 : 0 );
 								}
 							}
 						}
 					}
-
-					m_iNumSprites = count;
 				}
 			}
 		}
@@ -2707,6 +2929,8 @@ void Skeleton2D::LoadFromSpine( const char* filename, float scale, cImage *pAtla
 
 void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAtlas )
 {
+	m_isSpriter = 1;
+
 	uString sRootPath( filename );
 	sRootPath.Replace( '\\', '/' );
 	int index = sRootPath.RevFind( '/' );
@@ -2748,77 +2972,53 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		return;
 	}
 
-	int numFolders = pFolder->m_iNumElements;
-	int maxFiles = 0;
-	int totalFiles = 0;
-	for ( UINT i = 0; i < pFolder->m_iNumElements; i++ )
+	// clear any old sprites
+	for ( UINT i = 0; i < m_pFolders.NumItems(); i++ ) 
 	{
-		pElement = pFolder->GetElement( i );
-		if ( !pElement || pElement->GetType() != 1 )
+		for( UINT j = 0; j < m_pFolders[i]->m_pFiles.NumItems(); j++ )
 		{
-			agk::Error( "Failed to load Spriter skeleton, folder is not a JSON object" );
-			delete pRoot;
-			return;
-		}
-
-		pElement = ((JSONObject*)pElement)->GetElement( "file" );
-		if ( !pElement || pElement->GetType() != 2 )
+			cImage *pImage = 0;
+			for( UINT k = 0; k < m_pFolders[i]->m_pFiles[j]->m_pSprites.NumItems(); k++ )
 		{
-			agk::Error( "Failed to load Spriter skeleton, file element is missing or is not an array" );
-			delete pRoot;
-			return;
+				cSprite *pSprite = m_pFolders[i]->m_pFiles[j]->m_pSprites[k].m_pSprite;
+				if ( k == 0 ) pImage = pSprite->GetImagePtr();
+				delete pSprite;
 		}
-
-		JSONArray* pFiles = (JSONArray*) pElement;
-
-		totalFiles += pFiles->m_iNumElements;
-		if ( (int)pFiles->m_iNumElements > maxFiles ) maxFiles = pFiles->m_iNumElements;
+			if ( pImage ) delete pImage;
 	}
-
-	if ( maxFiles <= 0 )
-	{
-		agk::Error( "Failed to load Spriter skeleton, no sprite files found" );
-		delete pRoot;
-		return;
+		delete m_pFolders[ i ];
 	}
-
-	m_iNumSprites = totalFiles;
-	m_pSprites = new cSprite[ totalFiles ];
-	for ( int i = 0; i < totalFiles; i++ ) 
-	{
-		m_pSprites[ i ].SetVisible( false );
-		m_pSprites[ i ].SetTransparency( 1 );
-	}
-
-	cSprite ***pFolderFiles = new cSprite**[ numFolders ];
-	for ( int i = 0; i < numFolders; i++ )
-	{
-		pFolderFiles[ i ] = new cSprite*[ maxFiles ];
-		for ( int j = 0; j < maxFiles; j++ )
-		{
-			pFolderFiles[ i ][ j ] = 0;
-		}
-	}
+	m_pFolders.Clear();
+	m_pSprites.Clear();
 
 	// load sprite files
-	int count = 0;
 	for ( UINT i = 0; i < pFolder->m_iNumElements; i++ )
 	{
+		SpriterFolder* newFolder = new SpriterFolder();
+		m_pFolders.PushItem( newFolder );
+
 		pElement = pFolder->GetElement( i );
 		pElement = ((JSONObject*)pElement)->GetElement( "file" );
 		JSONArray* pFiles = (JSONArray*) pElement;
 
 		for ( UINT j = 0; j < pFiles->m_iNumElements; j++ )
 		{
+			SpriterFile* newFile = new SpriterFile();
+			m_pFolders[i]->m_pFiles.PushItem( newFile );
+
 			pElement = pFiles->GetElement( j );
 			if ( pElement->GetType() != 1 )
 			{
 				agk::Error( "Failed to load Spriter skeleton, files is not a JSON object" );
 				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
 				return;
 			}
+
+			cSprite* pSprite = new cSprite();
+			pSprite->SetVisible( false );
+			pSprite->SetTransparency( 1 );
+
+			m_pSprites.PushItem( pSprite );
 
 			JSONObject* pFile = (JSONObject*) pElement;
 
@@ -2837,11 +3037,10 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 					err.Format( "Failed to load Spriter skeleton, image %s failed to load", ((JSONString*)pElement)->m_sValue.GetStr() );
 					agk::Error( err );
 					delete pRoot;
-					for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-					delete [] pFolderFiles;
 					return;
 				}
-				m_pSprites[ count ].SetImage( pImage );
+
+				pSprite->SetImage( pImage );
 			}
 
 			// get sprite size
@@ -2853,22 +3052,20 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				if ( pElement && pElement->GetType() == 4 )
 				{
 					float height = ((JSONNumber*)pElement)->m_fValue*scale;
-					m_pSprites[ count ].SetSize( width, height );
+					pSprite->SetSize( width, height );
 				}
 			}
 
-			float offsetX = 0.5f;
+			float offsetX = 0;
 			pElement = pFile->GetElement( "pivot_x" );
 			if ( pElement && pElement->GetType() == 4 ) offsetX = ((JSONNumber*)pElement)->m_fValue;
 
-			float offsetY = 0.5f;
+			float offsetY = 0;
 			pElement = pFile->GetElement( "pivot_y" ); 
 			if ( pElement && pElement->GetType() == 4 ) offsetY = 1 - ((JSONNumber*)pElement)->m_fValue;
-			m_pSprites[ count ].SetOffset( m_pSprites[count].GetWidth()*offsetX, m_pSprites[count].GetHeight()*offsetY );
+			pSprite->SetOffset( pSprite->GetWidth()*offsetX, pSprite->GetHeight()*offsetY );
 			
-			pFolderFiles[ i ][ j ] = &(m_pSprites[ count ]);
-
-			count++;
+			newFile->AddSprite( pSprite, offsetX, offsetY );
 		}
 	}
 
@@ -2879,8 +3076,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, JSON entity is missing or not an array" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -2889,8 +3084,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, no entities found" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -2904,8 +3097,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, entity 0 is not an object" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -2917,8 +3108,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, JSON entity is missing or not an array" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -2927,22 +3116,25 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, no bones found" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
-	m_iNumBones = pObjInfo->m_iNumElements;
-	m_pBones = new Bone2D[ pObjInfo->m_iNumElements ];
+	m_iNumBones = pObjInfo->m_iNumElements + 1; // add an extra bone for root
+	m_pBones = new Bone2D[ m_iNumBones ];
+	m_pBones[ m_iNumBones-1 ].m_pSkeleton = this;
+	m_pBones[ m_iNumBones-1 ].length = 200;
+	m_pBones[ m_iNumBones-1 ].m_sName.SetStr( "AGKRoot" );
+	//m_pBones[ m_iNumBones-1 ].m_bFlags &= ~AGK_BONE_INHERIT_SCALE;
+	m_pBones[ m_iNumBones-1 ].m_bFlags |= AGK_BONE_PRE_SCALE | AGK_BONE_ROOT;
 	for ( UINT i = 0; i < pObjInfo->m_iNumElements; i++ )
 	{
+		m_pBones[ i ].m_pSkeleton = this;
+
 		pElement = pObjInfo->GetElement( i );
 		if ( pElement->GetType() != 1 )
 		{
 			agk::Error( "Failed to load Spriter skeleton, bone is not an object" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -2951,8 +3143,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		{
 			agk::Error( "Failed to load Spriter skeleton, bone has no elements" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -2972,8 +3162,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		{
 			agk::Error( "Failed to load Spriter skeleton, bone has no name" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -2981,8 +3169,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		{
 			agk::Error( "Failed to load Spriter skeleton, bone name is not a string" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -3002,8 +3188,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, JSON entity has no animation data. Spriter stores its bone heirarchy in the animation data" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3012,8 +3196,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, no animations found" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3023,8 +3205,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation is not a JSON object" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3033,8 +3213,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation has no elements" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3044,8 +3222,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation 0 has no name" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3057,8 +3233,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation 0 has no mainline object" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3067,8 +3241,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation mainline has no elements" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3078,8 +3250,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation 0 has no timeline array" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3088,8 +3258,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation timeline has no elements" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3099,8 +3267,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation mainline has no key array" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3109,8 +3275,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation mainline key array has no elements" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3120,8 +3284,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, mainline key is not an object" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3131,8 +3293,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, mainline key bone_ref is not an array" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3141,8 +3301,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, bone_ref keys has no elements" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3150,292 +3308,15 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	{
 		agk::Error( "Failed to load Spriter skeleton, animation contains more bone references than there are bones" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
-	int *pMainlineBoneIDs = new int[ m_iNumBones ];
-	for ( UINT i = 0; i < m_iNumBones; i++ ) pMainlineBoneIDs[ i ] = -1;
+	// no longer need to load default values for slots and bones, everything is dynamic in Spriter
 
-	for ( UINT i = 0; i < pBoneRefs->m_iNumElements; i++ )
-	{
-		pElement = pBoneRefs->GetElement( i );
-		if ( pElement->GetType() != 1 )
-		{
-			agk::Error( "Failed to load Spriter skeleton, bone reference is not a JSON object" );
-			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
-			delete [] pMainlineBoneIDs;
-			return;
-		}
-
-		int timelineID = 0;
-		JSONNumber *pTimelineNumber = (JSONNumber*)((JSONObject*)pElement)->GetElement( "timeline" );
-		if ( !pTimelineNumber || pTimelineNumber->GetType() != 4 )
-		{
-			agk::Error( "Failed to load Spriter skeleton, bone reference does not have a timeline" );
-			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
-			delete [] pMainlineBoneIDs;
-			return;
-		}
-
-		timelineID = pTimelineNumber->m_iValue;
-		if ( timelineID < 0 || timelineID >= (int)pAnim0Timeline->m_iNumElements )
-		{
-			agk::Error( "Failed to load Spriter skeleton, bone reference timeline is out of range" );
-			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
-			delete [] pMainlineBoneIDs;
-			return;
-		}
-
-		JSONObject* pBoneTimeline = (JSONObject*) pAnim0Timeline->GetElement( timelineID );
-		JSONNumber* pBoneNumber = (JSONNumber*)pBoneTimeline->GetElement( "obj" );
-		if ( !pBoneNumber || pBoneNumber->GetType() != 4 )
-		{
-			agk::Error( "Failed to load Spriter skeleton, bone reference timeline doesn't have a bone ID" );
-			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
-			delete [] pMainlineBoneIDs;
-			return;
-		}
-
-		int boneID = pBoneNumber->m_iValue;
-		if ( boneID < 0 || boneID >= (int)m_iNumBones )
-		{
-			agk::Error( "Failed to load Spriter skeleton, bone ID is out of range" );
-			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
-			delete [] pMainlineBoneIDs;
-			return;
-		}
-
-		pMainlineBoneIDs[ i ] = boneID;
-
-		JSONNumber *pParentNumber = (JSONNumber*) ((JSONObject*)pElement)->GetElement( "parent" );
-		if ( !pParentNumber || pParentNumber->GetType() != 4 )
-		{
-			m_pBones[ boneID ].m_bFlags |= AGK_BONE_ROOT;
-		}
-		else
-		{
-			int parent = pMainlineBoneIDs[ pParentNumber->m_iValue ];
-			if ( parent < 0 || parent >= (int)m_iNumBones )
-			{
-				agk::Error( "Failed to load Spriter skeleton, bone reference parent is out of range" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			m_pBones[ boneID ].m_pParent = &(m_pBones[parent]);
-		}
-	}
-
-	// load object_ref from first key to get slot information
-	pElement = ((JSONObject*)(pFirstKeys->GetElement( 0 )))->GetElement( "object_ref" );
-	if ( !pElement || pElement->GetType() != 2 )
-	{
-		agk::Error( "Failed to load Spriter skeleton, mainline key object_ref is not an array" );
-		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
-		delete [] pMainlineBoneIDs;
-		return;
-	}
-
-	JSONArray *pObjRefs = (JSONArray*) pElement;
-	if ( pObjRefs->m_iNumElements < 1 )
-	{
-		agk::Error( "Failed to load Spriter skeleton, object_ref keys has no elements" );
-		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
-		delete [] pMainlineBoneIDs;
-		return;
-	}
-
-	m_iNumSlots = pObjRefs->m_iNumElements;
-	m_pSlots = new Slot2D[ m_iNumSlots ];
-	for ( UINT i = 0; i < pObjRefs->m_iNumElements; i++ )
-	{
-		pElement = pObjRefs->GetElement( i );
-		if ( pElement->GetType() != 1 )
-		{
-			agk::Error( "Failed to load Spriter skeleton, object reference is not a JSON object" );
-			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
-			delete [] pMainlineBoneIDs;
-			return;
-		}
-
-		JSONNumber *pParentNum = (JSONNumber*) ((JSONObject*)pElement)->GetElement( "parent" );
-		if ( pElement && pElement->GetType() == 4 )
-		{
-			int parent = pMainlineBoneIDs[ pParentNum->m_iValue ];
-			if ( parent < 0 || parent >= (int)m_iNumBones )
-			{
-				agk::Error( "Failed to load Spriter skeleton, object reference parent is out of range" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			m_pSlots[ i ].m_pParent = &(m_pBones[parent]);
-		}
-
-		m_pSlots[ i ].m_iColor = 0xffffffff;
-		m_pSlots[ i ].m_iOrigColor = m_pSlots[ i ].m_iColor;
-		m_pSlots[ i ].m_pOrigBone = m_pSlots[ i ].m_pParent;
-		m_pSlots[ i ].m_iZOrder = i;
-
-		// get timeline to find default sprite for this slot
-		pElement = ((JSONObject*)pObjRefs->GetElement( i ))->GetElement( "timeline" );
-		if ( pElement && pElement->GetType() == 3 )
-		{
-			int timeline = ((JSONString*)pElement)->m_sValue.ToInt();
-			if ( timeline < 0 || timeline >= (int)pAnim0Timeline->m_iNumElements )
-			{
-				agk::Error( "Failed to load Spriter skeleton, object reference timeline is out of range" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			pElement = pAnim0Timeline->GetElement( timeline );
-			if ( pElement->GetType() != 1 )
-			{
-				agk::Error( "Failed to load Spriter skeleton, timeline entry is not an object" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			JSONObject *pTimeline = (JSONObject*) pElement;
-			pElement = pTimeline->GetElement( "key" );
-			if ( !pElement || pElement->GetType() != 2 )
-			{
-				agk::Error( "Failed to load Spriter skeleton, timeline does not contain any keys, or keys is not an array" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			JSONArray *pTimelineKeys = (JSONArray*) pElement;
-			if ( pTimelineKeys->m_iNumElements < 1 )
-			{
-				agk::Error( "Failed to load Spriter skeleton, timeline has 0 keys" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			// load first key to get default slot sprite
-			pElement = pTimelineKeys->GetElement( 0 );
-			if ( pElement->GetType() != 1 )
-			{
-				agk::Error( "Failed to load Spriter skeleton, timeline key is not an object" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			JSONObject* pTimelineKey = (JSONObject*) pElement;
-			pElement = pTimelineKey->GetElement( "object" );
-			if ( !pElement || pElement->GetType() != 1 )
-			{
-				agk::Error( "Failed to load Spriter skeleton, timeline key does not contain an object" );
-				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
-				delete [] pMainlineBoneIDs;
-				return;
-			}
-
-			JSONObject* pTimelineKeyObj = (JSONObject*) pElement;
-
-			int folder = -1;
-			pElement = pTimelineKeyObj->GetElement( "folder" );
-			if ( pElement && pElement->GetType() == 4 ) folder = agk::Round( ((JSONNumber*)pElement)->m_fValue );
-
-			int file = -1;
-			pElement = pTimelineKeyObj->GetElement( "file" );
-			if ( pElement && pElement->GetType() == 4 ) file = agk::Round( ((JSONNumber*)pElement)->m_fValue );
-
-			float angle = 0;
-			pElement = pTimelineKeyObj->GetElement( "angle" );
-			if ( pElement && pElement->GetType() == 4 ) angle = -((JSONNumber*)pElement)->m_fValue;
-			m_pSlots[ i ].angle = angle;
-
-			float posX = 0;
-			pElement = pTimelineKeyObj->GetElement( "x" );
-			if ( pElement && pElement->GetType() == 4 ) posX = ((JSONNumber*)pElement)->m_fValue*scale;
-			m_pSlots[ i ].x = posX;
-
-			float posY = 0;
-			pElement = pTimelineKeyObj->GetElement( "y" );
-			if ( pElement && pElement->GetType() == 4 ) posY = -((JSONNumber*)pElement)->m_fValue*scale;
-			m_pSlots[ i ].y = posY;
-
-			float scaleX = 1;
-			pElement = pTimelineKeyObj->GetElement( "scale_x" );
-			if ( pElement && pElement->GetType() == 4 ) scaleX = ((JSONNumber*)pElement)->m_fValue;
-			m_pSlots[ i ].sX = scaleX;
-
-			float scaleY = 1;
-			pElement = pTimelineKeyObj->GetElement( "scale_y" );
-			if ( pElement && pElement->GetType() == 4 ) scaleY = ((JSONNumber*)pElement)->m_fValue;
-			m_pSlots[ i ].sY = scaleY;
-
-			if ( file >= 0 && folder >= 0 )
-			{
-				m_pSlots[ i ].m_pOrigSprite = pFolderFiles[ folder ][ file ];
-				m_pSlots[ i ].m_pSprite = pFolderFiles[ folder ][ file ];
-				if ( m_pSlots[ i ].m_pSprite ) 
-				{
-					m_pSlots[ i ].m_pSprite->SetBone( m_pSlots[ i ].m_pParent );
-					m_pSlots[ i ].m_pSprite->SetVisible( true );
-					m_pSlots[ i ].m_pSprite->SetColor( 255,255,255,255 );
-
-					m_pSlots[ i ].m_pSprite->SetAngle( angle );
-					m_pSlots[ i ].m_pSprite->SetPositionByOffset( posX, posY );
-					m_pSlots[ i ].m_pSprite->SetScaleByOffset( scaleX, scaleY );
-				}
-			}
-		}
-	}
-
-	delete [] pMainlineBoneIDs;
-	pMainlineBoneIDs = 0;
-	
 	if ( pAnimations->m_iNumElements < 1 )
 	{
 		agk::Error( "Failed to load Spriter skeleton, no animations found" );
 		delete pRoot;
-		for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-		delete [] pFolderFiles;
 		return;
 	}
 
@@ -3443,13 +3324,13 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 	m_pAnimations = new Animation2D[ m_iNumAnimations ];
 	for ( UINT i = 0; i < m_iNumAnimations; i++ )
 	{
+		for( UINT f = 0; f < m_pFolders.NumItems(); f++ ) m_pFolders[ f ]->ResetUsage();
+
 		pElement = pAnimations->GetElement( i );
 		if ( pElement->GetType() != 1 )
 		{
 			agk::Error( "Failed to load Spriter skeleton, animation entry is not an object" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -3466,8 +3347,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		{
 			agk::Error( "Failed to load Spriter skeleton, animation entry does not have a length" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 		m_pAnimations[ i ].m_fTime = ((JSONNumber*)pElement)->m_fValue / 1000.0f;
@@ -3478,8 +3357,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		{
 			agk::Error( "Failed to load Spriter skeleton, animation entry does not have a mainline or the mainline is not an object" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -3490,8 +3367,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		{
 			agk::Error( "Failed to load Spriter skeleton, animation mainline does not contain any keys or the keys are not an array" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -3504,8 +3379,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		{
 			agk::Error( "Failed to load Spriter skeleton, animation entry does not have a timeline or the timeline is not an array" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -3513,14 +3386,28 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 
 		// setup bone variables
 		pElement = pMainlineKeys->GetElement( 0 );
+
+		int defaultCurveType = 1; // linear
+		JSONString *jCurveType = (JSONString*) ((JSONObject*)pElement)->GetElement( "curve_type" );
+		if ( jCurveType && jCurveType->GetType() == 3 )
+		{
+			if ( jCurveType->m_sValue.CompareCaseTo( "instant" ) == 0 ) defaultCurveType = 0;
+			else if ( jCurveType->m_sValue.CompareCaseTo( "linear" ) == 0 ) defaultCurveType = 1;
+			else if ( jCurveType->m_sValue.CompareCaseTo( "bezier" ) == 0 ) defaultCurveType = 2;
+			else
+			{
+				agk::Error( "Failed to load Spriter skeleton, unsupported curve type, only instant, linear, and bezier curves are supported" );
+				delete pRoot;
+				return;
+			}
+		}
+
 		JSONArray *pBoneRefArray = (JSONArray*) ((JSONObject*)pElement)->GetElement( "bone_ref" );
 		int numBoneRefs = pBoneRefArray->m_iNumElements;
 		if ( numBoneRefs > (int)m_iNumBones )
 		{
 			agk::Error( "Failed to load Spriter skeleton, animation mainline contains more bone references than there are bones. Make sure your heirarchy contains the same structure across all animations, use the alpha setting to hide items rather than removing them from the heirarchy" );
 			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
 			return;
 		}
 
@@ -3535,8 +3422,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 			{
 				agk::Error( "Failed to load Spriter skeleton, bone_ref does not have a timeline ID" );
 				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
 				return;
 			}
 			JSONNumber* pTimelineObj = (JSONNumber*) ((JSONObject*)(pTimeline->GetElement( pTimelineNum->m_iValue )))->GetElement( "obj" );
@@ -3544,8 +3429,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 			{
 				agk::Error( "Failed to load Spriter skeleton, bone_ref timeline does not have a bone object" );
 				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
 				return;
 			}
 			int boneID = pTimelineObj->m_iValue;
@@ -3559,13 +3442,15 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 		pElement = pMainlineKeys->GetElement( 0 );
 		JSONArray *pObjRefArray = (JSONArray*) ((JSONObject*)pElement)->GetElement( "object_ref" );
 		int numObjRefs = pObjRefArray->m_iNumElements;
-		if ( numObjRefs > (int)m_iNumSlots )
+		
+		if ( numObjRefs > (int)m_pSlots.NumItems() )
 		{
-			agk::Error( "Failed to load Spriter skeleton, animation mainline contains more object references than there are objects. Make sure your heirarchy contains the same structure across all animations, use the alpha setting to hide items rather than removing them from the heirarchy" );
-			delete pRoot;
-			for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-			delete [] pFolderFiles;
-			return;
+			int diff = numObjRefs - m_pSlots.NumItems();
+			for( int s = 0; s < diff; s++ ) 
+			{
+				Slot2D* pNewSlot = new Slot2D( this );
+				m_pSlots.PushItem( pNewSlot );
+		}
 		}
 		
 		m_pAnimations[ i ].m_iNumSlots = numObjRefs;
@@ -3579,8 +3464,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 			{
 				agk::Error( "Failed to load Spriter skeleton, object_ref does not have a timeline ID" );
 				delete pRoot;
-				for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-				delete [] pFolderFiles;
 				return;
 			}
 			int timelineID = pTimelineString->m_sValue.ToInt();
@@ -3634,13 +3517,11 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				{
 					agk::Error( "Failed to load Spriter skeleton, bone timeline does not have a bone key" );
 					delete pRoot;
-					for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-					delete [] pFolderFiles;
 					return;
 				}
 
 				JSONString *pCurve = (JSONString*) pTimeKey->GetElement( "curve_type" );
-				int curveType = 1; // assume linear
+				int curveType = defaultCurveType;
 				if ( pCurve && pCurve->GetType() == 3 )
 				{
 					if ( pCurve->m_sValue.CompareCaseTo( "instant" ) == 0 ) curveType = 0;
@@ -3650,8 +3531,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 					{
 						agk::Error( "Failed to load Spriter skeleton, unsupported curve type, only instant, linear, and bezier curves are supported" );
 						delete pRoot;
-						for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-						delete [] pFolderFiles;
 						return;
 					}
 				}
@@ -3697,8 +3576,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 						{
 							agk::Error( "Failed to load Spriter skeleton, bezier curve is missing some values" );
 							delete pRoot;
-							for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-							delete [] pFolderFiles;
 							return;
 						}
 
@@ -3822,12 +3699,14 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_iNumPositions = numKeys;
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_iNumRotations = numKeys;
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_iNumScales = numKeys;
+			m_pAnimations[ i ].m_pSlotAnims[ s ].m_iNumOffsets = numKeys;
 
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments = new Anim2DKeyFrameAttachment*[ numKeys ];
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_pColors = new Anim2DKeyFrameColor*[ numKeys ];
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions = new Anim2DKeyFramePosition*[ numKeys ];
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations = new Anim2DKeyFrameRotation*[ numKeys ];
 			m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales = new Anim2DKeyFrameScale*[ numKeys ];
+			m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets = new Anim2DKeyFrameOffset*[ numKeys ];
 
 			for ( int k = 0; k < (int)pTimelineKeys->m_iNumElements; k++ )
 			{
@@ -3836,6 +3715,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions[ k ] = 0;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ k ] = 0;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ k ] = 0;
+				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ k ] = 0;
 
 				JSONObject *pTimeKey = (JSONObject*) pTimelineKeys->GetElement( k );
 
@@ -3848,8 +3728,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				{
 					agk::Error( "Failed to load Spriter skeleton, slot timeline does not have an object key" );
 					delete pRoot;
-					for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-					delete [] pFolderFiles;
 					return;
 				}
 
@@ -3861,7 +3739,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				}
 
 				JSONString *pCurve = (JSONString*) pTimeKey->GetElement( "curve_type" );
-				int curveType = 1; // assume linear
+				int curveType = defaultCurveType;
 				if ( pCurve && pCurve->GetType() == 3 )
 				{
 					if ( pCurve->m_sValue.CompareCaseTo( "instant" ) == 0 ) curveType = 0;
@@ -3871,8 +3749,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 					{
 						agk::Error( "Failed to load Spriter skeleton, unsupported curve type, only instant, linear, and bezier curves are supported" );
 						delete pRoot;
-						for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-						delete [] pFolderFiles;
 						return;
 					}
 				}
@@ -3885,6 +3761,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions[ k ] = new Anim2DKeyFramePositionStepped();
 						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ k ] = new Anim2DKeyFrameRotationStepped();
 						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ k ] = new Anim2DKeyFrameScaleStepped();
+						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ k ] = new Anim2DKeyFrameOffsetStepped();
 
 						if ( k == 0 && extraFrame > 0 )
 						{
@@ -3893,6 +3770,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions[ numKeys-1 ] = new Anim2DKeyFramePositionStepped();
 							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ numKeys-1 ] = new Anim2DKeyFrameRotationStepped();
 							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ numKeys-1 ] = new Anim2DKeyFrameScaleStepped();
+							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ numKeys-1 ] = new Anim2DKeyFrameOffsetStepped();
 						}
 						break;
 					}
@@ -3902,6 +3780,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions[ k ] = new Anim2DKeyFramePosition();
 						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ k ] = new Anim2DKeyFrameRotation();
 						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ k ] = new Anim2DKeyFrameScale();
+						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ k ] = new Anim2DKeyFrameOffset();
 						
 						if ( k == 0 && extraFrame > 0 )
 						{
@@ -3910,6 +3789,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions[ numKeys-1 ] = new Anim2DKeyFramePosition();
 							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ numKeys-1 ] = new Anim2DKeyFrameRotation();
 							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ numKeys-1 ] = new Anim2DKeyFrameScale();
+							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ numKeys-1 ] = new Anim2DKeyFrameOffset();
 						}
 						break;
 					}
@@ -3922,8 +3802,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 						{
 							agk::Error( "Failed to load Spriter skeleton, bezier curve is missing some values" );
 							delete pRoot;
-							for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-							delete [] pFolderFiles;
 							return;
 						}
 
@@ -3955,6 +3833,13 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 						pScaleCurve->c4 = ((JSONNumber*) pTimeKey->GetElement( "c4" ))->m_fValue;
 						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ k ] = pScaleCurve;
 						
+						Anim2DKeyFrameOffsetCurved *pOffsetCurve = new Anim2DKeyFrameOffsetCurved();
+						pOffsetCurve->c1 = ((JSONNumber*) pTimeKey->GetElement( "c1" ))->m_fValue;
+						pOffsetCurve->c2 = ((JSONNumber*) pTimeKey->GetElement( "c2" ))->m_fValue;
+						pOffsetCurve->c3 = ((JSONNumber*) pTimeKey->GetElement( "c3" ))->m_fValue;
+						pOffsetCurve->c4 = ((JSONNumber*) pTimeKey->GetElement( "c4" ))->m_fValue;
+						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ k ] = pOffsetCurve;
+						
 						if ( k == 0 && extraFrame > 0 )
 						{
 							pColorCurve = new Anim2DKeyFrameColorCurved();
@@ -3984,6 +3869,13 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 							pScaleCurve->c3 = ((JSONNumber*) pTimeKey->GetElement( "c3" ))->m_fValue;
 							pScaleCurve->c4 = ((JSONNumber*) pTimeKey->GetElement( "c4" ))->m_fValue;
 							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ numKeys-1 ] = pScaleCurve;
+
+							pOffsetCurve = new Anim2DKeyFrameOffsetCurved();
+							pOffsetCurve->c1 = ((JSONNumber*) pTimeKey->GetElement( "c1" ))->m_fValue;
+							pOffsetCurve->c2 = ((JSONNumber*) pTimeKey->GetElement( "c2" ))->m_fValue;
+							pOffsetCurve->c3 = ((JSONNumber*) pTimeKey->GetElement( "c3" ))->m_fValue;
+							pOffsetCurve->c4 = ((JSONNumber*) pTimeKey->GetElement( "c4" ))->m_fValue;
+							m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ numKeys-1 ] = pOffsetCurve;
 						}
 						break;
 					}
@@ -3994,6 +3886,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions[ k ]->m_fTime = objtime;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ k ]->m_fTime = objtime;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ k ]->m_fTime = objtime;
+				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ k ]->m_fTime = objtime;
 
 				if ( k == 0 && extraFrame > 0 )
 				{
@@ -4002,6 +3895,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pPositions[ numKeys-1 ]->m_fTime = m_pAnimations[ i ].m_fTime;
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ numKeys-1 ]->m_fTime = m_pAnimations[ i ].m_fTime;
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ numKeys-1 ]->m_fTime = m_pAnimations[ i ].m_fTime;
+					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ numKeys-1 ]->m_fTime = m_pAnimations[ i ].m_fTime;
 				}
 
 				int alpha = 255;
@@ -4012,6 +3906,8 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				float ang = 0;
 				float scaleX = 1;
 				float scaleY = 1;
+				float offsetX = 0;
+				float offsetY = 0;
 				
 				JSONNumber *pNum = (JSONNumber*) pObjKey->GetElement( "a" );
 				if ( pNum ) alpha = agk::Round(pNum->m_fValue*255);
@@ -4023,6 +3919,18 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 
 				pNum = (JSONNumber*) pObjKey->GetElement( "folder" );
 				if ( pNum ) folder = agk::Round(pNum->m_fValue);
+
+				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments[ k ]->m_pSprite = 0;
+				if ( file >= 0 && folder >= 0 ) 
+				{
+					UINT isNew = 0;
+					cSprite *pSprite = m_pFolders[ folder ]->m_pFiles[ file ]->GetSprite( s, &isNew );
+					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments[ k ]->m_pSprite = pSprite;
+					if ( isNew ) m_pSprites.PushItem( pSprite );
+
+					offsetX = m_pFolders[ folder ]->m_pFiles[ file ]->m_offsetX;
+					offsetY = m_pFolders[ folder ]->m_pFiles[ file ]->m_offsetY;
+				}
 
 				pNum = (JSONNumber*) pObjKey->GetElement( "x" );
 				if ( pNum ) posX = pNum->m_fValue*scale;
@@ -4039,8 +3947,12 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				pNum = (JSONNumber*) pObjKey->GetElement( "scale_y" );
 				if ( pNum ) scaleY = pNum->m_fValue;
 
-				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments[ k ]->m_pSprite = 0;
-				if ( file >= 0 && folder >= 0 ) m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments[ k ]->m_pSprite = pFolderFiles[ folder ][ file ];
+				pNum = (JSONNumber*) pObjKey->GetElement( "pivot_x" );
+				if ( pNum ) offsetX = pNum->m_fValue;
+				
+				pNum = (JSONNumber*) pObjKey->GetElement( "pivot_y" );
+				if ( pNum ) offsetY = 1 - pNum->m_fValue;
+
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pColors[ k ]->m_iAlpha = alpha;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pColors[ k ]->m_iBlue = 255;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pColors[ k ]->m_iGreen = 255;
@@ -4051,11 +3963,19 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ k ]->m_fRotation = -ang;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ k ]->m_fScaleX = scaleX;
 				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ k ]->m_fScaleY = scaleY;
+				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ k ]->m_fOffsetX = offsetX;
+				m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ k ]->m_fOffsetY = offsetY;
 								
 				if ( k == 0 && extraFrame > 0 )
 				{
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments[ numKeys-1 ]->m_pSprite = 0;
-					if ( file >= 0 && folder >= 0 ) m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments[ numKeys-1 ]->m_pSprite = pFolderFiles[ folder ][ file ];
+					if ( file >= 0 && folder >= 0 ) 
+					{
+						UINT isNew = 0;
+						cSprite *pSprite = m_pFolders[ folder ]->m_pFiles[ file ]->GetSprite( s, &isNew );
+						m_pAnimations[ i ].m_pSlotAnims[ s ].m_pAttachments[ numKeys-1 ]->m_pSprite = pSprite;
+						if ( isNew ) m_pSprites.PushItem( pSprite );
+					}
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pColors[ numKeys-1 ]->m_iAlpha = alpha;
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pColors[ numKeys-1 ]->m_iBlue = 255;
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pColors[ numKeys-1 ]->m_iGreen = 255;
@@ -4066,6 +3986,8 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pRotations[ numKeys-1 ]->m_fRotation = -ang;
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ numKeys-1 ]->m_fScaleX = scaleX;
 					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pScales[ numKeys-1 ]->m_fScaleY = scaleY;
+					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ numKeys-1 ]->m_fOffsetX = offsetX;
+					m_pAnimations[ i ].m_pSlotAnims[ s ].m_pOffsets[ numKeys-1 ]->m_fOffsetY = offsetY;
 				}
 			}
 		}
@@ -4086,7 +4008,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 			JSONObject *pMainKey = (JSONObject*) pMainlineKeys->GetElement( k );
 
 			// object keys
-			pObjRefs = (JSONArray*) pMainKey->GetElement( "object_ref" );
+			JSONArray* pObjRefs = (JSONArray*) pMainKey->GetElement( "object_ref" );
 			if ( !pObjRefs ) continue;
 
 			pBoneRefs = (JSONArray*) pMainKey->GetElement( "bone_ref" );
@@ -4113,8 +4035,6 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 							/*
 							agk::Error( "Failed to load Spriter skeleton, slot parent timeline does not have a bone object" );
 							delete pRoot;
-							for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-							delete [] pFolderFiles;
 							return;
 							*/
 						}
@@ -4132,12 +4052,14 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				{
 					pAnimSlot->m_iNumBones = numKeys;
 					pAnimSlot->m_pBones = new Anim2DKeyFrameBone*[ numKeys ];
+					for( int bkey = 0; bkey < numKeys; bkey++ ) pAnimSlot->m_pBones[ bkey ] = 0;
 				}
 
 				if ( pAnimSlot->m_iNumZOrder == 0 )
 				{
 					pAnimSlot->m_iNumZOrder = numKeys;
 					pAnimSlot->m_pZOrder = new Anim2DKeyFrameZOrder*[ numKeys ];
+					for( int zkey = 0; zkey < numKeys; zkey++ ) pAnimSlot->m_pZOrder[ zkey ] = 0;
 				}
 
 				float objtime = 0;
@@ -4148,7 +4070,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				pAnimSlot->m_pBones[ k ] = new Anim2DKeyFrameBone();
 				pAnimSlot->m_pBones[ k ]->m_fTime = objtime;
 				if ( parentID >= 0 ) pAnimSlot->m_pBones[ k ]->m_pBoneParent = &(m_pBones[ parentID ]);
-				else pAnimSlot->m_pBones[ k ]->m_pBoneParent = 0;
+				else pAnimSlot->m_pBones[ k ]->m_pBoneParent = &(m_pBones[ m_iNumBones-1 ]);
 
 				// ZOrder can only be stepped
 				pAnimSlot->m_pZOrder[ k ] = new Anim2DKeyFrameZOrder();
@@ -4160,7 +4082,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 					pAnimSlot->m_pBones[ numKeys - 1 ] = new Anim2DKeyFrameBone();
 					pAnimSlot->m_pBones[ numKeys - 1 ]->m_fTime = m_pAnimations[ i ].m_fTime;
 					if ( parentID >= 0 ) pAnimSlot->m_pBones[ numKeys - 1 ]->m_pBoneParent = &(m_pBones[ parentID ]);
-					else pAnimSlot->m_pBones[ numKeys - 1 ]->m_pBoneParent = 0;
+					else pAnimSlot->m_pBones[ numKeys - 1 ]->m_pBoneParent = &(m_pBones[ m_iNumBones-1 ]);
 
 					pAnimSlot->m_pZOrder[ numKeys - 1 ] = new Anim2DKeyFrameZOrder();
 					pAnimSlot->m_pZOrder[ numKeys - 1 ]->m_fTime = m_pAnimations[ i ].m_fTime;
@@ -4176,7 +4098,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				JSONNumber *pBoneID = (JSONNumber*) ((JSONObject*)pTimeline->GetElement( timelineID ))->GetElement( "obj" );
 				int boneID = pBoneID->m_iValue;
 
-				Bone2D *pBoneParent = 0;
+				Bone2D *pBoneParent = &(m_pBones[ m_iNumBones-1 ]);
 				JSONNumber *pParent = (JSONNumber*) pBoneRef->GetElement( "parent" );
 				if ( pParent )
 				{
@@ -4193,6 +4115,7 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				{
 					pAnimBone->m_iNumParents = numKeys;
 					pAnimBone->m_pParents = new Anim2DKeyFrameBone*[ numKeys ];
+					for( int bkey = 0; bkey < numKeys; bkey++ ) pAnimBone->m_pParents[ bkey ] = 0;
 				}
 
 				float objtime = 0;
@@ -4212,12 +4135,69 @@ void Skeleton2D::LoadFromSpriter( const char* filename, float scale, cImage *pAt
 				}
 			}
 		}
+
+		// clean up bone and slot keyframes if some are blank
+		for( UINT b = 0; b < m_pAnimations[ i ].m_iNumBones; b++ )
+		{
+			Anim2DBone* pBone = &(m_pAnimations[ i ].m_pBoneAnims[ b ]);
+			UINT newNum = 0;
+			for( UINT p = 0; p < pBone->m_iNumParents; p++ )
+			{
+				if ( pBone->m_pParents[ p ] ) 
+				{
+					if ( newNum != p )
+					{
+						pBone->m_pParents[ newNum ] = pBone->m_pParents[ p ];
+						pBone->m_pParents[ p ] = 0;
+					}
+					newNum++;
+				}
+			}
+
+			pBone->m_iNumParents = newNum;
+		}
+
+		for( UINT s = 0; s < m_pAnimations[ i ].m_iNumSlots; s++ )
+		{
+			Anim2DSlot* pSlot = &(m_pAnimations[ i ].m_pSlotAnims[ s ]);
+
+			// bone parents
+			UINT newNum = 0;
+			for( UINT b = 0; b < pSlot->m_iNumBones; b++ )
+			{
+				if ( pSlot->m_pBones[ b ] ) 
+				{
+					if ( newNum != b )
+					{
+						pSlot->m_pBones[ newNum ] = pSlot->m_pBones[ b ];
+						pSlot->m_pBones[ b ] = 0;
+					}
+					newNum++;
+				}
+			}
+			pSlot->m_iNumBones = newNum;
+
+			// Z order
+			newNum = 0;
+			for( UINT z = 0; z < pSlot->m_iNumZOrder; z++ )
+			{
+				if ( pSlot->m_pZOrder[ z ] ) 
+				{
+					if ( newNum != z )
+					{
+						pSlot->m_pZOrder[ newNum ] = pSlot->m_pZOrder[ z ];
+						pSlot->m_pZOrder[ z ] = 0;
+					}
+					newNum++;
+				}
+			}
+			pSlot->m_iNumZOrder = newNum;
+		}
+
 	} // end animations loop
 
 	delete pRoot;
 
-	for ( int f = 0; f < numFolders; f++ ) delete [] pFolderFiles[ f ];
-	delete [] pFolderFiles;
 	
 	// set the skeleton to the first frame of animation 0
 	if ( sFirstAnimName.GetLength() > 0 )
@@ -4263,9 +4243,9 @@ void Skeleton2D::SetDepth( int depth )
 
 void Skeleton2D::FixToScreen( int mode )
 {
-	for ( UINT i = 0; i < m_iNumSprites; i++ )
+	for ( UINT i = 0; i < m_pSprites.NumItems(); i++ )
 	{
-		m_pSprites[ i ].FixToScreen( mode );
+		m_pSprites[ i ]->FixToScreen( mode );
 	}
 }
 
@@ -4361,9 +4341,9 @@ int Skeleton2D::GetBoneIndex( const char* name )
 
 Slot2D* Skeleton2D::GetSlot( const char* name )
 {
-	for ( UINT i = 0; i < m_iNumSlots; i++ )
+	for ( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 	{
-		if ( m_pSlots[ i ].m_sName.CompareTo( name ) == 0 ) return m_pSlots + i;
+		if ( m_pSlots[ i ]->m_sName.CompareTo( name ) == 0 ) return m_pSlots[ i ];
 	}
 
 	return 0;
@@ -4371,9 +4351,9 @@ Slot2D* Skeleton2D::GetSlot( const char* name )
 
 int Skeleton2D::GetSlotIndex( const char* name )
 {
-	for ( UINT i = 0; i < m_iNumSlots; i++ )
+	for ( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 	{
-		if ( m_pSlots[ i ].m_sName.CompareTo( name ) == 0 ) return i;
+		if ( m_pSlots[ i ]->m_sName.CompareTo( name ) == 0 ) return i;
 	}
 
 	return -1;
@@ -4381,9 +4361,9 @@ int Skeleton2D::GetSlotIndex( const char* name )
 
 cSprite* Skeleton2D::GetSprite( const char* name )
 {
-	for ( UINT i = 0; i < m_iNumSprites; i++ )
+	for ( UINT i = 0; i < m_pSprites.NumItems(); i++ )
 	{
-		if ( strcmp( m_pSprites[ i ].GetName(), name ) == 0 ) return m_pSprites + i;
+		if ( strcmp( m_pSprites[ i ]->GetName(), name ) == 0 ) return m_pSprites[ i ];
 	}
 
 	return 0;
@@ -4438,24 +4418,26 @@ void Skeleton2D::PlayAnimation( const char* anim, float starttime, int loop, flo
 		}
 	}
 
-	for ( UINT i = 0; i < m_iNumSlots; i++ )
+	for ( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 	{
-		m_pSlots[ i ].m_pPrevAnim = m_pSlots[ i ].m_pAnim;
-		m_pSlots[ i ].m_pAnim = 0;
-		m_pSlots[ i ].m_iPrevFrameColor = m_pSlots[ i ].m_iCurrFrameColor;
-		m_pSlots[ i ].m_iPrevFrameAttachment = m_pSlots[ i ].m_iCurrFrameAttachment;
-		m_pSlots[ i ].m_iPrevFrameBone = m_pSlots[ i ].m_iCurrFrameBone;
-		m_pSlots[ i ].m_iPrevFrameZOrder = m_pSlots[ i ].m_iCurrFrameZOrder;
-		m_pSlots[ i ].m_iPrevFramePosition = m_pSlots[ i ].m_iCurrFramePosition;
-		m_pSlots[ i ].m_iPrevFrameRotation = m_pSlots[ i ].m_iCurrFrameRotation;
-		m_pSlots[ i ].m_iPrevFrameScale = m_pSlots[ i ].m_iCurrFrameScale;
-		m_pSlots[ i ].m_iCurrFrameColor = 0;
-		m_pSlots[ i ].m_iCurrFrameAttachment = 0;
-		m_pSlots[ i ].m_iCurrFrameBone = 0;
-		m_pSlots[ i ].m_iCurrFrameZOrder = 0;
-		m_pSlots[ i ].m_iCurrFramePosition = 0;
-		m_pSlots[ i ].m_iCurrFrameRotation = 0;
-		m_pSlots[ i ].m_iCurrFrameScale = 0;
+		m_pSlots[ i ]->m_pPrevAnim = m_pSlots[ i ]->m_pAnim;
+		m_pSlots[ i ]->m_pAnim = 0;
+		m_pSlots[ i ]->m_iPrevFrameColor = m_pSlots[ i ]->m_iCurrFrameColor;
+		m_pSlots[ i ]->m_iPrevFrameAttachment = m_pSlots[ i ]->m_iCurrFrameAttachment;
+		m_pSlots[ i ]->m_iPrevFrameBone = m_pSlots[ i ]->m_iCurrFrameBone;
+		m_pSlots[ i ]->m_iPrevFrameZOrder = m_pSlots[ i ]->m_iCurrFrameZOrder;
+		m_pSlots[ i ]->m_iPrevFramePosition = m_pSlots[ i ]->m_iCurrFramePosition;
+		m_pSlots[ i ]->m_iPrevFrameRotation = m_pSlots[ i ]->m_iCurrFrameRotation;
+		m_pSlots[ i ]->m_iPrevFrameScale = m_pSlots[ i ]->m_iCurrFrameScale;
+		m_pSlots[ i ]->m_iPrevFrameOffset = m_pSlots[ i ]->m_iCurrFrameOffset;
+		m_pSlots[ i ]->m_iCurrFrameColor = 0;
+		m_pSlots[ i ]->m_iCurrFrameAttachment = 0;
+		m_pSlots[ i ]->m_iCurrFrameBone = 0;
+		m_pSlots[ i ]->m_iCurrFrameZOrder = 0;
+		m_pSlots[ i ]->m_iCurrFramePosition = 0;
+		m_pSlots[ i ]->m_iCurrFrameRotation = 0;
+		m_pSlots[ i ]->m_iCurrFrameScale = 0;
+		m_pSlots[ i ]->m_iCurrFrameOffset = 0;
 	}
 
 	for ( UINT i = 0; i < m_pAnimations[ iAnim ].m_iNumSlots; i++ )
@@ -4463,7 +4445,7 @@ void Skeleton2D::PlayAnimation( const char* anim, float starttime, int loop, flo
 		Anim2DSlot *pSlotAnim = m_pAnimations[ iAnim ].m_pSlotAnims + i;
 		if ( pSlotAnim->m_iSlotIndex >= 0 )
 		{
-			m_pSlots[ pSlotAnim->m_iSlotIndex ].m_pAnim = pSlotAnim;
+			m_pSlots[ pSlotAnim->m_iSlotIndex ]->m_pAnim = pSlotAnim;
 		}
 	}
 
@@ -4491,6 +4473,8 @@ void Skeleton2D::PlayAnimation( const char* anim, float starttime, int loop, flo
 		m_iLoopTotal = 0;
 		m_iLoopCount = 0;
 	}
+
+	Update(0);
 }
 
 void Skeleton2D::SetAnimationFrame( const char* anim, float time, float tweentime )
@@ -4529,24 +4513,26 @@ void Skeleton2D::SetAnimationFrame( const char* anim, float time, float tweentim
 		}
 	}
 
-	for ( UINT i = 0; i < m_iNumSlots; i++ )
+	for ( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 	{
-		m_pSlots[ i ].m_pPrevAnim = m_pSlots[ i ].m_pAnim;
-		m_pSlots[ i ].m_pAnim = 0;
-		m_pSlots[ i ].m_iPrevFrameColor = m_pSlots[ i ].m_iCurrFrameColor;
-		m_pSlots[ i ].m_iPrevFrameAttachment = m_pSlots[ i ].m_iCurrFrameAttachment;
-		m_pSlots[ i ].m_iPrevFrameBone = m_pSlots[ i ].m_iCurrFrameBone;
-		m_pSlots[ i ].m_iPrevFrameZOrder = m_pSlots[ i ].m_iCurrFrameZOrder;
-		m_pSlots[ i ].m_iPrevFramePosition = m_pSlots[ i ].m_iCurrFramePosition;
-		m_pSlots[ i ].m_iPrevFrameRotation = m_pSlots[ i ].m_iCurrFrameRotation;
-		m_pSlots[ i ].m_iPrevFrameScale = m_pSlots[ i ].m_iCurrFrameScale;
-		m_pSlots[ i ].m_iCurrFrameColor = 0;
-		m_pSlots[ i ].m_iCurrFrameAttachment = 0;
-		m_pSlots[ i ].m_iCurrFrameBone = 0;
-		m_pSlots[ i ].m_iCurrFrameZOrder = 0;
-		m_pSlots[ i ].m_iCurrFramePosition = 0;
-		m_pSlots[ i ].m_iCurrFrameRotation = 0;
-		m_pSlots[ i ].m_iCurrFrameScale = 0;
+		m_pSlots[ i ]->m_pPrevAnim = m_pSlots[ i ]->m_pAnim;
+		m_pSlots[ i ]->m_pAnim = 0;
+		m_pSlots[ i ]->m_iPrevFrameColor = m_pSlots[ i ]->m_iCurrFrameColor;
+		m_pSlots[ i ]->m_iPrevFrameAttachment = m_pSlots[ i ]->m_iCurrFrameAttachment;
+		m_pSlots[ i ]->m_iPrevFrameBone = m_pSlots[ i ]->m_iCurrFrameBone;
+		m_pSlots[ i ]->m_iPrevFrameZOrder = m_pSlots[ i ]->m_iCurrFrameZOrder;
+		m_pSlots[ i ]->m_iPrevFramePosition = m_pSlots[ i ]->m_iCurrFramePosition;
+		m_pSlots[ i ]->m_iPrevFrameRotation = m_pSlots[ i ]->m_iCurrFrameRotation;
+		m_pSlots[ i ]->m_iPrevFrameScale = m_pSlots[ i ]->m_iCurrFrameScale;
+		m_pSlots[ i ]->m_iPrevFrameOffset = m_pSlots[ i ]->m_iCurrFrameOffset;
+		m_pSlots[ i ]->m_iCurrFrameColor = 0;
+		m_pSlots[ i ]->m_iCurrFrameAttachment = 0;
+		m_pSlots[ i ]->m_iCurrFrameBone = 0;
+		m_pSlots[ i ]->m_iCurrFrameZOrder = 0;
+		m_pSlots[ i ]->m_iCurrFramePosition = 0;
+		m_pSlots[ i ]->m_iCurrFrameRotation = 0;
+		m_pSlots[ i ]->m_iCurrFrameScale = 0;
+		m_pSlots[ i ]->m_iCurrFrameOffset = 0;
 	}
 
 	for ( UINT i = 0; i < m_pAnimations[ iAnim ].m_iNumSlots; i++ )
@@ -4554,7 +4540,7 @@ void Skeleton2D::SetAnimationFrame( const char* anim, float time, float tweentim
 		Anim2DSlot *pSlotAnim = m_pAnimations[ iAnim ].m_pSlotAnims + i;
 		if ( pSlotAnim->m_iSlotIndex >= 0 )
 		{
-			m_pSlots[ pSlotAnim->m_iSlotIndex ].m_pAnim = pSlotAnim;
+			m_pSlots[ pSlotAnim->m_iSlotIndex ]->m_pAnim = pSlotAnim;
 		}
 	}
 
@@ -4645,9 +4631,9 @@ void Skeleton2D::Update( float time )
 		}
 	}
 
-	for( UINT i = 0; i < m_iNumSprites; i++ )
+	for( UINT i = 0; i < m_pSprites.NumItems(); i++ )
 	{
-		m_pSprites[ i ].SetVisible( false );
+		m_pSprites[ i ]->SetVisible( false );
 	}
 
 	if ( m_fTweenTime > 0 && m_fTotalTweenTime > 0 )
@@ -4663,9 +4649,9 @@ void Skeleton2D::Update( float time )
 			m_pBones[ i ].Tween( m_fPrevTime, m_fCurrTime, t );
 		}
 
-		for( UINT i = 0; i < m_iNumSlots; i++ )
+		for( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 		{
-			m_pSlots[ i ].Tween( m_fPrevTime, m_fCurrTime, t );
+			m_pSlots[ i ]->Tween( m_fPrevTime, m_fCurrTime, t );
 		}
 	}
 	else
@@ -4707,10 +4693,15 @@ void Skeleton2D::Update( float time )
 			m_pBones[ i ].Interpolate( m_fCurrTime );
 		}
 
-		for( UINT i = 0; i < m_iNumSlots; i++ )
+		for( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 		{
-			m_pSlots[ i ].Interpolate( m_fCurrTime );
+			m_pSlots[ i ]->Interpolate( m_fCurrTime );
 		}
+	}
+
+	for( UINT i = 0; i < m_iNumBones; i++ )
+	{
+		m_pBones[ i ].m_bFlags &= ~AGK_BONE_UPDATED;
 	}
 
 	for( UINT i = 0; i < m_iNumBones; i++ )
@@ -4718,27 +4709,28 @@ void Skeleton2D::Update( float time )
 		m_pBones[ i ].UpdateWorldMatrix( m_bFlags & AGK_SKELETON_FLIPH ? 1 : 0, m_bFlags & AGK_SKELETON_FLIPV ? 1 : 0 );
 	}
 
-	for( UINT i = 0; i < m_iNumSprites; i++ )
+	for( UINT i = 0; i < m_pSprites.NumItems(); i++ )
 	{
-		m_pSprites[ i ].Update( time );
+		m_pSprites[ i ]->Update( time );
 	}
 }
 
 void Skeleton2D::Draw()
 {
 	if ( (m_bFlags & AGK_SKELETON_VISIBLE) == 0 ) return;
-	if ( m_iNumSlots == 0 || !m_pSlots ) return;
+	if ( m_pSlots.NumItems() == 0 ) return;
 
-	Slot2D **pOrderedSlots = new Slot2D*[ m_iNumSlots ];
-	for( UINT i = 0; i < m_iNumSlots; i++ ) pOrderedSlots[ i ] = 0;
+	Slot2D **pOrderedSlots = new Slot2D*[ m_pSlots.NumItems() ];
+	for( UINT i = 0; i < m_pSlots.NumItems(); i++ ) pOrderedSlots[ i ] = 0;
 	
-	for( UINT i = 0; i < m_iNumSlots; i++ )
+	for( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 	{
-		pOrderedSlots[ m_pSlots[i].m_iZOrder ] = &(m_pSlots[i]);
+		if ( !m_pSlots[ i ] || !m_pSlots[ i ]->m_pSprite || !m_pSlots[ i ]->m_pSprite->GetVisible() ) continue;
+		pOrderedSlots[ m_pSlots[i]->m_iZOrder ] = m_pSlots[ i ];
 	}
 
 	ExternalSprite *pExtSprite = m_pFirstExtSprite;
-	for( UINT i = 0; i < m_iNumSlots; i++ )
+	for( UINT i = 0; i < m_pSlots.NumItems(); i++ )
 	{
 		while ( pExtSprite && pExtSprite->m_iZOrder <= (int)i )
 		{
@@ -4756,6 +4748,8 @@ void Skeleton2D::Draw()
 	}
 
 	delete [] pOrderedSlots;
+
+	//DrawBones();
 }
 
 void Skeleton2D::DrawBones()
@@ -4965,6 +4959,9 @@ Anim2DSlot::Anim2DSlot()
 
 	m_iNumScales = 0;
 	m_pScales = 0;
+
+	m_iNumOffsets = 0;
+	m_pOffsets = 0;
 }
 
 Anim2DSlot::~Anim2DSlot() 
@@ -5010,6 +5007,12 @@ Anim2DSlot::~Anim2DSlot()
 		for ( UINT i = 0; i < m_iNumScales; i++ ) delete m_pScales[ i ];
 		delete [] m_pScales;
 	}
+
+	if ( m_pOffsets ) 
+	{
+		for ( UINT i = 0; i < m_iNumOffsets; i++ ) delete m_pOffsets[ i ];
+		delete [] m_pOffsets;
+}
 }
 
 // keyframes

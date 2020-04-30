@@ -3,13 +3,13 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
     }
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
     sourceSets.main.jni.srcDirs = []
     defaultConfig {
         applicationId "com.thegamecreators.agk_player2"
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 29
         ndk{
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
@@ -31,7 +31,6 @@ android {
 }
 
 dependencies {
-    implementation project(':FacebookSDK')
     implementation 'com.google.android.gms:play-services-ads:18.1.1'
     implementation 'com.google.android.gms:play-services-games:18.0.0'
     implementation 'com.google.android.gms:play-services-location:17.0.0'

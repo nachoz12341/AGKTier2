@@ -67,7 +67,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Paul%27s\VC Projects\SVN Projects\AGKTrunk\curl\cabundle.h" />
+    <ClInclude Include="cabundle.h" />
     <ClInclude Include="include\mbedTLS\aes.h" />
     <ClInclude Include="include\mbedTLS\aesni.h" />
     <ClInclude Include="include\mbedTLS\arc4.h" />

@@ -122,7 +122,7 @@ bool UDPManager::SendPacket( const char *IP, UINT port, const AGKPacket *packet 
 		size = sizeof(sockaddr_in6);
 	}
 	
-	int result = sendto( m_socket, packet->GetBuffer(), packet->GetPos(), 0, (sockaddr*)&addr, size );
+	int result = sendto( m_socket, packet->GetBuffer(), packet->GetSize(), 0, (sockaddr*)&addr, size );
 	if ( result == 0 || result == SOCKET_ERROR ) return false;
 	return true;
 }
@@ -1349,9 +1349,9 @@ UINT Broadcaster::Run()
 		unsigned int sent = 0;
 		do
 		{
-			result = send( sock, m_packet.GetBuffer()+sent, m_packet.GetPos()-sent, 0 );
+			result = send( sock, m_packet.GetBuffer()+sent, m_packet.GetSize()-sent, 0 );
 			sent += result;
-		} while ( result > 0 && result != SOCKET_ERROR && sent < m_packet.GetPos() );
+		} while ( result > 0 && result != SOCKET_ERROR && sent < m_packet.GetSize() );
 
 		if ( result == SOCKET_ERROR )
 		{
@@ -1389,7 +1389,7 @@ void Broadcaster::SetData( int ipv6, UINT port, const AGKPacket* packet, UINT in
 {
 	if ( !packet ) return;
 	if ( interval < 1000 ) interval = 1000; //minimum interval of 1 seond to stop flooding the network
-	if ( packet->GetPos() > 512 )
+	if ( packet->GetSize() > 512 )
 	{
 		agk::Error( "Attempted to broadcast more than 512 bytes" );
 		return;
@@ -1474,7 +1474,7 @@ void cHTTPConnection::AddHeader( const char* headerName, const char* headerValue
 {
 	if ( IsRunning() )
 	{
-		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetHTTPResponseReady() or GetHTTPFileComplete() to return 1" );
 		return;
 	}
 
@@ -1493,7 +1493,7 @@ void cHTTPConnection::RemoveHeader( const char* headerName )
 {
 	if ( IsRunning() )
 	{
-		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		agk::Warning( "Cannot change HTTP headers whilst an async request or download is still in progress, wait for GetHTTPResponseReady() or GetHTTPFileComplete() to return 1" );
 		return;
 	}
 
@@ -1705,7 +1705,7 @@ void cHTTPConnection::SendRequestInternal()
 	curl_easy_setopt( request, CURLOPT_SSL_VERIFYPEER, m_iVerifyMode ? 1 : 0 );
 	curl_easy_setopt( request, CURLOPT_SSL_VERIFYHOST, m_iVerifyMode ? 2 : 0 );
 	curl_easy_setopt( request, CURLOPT_COOKIEFILE, "" );
-	curl_easy_setopt( request, CURLOPT_CONNECTTIMEOUT, m_iTimeout/1000 );
+	curl_easy_setopt( request, CURLOPT_CONNECTTIMEOUT_MS, m_iTimeout );
 	curl_easy_setopt( request, CURLOPT_NOPROGRESS, 1 );
 	curl_easy_setopt( request, CURLOPT_ERRORBUFFER, szCurlError );
 	//curl_easy_setopt( request, CURLOPT_FRESH_CONNECT, 1 );
@@ -1892,7 +1892,7 @@ void cHTTPConnection::SendFileInternal()
 	curl_easy_setopt( request, CURLOPT_SSL_VERIFYPEER, m_iVerifyMode ? 1 : 0 );
 	curl_easy_setopt( request, CURLOPT_SSL_VERIFYHOST, m_iVerifyMode ? 2 : 0 );
 	curl_easy_setopt( request, CURLOPT_COOKIEFILE, "" );
-	curl_easy_setopt( request, CURLOPT_CONNECTTIMEOUT, m_iTimeout/1000 );
+	curl_easy_setopt( request, CURLOPT_CONNECTTIMEOUT_MS, m_iTimeout );
 	curl_easy_setopt( request, CURLOPT_NOPROGRESS, 1 );
 	
 	curl_easy_setopt( request, CURLOPT_POST, 1 );
@@ -1951,7 +1951,7 @@ char* cHTTPConnection::SendRequest( const char *szServerFile, const char *szPost
 	if ( IsRunning() )
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Warning( "Cannot send HTTP whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		agk::Warning( "Cannot send HTTP whilst an async request or download is still in progress, wait for GetHTTPResponseReady() or GetHTTPFileComplete() to return 1" );
 #endif
 		return NULL;
 	}
@@ -1975,7 +1975,7 @@ bool cHTTPConnection::SendRequestASync( const char *szServerFile, const char *sz
 	if ( IsRunning() )
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Warning( "Cannot send HTTP whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		agk::Warning( "Cannot send HTTP whilst an async request or download is still in progress, wait for GetHTTPResponseReady() or GetHTTPFileComplete() to return 1" );
 #endif
 		return false;
 	}
@@ -1999,7 +1999,7 @@ bool cHTTPConnection::SendFile( const char *szServerFile, const char *szPostData
 	if ( IsRunning() )
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Warning( "Cannot send HTTP file whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		agk::Warning( "Cannot send HTTP file whilst an async request or download is still in progress, wait for GetHTTPResponseReady() or GetHTTPFileComplete() to return 1" );
 #endif
 		return false;
 	}
@@ -2047,7 +2047,7 @@ bool cHTTPConnection::DownloadFile( const char *szServerFile, const char *szLoca
 	if ( IsRunning() )
 	{
 #ifdef _AGK_ERROR_CHECK
-		agk::Warning( "Cannot send HTTP whilst an async request or download is still in progress, wait for GetRepsonseReady() or DownloadComplete() to return 1" );
+		agk::Warning( "Cannot send HTTP whilst an async request or download is still in progress, wait for GetHTTPResponseReady() or GetHTTPFileComplete() to return 1" );
 #endif
 		return false;
 	}

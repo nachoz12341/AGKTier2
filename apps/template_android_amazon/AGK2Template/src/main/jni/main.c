@@ -1288,7 +1288,7 @@ void android_main(struct android_app* state) {
             	LOGI("Exiting");
                 cleanup();
 				engine_term_display(&engine);
-                exit(0);
+                //exit(0);
                 return;
             }
         }

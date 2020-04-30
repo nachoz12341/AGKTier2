@@ -1623,6 +1623,11 @@ case AGKI_NOP: // do nothing
 	{
 		int a = m_pStack[ --m_iStackPtr ].i;
 		int b = m_pStack[ --m_iStackPtr ].i;
+		if ( a == 0 ) 
+		{
+			RuntimeError( "Integer division by 0" );
+			return 1;
+		}
 		m_pStack[ m_iStackPtr++ ].i = b % a;
 		break;
 	}

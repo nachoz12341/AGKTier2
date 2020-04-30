@@ -2050,13 +2050,15 @@ void agk::VibrateDevice( float seconds )
 void agk::SetClipboardText( const char* szText )
 //****
 {
-
+	glfwSetClipboardString( g_pWindow, szText );
 }
 
 char* agk::GetClipboardText()
 //****
 {
-	char *str = new char[1]; *str = 0;
+	const char *text = glfwGetClipboardString( g_pWindow );
+	char *str = new char[ strlen(text) + 1 ]; 
+	strcpy( str, text );
 	return str;
 }
 
@@ -3976,7 +3978,7 @@ int cFile::ReadLineFast( uString &str )
 	if ( !fgets( tempstr, 1024, pFile ) ) return 0;
 	str.SetStr( tempstr );
 
-	while ( !IsEOF() && str.CharAt( str.GetLength()-1 ) != '\n' )
+	while ( !IsEOF() && str.CharAt( str.GetNumChars()-1 ) != '\n' )
 	{
 		if ( !fgets( tempstr, 1024, pFile ) ) break;
 		str.Append( tempstr );
@@ -4163,7 +4165,7 @@ int agk::SetCurrentDir( const char* szPath )
 	if ( strcmp( szPath, ".." ) == 0 )
 	{
 		int pos = m_sCurrentDir.Find( '/' );
-		if ( pos >= 0 && pos < m_sCurrentDir.GetLength()-1 )
+		if ( pos >= 0 && pos < m_sCurrentDir.GetNumChars()-1 )
 		{
 			m_sCurrentDir.Trunc( '/' );
 			m_sCurrentDir.Trunc( '/' );

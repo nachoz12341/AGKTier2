@@ -5,6 +5,7 @@ CC = emcc
 ODIR = $(OUT)/obj
 INC = -Icommon/include -Icommon -Ilibpng -Ilibjpeg -Igiflib -Izxing -Izlib -Iassimp -Ibullet -Ibullet/BulletCollision/CollisionShapes -Ilibogg/include -Ifreetype/include -Irenderer/OpenGLES2
 CFLAGS = -O2 -s USE_SDL=1
+CPPFLAGS = -O2 -s USE_SDL=1 -std=c++11
 
 _OBJS = AGKMotionState.o \
         AGKToBullet.o \
@@ -614,16 +615,16 @@ setup:
 
 
 $(ODIR)/%.o: common/Source/%.cpp
-	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/%.o: common/%.cpp
-	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/%.o: platform/html5/Source/%.cpp
-	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/%.o: renderer/OpenGLES2/%.cpp
-	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/zlib/%.o: zlib/%.c
 	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
@@ -638,7 +639,7 @@ $(ODIR)/giflib/%.o: giflib/%.c
 	$(CC) -DIDE_HTML5 -Wno-unused-result -DHAVE_CONFIG_H -c $(INC) -o $@ $< $(CFLAGS)
 	
 $(ODIR)/assimp/%.o: assimp/%.cpp
-	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/assimp/%.o: assimp/%.c
 	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
@@ -647,7 +648,7 @@ $(ODIR)/assimp/%.o: assimp/%.cc
 	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
 	
 $(ODIR)/bullet/%.o: bullet/%.cpp
-	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/libogg/%.o: libogg/%.c
 	$(CC) -DIDE_HTML5 -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)

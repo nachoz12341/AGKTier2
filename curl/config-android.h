@@ -122,6 +122,11 @@
 #define SEND_TYPE_ARG4 int
 #define SEND_TYPE_RETV ssize_t
 
+#define HAVE_FREEADDRINFO           1
+#define HAVE_GETADDRINFO            1
+#define HAVE_GETADDRINFO_THREADSAFE 1
+#define HAVE_GETNAMEINFO            1
+
 //#define HAVE_EXTRA_STRICMP_H 1
 //#define HAVE_EXTRA_STRDUP_H  1
 

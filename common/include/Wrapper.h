@@ -1081,6 +1081,7 @@ namespace AGK
 			static uint32_t GetOpenGLImageID ( uint32_t iImageIndex );
 			static void* GetVulkanVRImageData ( uint32_t iImageIndex );
 			static void SetVRImage ( uint32_t iImageIndex, int mode );
+			static void ResetVRImages ();
 			static void LoadImage ( UINT iImageIndex, const char* sImageFilename, int bBlackToAlpha );
 			static UINT LoadImage ( const char* sImageFilename, int bBlackToAlpha );
 			static void LoadImage ( UINT iImageIndex, const char* sImageFilename );
@@ -2089,6 +2090,7 @@ namespace AGK
 			static int GetEditBoxCursorPosition( UINT index );
 
 			// sound comands
+			static void SetSoundDeviceMode( int mode );
 			static void LoadSound( UINT iID, const char* sFilename );
 			static UINT LoadSound( const char* sFilename );
 			static void LoadSound( UINT iID, const uString &sFile );
@@ -2318,12 +2320,14 @@ namespace AGK
 
 			static UINT CreateNetworkMessage( );
 			static UINT CopyNetworkMessage( UINT iFromMsgID );
+			static void AddNetworkMessageByte( UINT iMsgID, UINT value );
 			static void AddNetworkMessageInteger( UINT iMsgID, int value );
 			static void AddNetworkMessageFloat( UINT iMsgID, float value );
 			static void AddNetworkMessageString( UINT iMsgID, const char *value );
 			static char* GetNetworkMessageFromIP( UINT iMsgID );
 			static int GetNetworkMessageFromPort( UINT iMsgID );
 			static UINT GetNetworkMessageFromClient( UINT iMsgID );
+			static UINT GetNetworkMessageByte( UINT iMsgID );
 			static int GetNetworkMessageInteger( UINT iMsgID );
 			static float GetNetworkMessageFloat( UINT iMsgID );
 			static char* GetNetworkMessageString( UINT iMsgID );
@@ -3102,6 +3106,9 @@ namespace AGK
 			static float GetCameraX( UINT cameraID );
 			static float GetCameraY( UINT cameraID );
 			static float GetCameraZ( UINT cameraID );
+			static float GetCameraWorldX( UINT cameraID );
+			static float GetCameraWorldY( UINT cameraID );
+			static float GetCameraWorldZ( UINT cameraID );
 			static float GetCameraAngleX( UINT cameraID );
 			static float GetCameraAngleY( UINT cameraID );
 			static float GetCameraAngleZ( UINT cameraID );
@@ -3119,6 +3126,8 @@ namespace AGK
 			static void SetCameraOffCenter( UINT cameraID, int mode );
 
 			static float GetCameraFOV( UINT cameraID );
+
+			static void FixCameraToObject( UINT cameraID, UINT objID );
 
 			static void SetCurrentCamera( cCamera *pCamera );
 			static cCamera* GetCurrentCamera() { return m_pCurrentCamera; }

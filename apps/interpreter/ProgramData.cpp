@@ -221,7 +221,7 @@ int ProgramData::LoadBytecode( const char* filename )
 
 	// header has already been read
 	int header_size = oBytecode.ReadInteger();
-	for( int i = 0; i < header_size; i++ ) oBytecode.ReadByte();
+	for( int i = 0; i < header_size; i++ ) oBytecode.ReadByte(); 
 
 	// read plugins
 	m_iNumPlugins = oBytecode.ReadInteger();
@@ -461,8 +461,11 @@ int ProgramData::LoadBytecode( const char* filename )
 				case AGK_VARIABLE_INTEGER: 
 				{
 					m_pTypeStructs[ i ].m_pVarTypes[ v ].varType = AGK_DATA_TYPE_INT; 
-					m_pTypeStructs[ i ].m_pVarTypes[ v ].varOffset = size;
-					size += sizeof(int); 
+					// do not assign ints here, they must go after everything else as they are the smallest type
+					// compiler previously assumed that both float and int were 4 bytes
+					// if we upgrade float to 8 bytes then interpreter must compensate here
+					//m_pTypeStructs[ i ].m_pVarTypes[ v ].varOffset = size;
+					//size += sizeof(int); 
 					break;
 				}
 				case AGK_VARIABLE_FLOAT: 
@@ -552,6 +555,16 @@ int ProgramData::LoadBytecode( const char* filename )
 					m_pTypeStructs[ i ].m_pVarTypes[ v ].varName.SetStrUTF8( buffer );
 					m_pTypeStructs[ i ].m_pVarTypes[ v ].varName.XOR( 0xff );
 				}
+			}
+		}
+
+		// finish off by assigning integer types the last spaces in the data
+		for ( int v = 0; v < numVars; v++ )
+		{
+			if ( m_pTypeStructs[ i ].m_pVarTypes[ v ].varType == AGK_DATA_TYPE_INT )
+			{
+				m_pTypeStructs[ i ].m_pVarTypes[ v ].varOffset = size;
+				size += sizeof(int); 
 			}
 		}
 

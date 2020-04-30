@@ -100,6 +100,9 @@ class app
 		void Loop( void );
 		void End( void );
 
+		void CreateResources();
+		void DeleteResources();
+
 		void UpdateInterpreterAspect( void );
 		void DrawBackground();
 		void DrawText( const char* text1, const char* text2, const char* text3 );

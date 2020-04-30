@@ -8,6 +8,7 @@
 
 // Common includes
 #include "Common.h"
+#include "NetworkPacket.h"
 #include "cHashedList.h"
 #include "uString.h"
 #include "Thread.h"
@@ -230,29 +231,6 @@ namespace AGK
 
 			void SetVariableI( UINT index, int i, int mode=0 );
 			void SetVariableF( UINT index, float f, int mode=0 );
-	};
-
-	class cNetworkMessage : public AGKPacket
-	{
-		protected:
-			friend class cNetwork;
-
-			UINT m_iToClientID;
-			UINT m_iFromClientID;
-			UINT m_iSize;
-			cNetworkMessage *m_pNext;
-
-		public:
-			uString sFromIP;
-			int iFromPort;
-			
-			cNetworkMessage() { m_iToClientID = 0; m_iFromClientID = 0; m_pNext = 0; m_iSize = 0; iFromPort = 0; }
-			~cNetworkMessage() { };
-
-			void CopyMessage( cNetworkMessage *pOther );
-			void SetSize( UINT size ) { m_iSize = size; }
-
-			UINT GetSenderID() { return m_iFromClientID; }
 	};
 
 	class cNetwork : public AGKThread

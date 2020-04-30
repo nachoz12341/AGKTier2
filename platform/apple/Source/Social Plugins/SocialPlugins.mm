@@ -555,6 +555,7 @@ AmazonAdListener *g_pAmazonAdListener = nil;
 
 #ifndef LITEVERSION
 
+#ifdef USE_FACEBOOK_SDK
 void sessionStateChanged ( FBSession* session, FBSessionState state, NSError* error )
 {
     //[ FBSession openActiveSessionWithAllowLoginUI: YES ];
@@ -646,44 +647,15 @@ void sessionStateChanged ( FBSession* session, FBSessionState state, NSError* er
 
 - ( void ) facebookSetup: ( NSString* ) nsID;
 {
+    [FBSDKSettings setAutoInitEnabled: YES ];
+    [FBSDKApplicationDelegate initializeSDK:nil];
+    
     g_iFacebookHTTP = agk::CreateHTTPConnection ( );
     agk::SetHTTPHost ( g_iFacebookHTTP, "graph.facebook.com", 0 );
     
     [FBSession setDefaultAppID:nsID];
 }
-/*
-- ( void ) storeCachedTwitterOAuthData: ( NSString* ) data forUsername: ( NSString* ) username 
-{
-    
-	NSUserDefaults* defaults = [ NSUserDefaults standardUserDefaults ];
-    
-	[ defaults setObject: data forKey: @"authData" ];
-	[ defaults synchronize ];
-}
-
-- ( NSString* ) cachedTwitterOAuthDataForUsername: ( NSString* ) username
-{
-    
-  //  agk::Message ( "cachedTwitterOAuthDataForUsername" );
-    
-    // get store twitter data
-	return [ [ NSUserDefaults standardUserDefaults ] objectForKey: @"authData" ];
-}
-
-- ( void ) requestSucceeded: ( NSString* ) requestIdentifier 
-{
-    UIAlertView *alert = [ [ UIAlertView alloc ] initWithTitle: @"Message" message: @"Twitter message sent." delegate: nil cancelButtonTitle: @"OK" otherButtonTitles: nil ];
-    [ alert show ];
-    [ alert release ];
-}
-
-- ( void ) requestFailed: ( NSString* ) requestIdentifier withError: ( NSError* ) error
-{
-    UIAlertView *alert = [ [ UIAlertView alloc ] initWithTitle: @"Message" message: @"Twitter message failed." delegate: nil cancelButtonTitle: @"OK" otherButtonTitles: nil ];
-    [ alert show ];
-    [ alert release ];
-}
-*/
+#endif
 #endif
 
 - ( void ) dealloc
@@ -704,7 +676,7 @@ int agk::FacebookHandleOpenURL( void* url )
 {
     NSString *text = [((NSURL*)url) absoluteString];
     AGK::g_sLastURLSchemeText.SetStr( [text UTF8String] );
-#ifndef LITEVERSION
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
     if ( AGK::g_sLastURLSchemeText.CompareCaseToN("fb", 2) == 0 )
     {
         if ( FBSession.activeSession ) return [ FBSession.activeSession handleOpenURL: (NSURL*)url ] ? 1 : 0;
@@ -725,10 +697,6 @@ void agk::PlatformSocialPluginsSetup ( void )
     g_pSocialPlugins = [ SocialPlugins alloc ];
     
     g_pSocialPlugins->bannerView_ = nil;
-    
-#ifndef LITEVERSION
-    //g_pSocialPlugins->twitter     = nil;
-#endif
 }
 
 void agk::PlatformSocialPluginsDestroy ( void )
@@ -1594,6 +1562,7 @@ bool agk::PlatformHasTwitter ( void )
 void agk::PlatformFacebookSetup ( const char* szID )
 {
 //****
+#ifdef USE_FACEBOOK_SDK
 #ifndef LITEVERSION
     // check plugin is okay
     if ( !g_pSocialPlugins )
@@ -1603,6 +1572,7 @@ void agk::PlatformFacebookSetup ( const char* szID )
     [ g_pSocialPlugins facebookSetup: [ NSString stringWithUTF8String: szID ] ];
 #else
     agk::Message("Facebook is not available in the lite build of AGK, please use the full version");
+#endif
 #endif
 }
 
@@ -1634,6 +1604,7 @@ int agk::PlatformGetFacebookLoggedIn ( void )
 void agk::PlatformFacebookLogin ( void )
 {
 //****
+#ifdef USE_FACEBOOK_SDK
 #ifndef LITEVERSION
     if ( !FBSession.activeSession.isOpen )
     {
@@ -1651,6 +1622,7 @@ void agk::PlatformFacebookLogin ( void )
         } ];
     }
 #endif
+#endif
 }
 
 //****f* Extras/Facebook/FacebookLogout
@@ -1660,6 +1632,7 @@ void agk::PlatformFacebookLogin ( void )
 void agk::PlatformFacebookLogout ( void )
 {
 //****
+    #ifdef USE_FACEBOOK_SDK
 #ifndef LITEVERSION
     // check the plugin
     if ( !g_pSocialPlugins )
@@ -1678,6 +1651,7 @@ void agk::PlatformFacebookLogout ( void )
     // finally logout
     //[ [ g_pSocialPlugins facebook ] logout ];
 #endif
+#endif
 }
 
 //****f* Extras/Facebook/FacebookPostOnMyWall
@@ -1694,6 +1668,7 @@ void agk::PlatformFacebookLogout ( void )
 void agk::PlatformFacebookPostOnMyWall ( const char* szLink, const char* szPicture, const char* szName, const char* szCaption, const char* szDescription )
 {
 //****
+#ifdef USE_FACEBOOK_SDK
 #ifndef LITEVERSION
     // check the plugin
     if ( !g_pSocialPlugins )
@@ -1718,6 +1693,7 @@ void agk::PlatformFacebookPostOnMyWall ( const char* szLink, const char* szPictu
     //[ g_pSocialPlugins.facebook dialog: @"feed" andParams: params andDelegate: nil ];
     [FBWebDialogs presentFeedDialogModallyWithSession:nil parameters:params handler:nil ];
 #endif
+#endif
 }
 
 //****f* Extras/Facebook/FacebookPostOnFriendsWall
@@ -1735,6 +1711,7 @@ void agk::PlatformFacebookPostOnMyWall ( const char* szLink, const char* szPictu
 void agk::PlatformFacebookPostOnFriendsWall ( const char* szID, const char* szLink, const char* szPicture, const char* szName, const char* szCaption, const char* szDescription )
 {
 //****
+#ifdef USE_FACEBOOK_SDK
 #ifndef LITEVERSION    
     // check the plugin
     if ( !g_pSocialPlugins )
@@ -1759,6 +1736,7 @@ void agk::PlatformFacebookPostOnFriendsWall ( const char* szID, const char* szLi
     // and now post it
     //[ g_pSocialPlugins.facebook dialog: @"feed" andParams: params andDelegate: nil ];
     [FBWebDialogs presentFeedDialogModallyWithSession:nil parameters:params handler:nil ];
+#endif
 #endif
 
 }
@@ -1871,6 +1849,7 @@ bool CheckStrings ( sFriend* i, sFriend* j )
 void agk::PlatformFacebookGetFriends ( void )
 {
 //****
+#ifdef USE_FACEBOOK_SDK
 #ifndef LITEVERSION    
     // set friends state to 0
     g_iFriendsState = 0;
@@ -1960,6 +1939,7 @@ void agk::PlatformFacebookGetFriends ( void )
     [ [ g_pSocialPlugins facebook ] requestWithGraphPath: @"me/friends" andDelegate: g_pSocialPlugins ];
     */
 #endif
+#endif
 }
 
 //****f* Extras/Facebook/FacebookGetFriendsState
@@ -1997,7 +1977,7 @@ char* agk::PlatformFacebookGetFriendsName ( int iIndex )
 //****
     char* pszReturn = NULL;
 
-#ifndef LITEVERSION
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
         
     // return data
     if ( iIndex < g_FriendsList.size ( ) )
@@ -2028,7 +2008,7 @@ char* agk::PlatformFacebookGetFriendsID ( int iIndex )
     
     char* pszReturn = NULL;
     
-#ifndef LITEVERSION
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
     // return data
     if ( iIndex < g_FriendsList.size ( ) )
     {
@@ -2055,6 +2035,7 @@ char* agk::PlatformFacebookGetFriendsID ( int iIndex )
 void agk::PlatformFacebookDownloadFriendsPhoto ( int iIndex )
 {
 //****
+#ifdef USE_FACEBOOK_SDK
 #ifndef LITEVERSION
     // ensure index is valid
     if ( iIndex >= g_FriendsList.size ( ) )
@@ -2077,6 +2058,7 @@ void agk::PlatformFacebookDownloadFriendsPhoto ( int iIndex )
     // update download state
     g_iFacebookDownloadState = 1;
 #endif
+#endif
 }
 
 //****f* Extras/Facebook/GetFacebookDownloadState
@@ -2087,7 +2069,7 @@ void agk::PlatformFacebookDownloadFriendsPhoto ( int iIndex )
 int agk::PlatformGetFacebookDownloadState ( void )
 {
 //****
-#ifndef LITEVERSION    
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
     // if a download has been started then check file progress
     if ( g_iFacebookDownloadState == 1 )
     {
@@ -2120,7 +2102,7 @@ char* agk::PlatformGetFacebookDownloadFile ( void )
     
     char* pszReturn = NULL;
 
-#ifndef LITEVERSION
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
     // return filename if we have one
     if ( g_iFacebookDownloadState == 2 )
     {
@@ -2140,7 +2122,7 @@ char* agk::PlatformGetFacebookDownloadFile ( void )
 
 bool agk::PlatformHasFacebook ( void )
 {
-#ifndef LITEVERSION
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
     return true;
 #else
     return false;
@@ -2164,7 +2146,7 @@ char* agk::PlatformFacebookGetUserName		  ( void )
 char* agk::PlatformFacebookGetAccessToken		  ( void )
 {
 	char *str;
-#ifndef LITEVERSION
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
 	if ( FBSession.activeSession )
 	{
 		NSString *sAccessToken = [[[FBSession activeSession] accessTokenData] accessToken];

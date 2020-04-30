@@ -26,7 +26,7 @@ public class NotificationService extends FirebaseMessagingService {
     public void onNewToken( String token )
     {
         AGKHelper.GCM_PNRegID = token;
-        Log.e( "Push Token", ": " + AGKHelper.GCM_PNRegID );
+        Log.i( "Push Token", ": " + AGKHelper.GCM_PNRegID );
     }
 
     @Override
@@ -64,7 +64,7 @@ public class NotificationService extends FirebaseMessagingService {
         }
         catch (Exception ex)
         {
-            Log.i("AGK", "Failed to create large icon from app icon");
+            Log.e("AGK", "Failed to create large icon from app icon");
             ex.printStackTrace();
         }
 

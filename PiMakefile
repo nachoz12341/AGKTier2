@@ -3,12 +3,14 @@
 ARMV7 =
 
 ifeq ($(ARMV7),)
-  CFLAGS = -O2 -mcpu=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -fsigned-char
+  CFLAGS = -O2 -mcpu=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -fsigned-char -std=c++11
   SUFFIX =
 else
-  CFLAGS = -O2 -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -fsigned-char
+  CFLAGS = -O2 -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -fsigned-char -std=c++11
   SUFFIX = V7
 endif
+
+CPPFLAGS = -std=c++11
 
 OUT = platform/pi/Lib/Release$(SUFFIX)
 CC = g++-4.8
@@ -924,16 +926,16 @@ setup:
 	mkdir -p $(OUT$(ARCH))/obj/curl/vtls
 
 $(ODIR)/%.o: common/Source/%.cpp
-	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS) $(CPPFLAGS)
 	
 $(ODIR)/%.o: common/%.cpp
-	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS) $(CPPFLAGS)
 	
 $(ODIR)/%.o: platform/pi/Source/%.cpp
-	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS) $(CPPFLAGS)
 	
 $(ODIR)/%.o: renderer/OpenGLES2/%.cpp
-	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS) $(CPPFLAGS)
 	
 $(ODIR)/zlib/%.o: zlib/%.c
 	gcc-4.8 -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
@@ -948,10 +950,10 @@ $(ODIR)/giflib/%.o: giflib/%.c
 	$(CC) -DIDE_PI -Wno-unused-result -DHAVE_CONFIG_H -c $(INC) -o $@ $< $(CFLAGS)
 	
 $(ODIR)/zxing/%.o: zxing/%.cpp
-	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS) $(CPPFLAGS)
 
 $(ODIR)/assimp/%.o: assimp/%.cpp
-	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS) $(CPPFLAGS)
 	
 $(ODIR)/assimp/%.o: assimp/%.c
 	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
@@ -960,7 +962,7 @@ $(ODIR)/assimp/%.o: assimp/%.cc
 	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
 	
 $(ODIR)/bullet/%.o: bullet/%.cpp
-	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS) $(CPPFLAGS)
 
 $(ODIR)/libogg/%.o: libogg/%.c
 	gcc-4.8 -DIDE_PI -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)

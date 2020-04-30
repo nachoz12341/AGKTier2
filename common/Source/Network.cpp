@@ -2,6 +2,200 @@
 
 using namespace AGK;
 
+AGKPacket::AGKPacket()
+{
+	m_iPtr = 0;
+	m_iPacketSize = 0;
+}
+
+void AGKPacket::Copy( const AGKPacket *fromPacket )
+{
+	if ( fromPacket->m_iPacketSize > 0 )
+	{
+		memcpy( m_Buffer, fromPacket->GetBuffer(), fromPacket->m_iPacketSize );
+	}
+
+	m_iPtr = 0;
+	m_iPacketSize = fromPacket->m_iPacketSize;
+}
+
+void AGKPacket::AddData( const char* s, UINT length )
+{
+	if ( !s || length == 0 ) return;
+	if ( m_iPacketSize+length > AGK_NET_PACKET_SIZE )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Failed to add data to packet, amount of total data exceeds the maximum packet size of 1400" );
+#endif
+		return;
+	}
+
+	memcpy( m_Buffer+m_iPacketSize, s, length );
+	m_iPacketSize += length;
+}
+
+void AGKPacket::AddString( const char *s )
+{
+	UINT length = (UINT)strlen( s );
+	if ( m_iPacketSize+length+4 > AGK_NET_PACKET_SIZE )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Failed to add string to packet, amount of total data exceeds the maximum packet size of 1400" );
+#endif
+		return;
+	}
+
+	AddUInt( length );
+	AddData( s, length );
+}
+
+void AGKPacket::AddByte( unsigned char b )
+{
+	if ( m_iPacketSize+1 > AGK_NET_PACKET_SIZE )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Failed to add byte to packet, amount of total data exceeds the maximum packet size of 1400" );
+#endif
+		return;
+	}
+
+	((unsigned char*)m_Buffer)[m_iPacketSize] = b;
+	m_iPacketSize += 1;
+}
+
+void AGKPacket::AddUInt( UINT u )
+{
+	if ( m_iPacketSize+4 > AGK_NET_PACKET_SIZE )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Failed to add int to packet, amount of total data exceeds the maximum packet size of 1400" );
+#endif
+		return;
+	}
+
+	memcpy( m_Buffer + m_iPacketSize, &u, 4 );
+	m_iPacketSize += 4;
+}
+
+void AGKPacket::AddInt( int i )
+{
+	if ( m_iPacketSize+4 > AGK_NET_PACKET_SIZE )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Failed to add int to packet, amount of total data exceeds the maximum packet size of 1400" );
+#endif
+		return;
+	}
+
+	memcpy( m_Buffer + m_iPacketSize, &i, 4 );
+	m_iPacketSize += 4;
+}
+
+void AGKPacket::AddFloat( float f )
+{
+	if ( m_iPacketSize+4 > AGK_NET_PACKET_SIZE )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Failed to add int to packet, amount of total data exceeds the maximum packet size of 1400" );
+#endif
+		return;
+	}
+
+	memcpy( m_Buffer + m_iPacketSize, &f, 4 );
+	m_iPacketSize += 4;
+}
+
+
+UINT AGKPacket::GetPos() const
+{
+	return m_iPtr;
+}
+
+void AGKPacket::SetPos( UINT pos )
+{
+	if ( pos > AGK_NET_PACKET_SIZE )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Failed to set packet pointer position, value too large" );
+#endif
+		return;
+	}
+
+	m_iPtr = pos;
+}
+
+
+UINT AGKPacket::GetData( char* data, UINT length )
+{
+	if ( !data || length == 0 ) return 0;
+	if ( m_iPtr >= AGK_NET_PACKET_SIZE ) return 0;
+	if ( length > AGK_NET_PACKET_SIZE-m_iPtr ) length = AGK_NET_PACKET_SIZE-m_iPtr;
+	memcpy( data, m_Buffer+m_iPtr, length );
+	m_iPtr += length;
+	return length;
+}
+
+int AGKPacket::GetString( uString &s )
+{
+	s.ClearTemp();
+	UINT length = GetUInt();
+	if ( length == 0 ) return 0;
+	if ( m_iPtr >= AGK_NET_PACKET_SIZE ) return 0;
+	if ( length > AGK_NET_PACKET_SIZE-m_iPtr ) length = AGK_NET_PACKET_SIZE-m_iPtr;
+	s.AppendN( m_Buffer+m_iPtr, length );
+	m_iPtr += length;
+	return length;
+}
+
+unsigned char AGKPacket::GetByte()
+{
+	if ( m_iPtr+1 > AGK_NET_PACKET_SIZE ) return 0;
+	unsigned char b = ((unsigned char*)m_Buffer)[m_iPtr];
+	m_iPtr++;
+	return b;
+}
+
+int AGKPacket::GetInt()
+{
+	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE ) return 0;
+	int i;
+	memcpy( &i, m_Buffer + m_iPtr, 4 );
+	m_iPtr += 4;
+	return i;
+}
+
+
+UINT AGKPacket::GetUInt()
+{
+	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE ) return 0;
+	UINT u; 
+	memcpy( &u, m_Buffer + m_iPtr, 4 );
+	m_iPtr += 4;
+	return u;
+}
+
+float AGKPacket::GetFloat()
+{
+	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE ) return 0;
+	float f;
+	memcpy( &f, m_Buffer + m_iPtr, 4 );
+	m_iPtr += 4;
+	return f;
+}
+
+//**********************
+// Network Message
+//**********************
+
+void cNetworkMessage::CopyMessage( cNetworkMessage *pOther )
+{
+	Copy( pOther );
+	
+	m_iFromClientID = 0;
+	m_iToClientID = 0;
+}
+
+
 //**********************
 // File sender
 //**********************
@@ -798,187 +992,6 @@ UINT cFileReceiver::Run()
 	return 0;
 }
 
-
-//*********************
-// AGKPacket
-//*********************
-
-AGKPacket::AGKPacket()
-{
-	m_iPtr = 0;
-}
-
-void AGKPacket::Copy( const AGKPacket *fromPacket )
-{
-	if ( fromPacket->GetPos() > 0 )
-	{
-		memcpy( m_Buffer, fromPacket->GetBuffer(), fromPacket->GetPos() );
-	}
-
-	m_iPtr = fromPacket->GetPos();
-}
-
-void AGKPacket::AddData( const char* s, UINT length )
-{
-	if ( !s || length == 0 ) return;
-	if ( m_iPtr+length > AGK_NET_PACKET_SIZE )
-	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Failed to add data to packet, amount of total data exceeds the maximum packet size of 1400" );
-#endif
-		return;
-	}
-
-	memcpy( m_Buffer+m_iPtr, s, length );
-	m_iPtr += length;
-}
-
-void AGKPacket::AddString( const char *s )
-{
-	UINT length = (UINT)strlen( s );
-	if ( m_iPtr+length+4 > AGK_NET_PACKET_SIZE )
-	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Failed to add string to packet, amount of total data exceeds the maximum packet size of 1400" );
-#endif
-		return;
-	}
-
-	AddUInt( length );
-	AddData( s, length );
-}
-
-void AGKPacket::AddChar( char c )
-{
-	if ( m_iPtr+1 > AGK_NET_PACKET_SIZE )
-	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Failed to add char to packet, amount of total data exceeds the maximum packet size of 1400" );
-#endif
-		return;
-	}
-
-	m_Buffer[m_iPtr] = c;
-	m_iPtr += 1;
-}
-
-void AGKPacket::AddUInt( UINT u )
-{
-	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE )
-	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Failed to add int to packet, amount of total data exceeds the maximum packet size of 1400" );
-#endif
-		return;
-	}
-
-	memcpy( m_Buffer + m_iPtr, &u, 4 );
-	m_iPtr += 4;
-}
-
-void AGKPacket::AddInt( int i )
-{
-	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE )
-	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Failed to add int to packet, amount of total data exceeds the maximum packet size of 1400" );
-#endif
-		return;
-	}
-
-	memcpy( m_Buffer + m_iPtr, &i, 4 );
-	m_iPtr += 4;
-}
-
-void AGKPacket::AddFloat( float f )
-{
-	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE )
-	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Failed to add int to packet, amount of total data exceeds the maximum packet size of 1400" );
-#endif
-		return;
-	}
-
-	memcpy( m_Buffer + m_iPtr, &f, 4 );
-	m_iPtr += 4;
-}
-
-UINT AGKPacket::GetPos() const
-{
-	return m_iPtr;
-}
-
-void AGKPacket::SetPos( UINT pos )
-{
-	if ( pos > AGK_NET_PACKET_SIZE )
-	{
-#ifdef _AGK_ERROR_CHECK
-		agk::Error( "Failed to set packet pointer position, value too large" );
-#endif
-		return;
-	}
-
-	m_iPtr = pos;
-}
-
-UINT AGKPacket::GetData( char* data, UINT length )
-{
-	if ( !data || length == 0 ) return 0;
-	if ( m_iPtr >= AGK_NET_PACKET_SIZE ) return 0;
-	if ( length > AGK_NET_PACKET_SIZE-m_iPtr ) length = AGK_NET_PACKET_SIZE-m_iPtr;
-	memcpy( data, m_Buffer+m_iPtr, length );
-	m_iPtr+= length;
-	return length;
-}
-
-int AGKPacket::GetString( uString &s )
-{
-	s.ClearTemp();
-	UINT length = GetUInt();
-	if ( length == 0 ) return 0;
-	if ( m_iPtr >= AGK_NET_PACKET_SIZE ) return 0;
-	if ( length > AGK_NET_PACKET_SIZE-m_iPtr ) length = AGK_NET_PACKET_SIZE-m_iPtr;
-	s.AppendN( m_Buffer+m_iPtr, length );
-	m_iPtr += length;
-	return length;
-}
-
-char AGKPacket::GetChar()
-{
-	if ( m_iPtr+1 > AGK_NET_PACKET_SIZE ) return 0;
-	char c = m_Buffer[m_iPtr];
-	m_iPtr++;
-	return c;
-}
-
-int AGKPacket::GetInt()
-{
-	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE ) return 0;
-	int i;
-	memcpy( &i, m_Buffer + m_iPtr, 4 );
-	m_iPtr += 4;
-	return i;
-}
-
-UINT AGKPacket::GetUInt()
-{
-	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE ) return 0;
-	UINT u; 
-	memcpy( &u, m_Buffer + m_iPtr, 4 );
-	m_iPtr += 4;
-	return u;
-}
-
-float AGKPacket::GetFloat()
-{
-	if ( m_iPtr+4 > AGK_NET_PACKET_SIZE ) return 0;
-	float f;
-	memcpy( &f, m_Buffer + m_iPtr, 4 );
-	m_iPtr += 4;
-	return f;
-}
-
 //**********************
 // Network client
 //**********************
@@ -1281,25 +1294,6 @@ void cNetworkClient::SetVariableF( UINT index, float f, int mode )
 		agk::Error( "Tried to change a float value on a network variable that is not a float" );
 #endif
 	}
-}
-
-//**********************
-// Network Message
-//**********************
-
-void cNetworkMessage::CopyMessage( cNetworkMessage *pOther )
-{
-	int max = pOther->GetPos();
-	if ( pOther->m_iSize > max ) max = pOther->m_iSize;
-	if ( max > 0 )
-	{
-		memcpy( m_Buffer, pOther->GetBuffer(), max );
-	}
-
-	m_iSize = max;
-	m_iPtr = m_iSize;
-	m_iFromClientID = 0;
-	m_iToClientID = 0;
 }
 
 //**********************
@@ -1946,8 +1940,8 @@ void cNetwork::SendChangesServer()
 					if ( m_ppClients[ i ]->m_iID == pMsg->m_iFromClientID ) continue;
 					m_ppClientSock[ i ]->SendUInt( 5 ); // network message
 					m_ppClientSock[ i ]->SendUInt( pMsg->m_iFromClientID );
-					m_ppClientSock[ i ]->SendUInt( pMsg->GetPos() );
-					m_ppClientSock[ i ]->SendData( pMsg->GetBuffer(), pMsg->GetPos() );
+					m_ppClientSock[ i ]->SendUInt( pMsg->GetSize() );
+					m_ppClientSock[ i ]->SendData( pMsg->GetBuffer(), pMsg->GetSize() );
 				}
 			}
 			else
@@ -1959,8 +1953,8 @@ void cNetwork::SendChangesServer()
 					{
 						m_ppClientSock[ *index ]->SendUInt( 5 ); // network message
 						m_ppClientSock[ *index ]->SendUInt( pMsg->m_iFromClientID );
-						m_ppClientSock[ *index ]->SendUInt( pMsg->GetPos() );
-						m_ppClientSock[ *index ]->SendData( pMsg->GetBuffer(), pMsg->GetPos() );
+						m_ppClientSock[ *index ]->SendUInt( pMsg->GetSize() );
+						m_ppClientSock[ *index ]->SendData( pMsg->GetBuffer(), pMsg->GetSize() );
 					}
 				}
 			}
@@ -2685,8 +2679,8 @@ void cNetwork::SendChangesClient()
 			m_pServerSock->SendUInt( 5 ); // network message
 			m_pServerSock->SendUInt( pMsg->m_iFromClientID );
 			m_pServerSock->SendUInt( pMsg->m_iToClientID );
-			m_pServerSock->SendUInt( pMsg->GetPos() );
-			m_pServerSock->SendData( pMsg->GetBuffer(), pMsg->GetPos() );
+			m_pServerSock->SendUInt( pMsg->GetSize() );
+			m_pServerSock->SendData( pMsg->GetBuffer(), pMsg->GetSize() );
 			
 			m_pSendMessages = m_pSendMessages->m_pNext;
 			delete pMsg;

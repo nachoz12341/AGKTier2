@@ -3,7 +3,7 @@ ARCH := $(shell getconf LONG_BIT)
 CC = g++
 ODIR = build/obj$(ARCH)
 INC = -I../../common/include -I../../common -I../interpreter -I../../bullet -I../../bullet/BulletCollision/CollisionShapes
-CFLAGS = -O2
+CFLAGS = -O2 -std=c++11
 LDFLAGS32 = -L../../platform/linux/Lib/Release32
 LDFLAGS64 = -L../../platform/linux/Lib/Release64
 LDFLAGS = -static-libstdc++ -static-libgcc

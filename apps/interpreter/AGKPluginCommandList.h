@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2038;
+int g_iNumAGKFunctions = 2046;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -22,6 +22,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ADD3DPHYSICSRAGDOLLHINGEJOINT_0_L_L_L_L_F_F", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,int,float,float)) (agk::Add3DPhysicsRagDollHingeJoint) },
 	{"ADD3DPHYSICSRAGDOLLTWISTJOINT_0_L_L_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,int,int)) (agk::Add3DPhysicsRagDollTwistJoint) },
 	{"ADDHTTPHEADER_0_L_S_S", (AGKVoidFunc) (void(*)(UINT,const char*,const char*)) (agk::AddHTTPHeader) },
+	{"ADDNETWORKMESSAGEBYTE_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::AddNetworkMessageByte) },
 	{"ADDNETWORKMESSAGEFLOAT_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::AddNetworkMessageFloat) },
 	{"ADDNETWORKMESSAGEINTEGER_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::AddNetworkMessageInteger) },
 	{"ADDNETWORKMESSAGESTRING_0_L_S", (AGKVoidFunc) (void(*)(UINT,const char *)) (agk::AddNetworkMessageString) },
@@ -360,6 +361,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"FINISHPULLEYJOINT_L_F_F_F_F_F_F_F_F", (AGKVoidFunc) (UINT(*)(float,float,float,float,float,float,float,float)) (agk::FinishPulleyJoint) },
 	{"FIREBASELOGEVENT_0_S", (AGKVoidFunc) (void(*)(const char *)) (agk::FirebaseLogEvent) },
 	{"FIREBASESETUP_0_0", (AGKVoidFunc) (void(*)()) (agk::FirebaseSetup) },
+	{"FIXCAMERATOOBJECT_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::FixCameraToObject) },
 	{"FIXEDITBOXTOSCREEN_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::FixEditBoxToScreen) },
 	{"FIXOBJECTPIVOT_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::FixObjectPivot) },
 	{"FIXOBJECTTOBONE_0_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,UINT)) (agk::FixObjectToBone) },
@@ -435,6 +437,9 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETCAMERAQUATX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraQuatX) },
 	{"GETCAMERAQUATY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraQuatY) },
 	{"GETCAMERAQUATZ_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraQuatZ) },
+	{"GETCAMERAWORLDX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraWorldX) },
+	{"GETCAMERAWORLDY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraWorldY) },
+	{"GETCAMERAWORLDZ_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraWorldZ) },
 	{"GETCAMERAX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraX) },
 	{"GETCAMERAY_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraY) },
 	{"GETCAMERAZ_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetCameraZ) },
@@ -621,6 +626,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETNETWORKCLIENTUSERDATA_L_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT,UINT)) (agk::GetNetworkClientUserData) },
 	{"GETNETWORKEXISTS_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetNetworkExists) },
 	{"GETNETWORKFIRSTCLIENT_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkFirstClient) },
+	{"GETNETWORKMESSAGEBYTE_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkMessageByte) },
 	{"GETNETWORKMESSAGEFLOAT_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetNetworkMessageFloat) },
 	{"GETNETWORKMESSAGEFROMCLIENT_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::GetNetworkMessageFromClient) },
 	{"GETNETWORKMESSAGEFROMIP_S_L", (AGKVoidFunc) (char*(*)(UINT)) (agk::GetNetworkMessageFromIP) },
@@ -1312,6 +1318,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"RESETREWARDCHARTBOOST_0_0", (AGKVoidFunc) (void(*)()) (agk::ResetRewardChartboost) },
 	{"RESETSPRITEUV_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::ResetSpriteUV) },
 	{"RESETTIMER_0_0", (AGKVoidFunc) (void(*)()) (agk::ResetTimer) },
+	{"RESETVRIMAGES_0_0", (AGKVoidFunc) (void(*)()) (agk::ResetVRImages) },
 	{"RESIZEIMAGE_0_L_L_L", (AGKVoidFunc) (void(*)(UINT,int,int)) (agk::ResizeImage) },
 	{"RESTOREAPP_0_0", (AGKVoidFunc) (void(*)()) (agk::RestoreApp) },
 	{"RESUMEMUSICOGG_0_L", (AGKVoidFunc) (void(*)(UINT)) (agk::ResumeMusicOGG) },
@@ -1719,6 +1726,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SETSORTDEPTH_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetSortDepth) },
 	{"SETSORTTEXTURES_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetSortTextures) },
 	{"SETSORTTRANSPARENTDEPTH_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetSortTransparentDepth) },
+	{"SETSOUNDDEVICEMODE_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetSoundDeviceMode) },
 	{"SETSOUNDINSTANCEBALANCE_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::SetSoundInstanceBalance) },
 	{"SETSOUNDINSTANCERATE_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::SetSoundInstanceRate) },
 	{"SETSOUNDINSTANCEVOLUME_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::SetSoundInstanceVolume) },

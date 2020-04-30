@@ -2,6 +2,7 @@
 #define _H_NETWORK_ANDROID
 
 #include "Common.h"
+#include "NetworkPacket.h"
 
 namespace AGK
 {
@@ -187,38 +188,6 @@ namespace AGK
 			{
 				pthread_cond_broadcast( &condition );
 			}
-	};
-	
-	class AGKPacket
-	{
-	protected:
-		char m_Buffer[ AGK_NET_PACKET_SIZE ];
-		UINT m_iPtr;
-		
-	public:
-		
-		AGKPacket();
-		~AGKPacket(){};
-		void Copy( const AGKPacket *fromPacket );
-		
-		void AddData( const char* s, UINT length );
-		void AddString( const char *s );
-		void AddChar( char c );
-		void AddUInt( UINT u );
-		void AddInt( int i );
-		void AddFloat( float f );
-		
-		UINT GetPos() const;
-		void SetPos( UINT pos );
-		const char* GetBuffer() const { return m_Buffer; }
-		char* GetRaw() { return m_Buffer; }
-		
-		UINT	GetData( char* data, UINT length );
-		int		GetString( uString &s );		
-		char	GetChar();						
-		int		GetInt();						
-		UINT	GetUInt();						
-		float	GetFloat();					
 	};
 
 	class AGKSocket;

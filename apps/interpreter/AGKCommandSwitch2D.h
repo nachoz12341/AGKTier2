@@ -10244,3 +10244,22 @@ case AGKI_GETRAWMOUSEFIFTHRELEASED_L_0:
     m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFifthReleased( );
     break;
 }
+case AGKI_SETSOUNDDEVICEMODE_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetSoundDeviceMode( param0 );
+    break;
+}
+case AGKI_ADDNETWORKMESSAGEBYTE_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::AddNetworkMessageByte( param0, param1 );
+    break;
+}
+case AGKI_GETNETWORKMESSAGEBYTE_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetNetworkMessageByte( param0 );
+    break;
+}

@@ -4156,18 +4156,22 @@ void cMesh::Draw()
 	int maxTex = AGK_MAX_TEXTURES;
 	AGKShader* g_pSelectedShader = AGKShader::GetCurrentShader();
 
-	if ( agk::GetShadowMappingMode() > 0 ) 
+	if ( WantsShadows() )
 	{
-		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap, 7, 1 );
-		maxTex = 7;
+		if ( agk::GetShadowMappingMode() > 0 ) 
+		{
+			g_pSelectedShader->SetTextureStage( agk::m_pShadowMap, 7, 1 );
+			maxTex = 7;
+		}
+		if ( agk::GetShadowMappingMode() == 3 ) 
+		{
+			g_pSelectedShader->SetTextureStage( agk::m_pShadowMap2, 6, 1 );
+			g_pSelectedShader->SetTextureStage( agk::m_pShadowMap3, 5, 1 );
+			g_pSelectedShader->SetTextureStage( agk::m_pShadowMap4, 4, 1 );
+			maxTex = 4;
+		}
 	}
-	if ( agk::GetShadowMappingMode() == 3 ) 
-	{
-		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap2, 6, 1 );
-		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap3, 5, 1 );
-		g_pSelectedShader->SetTextureStage( agk::m_pShadowMap4, 4, 1 );
-		maxTex = 4;
-	}
+
 	for ( int i = 0; i < maxTex; i++ )
 	{
 		g_pSelectedShader->SetTextureStage( m_pImages[i], i, 1 );

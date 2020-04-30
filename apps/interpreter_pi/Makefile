@@ -3,10 +3,10 @@
 ARMV7 =
 
 ifeq ($(ARMV7),)
-  CFLAGS = -O2 -mcpu=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -fsigned-char
+  CFLAGS = -O2 -mcpu=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -fsigned-char -std=c++11
   SUFFIX =
 else
-  CFLAGS = -O2 -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -fsigned-char
+  CFLAGS = -O2 -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -fsigned-char -std=c++11
   SUFFIX = V7
 endif
 

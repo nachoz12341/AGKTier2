@@ -1041,9 +1041,9 @@ UINT Broadcaster::Run()
 		unsigned int sent = 0;
 		do
 		{
-			result = send( sock, m_packet.GetBuffer()+sent, m_packet.GetPos()-sent, 0 );
+			result = send( sock, m_packet.GetBuffer()+sent, m_packet.GetSize()-sent, 0 );
 			sent += result;
-		} while ( result > 0 && result != SOCKET_ERROR && sent < m_packet.GetPos() );
+		} while ( result > 0 && result != SOCKET_ERROR && sent < m_packet.GetSize() );
 
 		if ( result == SOCKET_ERROR )
 		{
@@ -1082,7 +1082,7 @@ void Broadcaster::SetData( int ipv6, UINT port, const AGKPacket* packet, UINT in
 {
 	if ( !packet ) return;
 	if ( interval < 1000 ) interval = 1000; //minimum interval of 1 seond to stop flooding the network
-	if ( packet->GetPos() > 512 )
+	if ( packet->GetSize() > 512 )
 	{
 		agk::Error( "Attempted to broadcast more than 512 bytes" );
 		return;

@@ -206,6 +206,17 @@ void app::Begin( void )
 		//g_pArialImage = new cImage( "/Avenir.png" );
 		//g_pAsciiImage = new cImage( "ascii.png" );
 
+			CreateResources();
+			UpdateInterpreterAspect();
+	}
+
+	agk::SetDebugCallback( &CallbackOnAppDebugInfo );
+	agk::SetWarningCallback( &CallbackOnAppWarning );
+	agk::SetErrorCallback( &CallbackOnAppError );
+}
+
+void app::CreateResources()
+{
 		g_pAGKBackdrop.pImage = new cImage ( "/interpreter-backdrop.png" );
 		g_pAGKBackdrop.pSprite = new cSprite ( g_pAGKBackdrop.pImage );
         g_pAGKBackdrop.pSprite->FixToScreen ( 1 );
@@ -255,13 +266,39 @@ void app::Begin( void )
 		g_pText[4]->SetPosition ( 50, 6.0f );
 		g_pText[4]->SetSize ( 3.8f );
 		g_pText[4]->SetColor ( 0,0,0,128 );
-
-		UpdateInterpreterAspect();
 	}
 
-	agk::SetDebugCallback( &CallbackOnAppDebugInfo );
-	agk::SetWarningCallback( &CallbackOnAppWarning );
-	agk::SetErrorCallback( &CallbackOnAppError );
+void app::DeleteResources()
+{
+	if ( g_pAGKBackdrop.pSprite ) delete g_pAGKBackdrop.pSprite;
+	g_pAGKBackdrop.pSprite = 0;
+	if ( g_pAGKBackdrop.pImage ) delete g_pAGKBackdrop.pImage;
+	g_pAGKBackdrop.pImage = 0;
+	if ( g_pAGKBackdropSpinner.pSprite ) delete g_pAGKBackdropSpinner.pSprite;
+	g_pAGKBackdropSpinner.pSprite = 0;
+	if ( g_pAGKBackdropSpinner.pImage ) delete g_pAGKBackdropSpinner.pImage;
+	g_pAGKBackdropSpinner.pImage = 0;
+	if ( g_pAGKBackdropLogo.pSprite ) delete g_pAGKBackdropLogo.pSprite;
+	g_pAGKBackdropLogo.pSprite = 0;
+	if ( g_pAGKBackdropLogo.pImage ) delete g_pAGKBackdropLogo.pImage;
+	g_pAGKBackdropLogo.pImage = 0;
+	if ( g_pAGKBackdropPower.pSprite ) delete g_pAGKBackdropPower.pSprite;
+	g_pAGKBackdropPower.pSprite = 0;
+	if ( g_pAGKBackdropPower.pImage ) delete g_pAGKBackdropPower.pImage;
+	g_pAGKBackdropPower.pImage = 0;
+	if ( g_pAGKBackdropHelp.pSprite ) delete g_pAGKBackdropHelp.pSprite;
+	g_pAGKBackdropHelp.pSprite = 0;
+	if ( g_pAGKBackdropHelp.pImage ) delete g_pAGKBackdropHelp.pImage;
+	g_pAGKBackdropHelp.pImage = 0;
+	if ( g_pAGKBackdropHelpIcon.pSprite ) delete g_pAGKBackdropHelpIcon.pSprite;
+	g_pAGKBackdropHelpIcon.pSprite = 0;
+	if ( g_pAGKBackdropHelpIcon.pImage ) delete g_pAGKBackdropHelpIcon.pImage;
+	g_pAGKBackdropHelpIcon.pImage = 0;
+	for ( int n=0; n<5; n++ )
+	{
+		if ( g_pText[n] ) delete g_pText[n];
+		g_pText[n] = 0;
+	}
 }
 
 void app::DrawBackground()
@@ -361,6 +398,11 @@ void app::DrawText( const char* text1, const char* text2, const char* text3 )
 		g_pText[2]->Draw();
 		uString temp("Built ");
 		temp.Append( __DATE__ );
+#if defined(AGK_WINDOWS) || defined(AGK_MAC) || defined(AGK_LINUX)
+		temp.Append( " (OpenGL 2)" );
+#else
+		temp.Append( " (OpenGL ES 2.0)" );
+#endif
 		g_pText[3]->SetString ( temp );
 		g_pText[3]->Draw();
 
@@ -1270,6 +1312,8 @@ void app::End ( void )
 	
 	if ( m_pConnection ) delete m_pConnection;
 	m_pConnection = 0;
+
+	DeleteResources();
 }
 
 void app::AppClose ( void )

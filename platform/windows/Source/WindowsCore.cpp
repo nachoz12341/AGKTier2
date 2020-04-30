@@ -1490,7 +1490,7 @@ void agk::GetDeviceName( uString &outString )
 // FUNCTION
 //   This command is deprecated, please use GetDeviceBaseName and GetDeviceType instead.
 //
-//   Returns a string containing the name of the current platform. e.g. "windows" or "bada".
+//   Returns a string containing the name of the current platform. e.g. "windows".
 //   When dealing with iOS more information is returned e.g. on iPad 1 "ios|iPad1,1" and on
 //   iPod 2nd gen: "ios|iPod2,1" and on iPhone 3G: "ios|iPhone1,2". The first number is the major
 //   model number, the second is the minor model number.
@@ -1506,7 +1506,7 @@ char* agk::GetDeviceName( )
 //****f* Core/Misc/GetDeviceBaseName
 // FUNCTION
 //   Returns a string containing the name of the current platform. This will only refer to the base
-//   platform, i.e. "windows", "ios", "android", "mac", or "linux". Use <i>GetDeviceType</i> to 
+//   platform, i.e. "windows", "ios", "android", "mac", "linux", or "html5". Use <i>GetDeviceType</i> to 
 //   get more information about the specific device. This string will always be lower case.
 // SOURCE
 char* agk::GetDeviceBaseName()

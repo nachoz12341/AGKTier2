@@ -19,6 +19,8 @@
 #include <unistd.h>
 #include <jni.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
@@ -109,14 +111,15 @@ struct engine {
     ASensorEventQueue* sensorEventQueue;
 
     int animating;
-    EGLDisplay display;
-    EGLSurface surface;
-    EGLContext context;
-    int32_t width;
-    int32_t height;
     struct saved_state state;
-    EGLint format;
 };
+
+EGLDisplay engine_display;
+EGLSurface engine_surface;
+EGLContext engine_context;
+int32_t engine_width;
+int32_t engine_height;
+EGLint engine_format;
 
 struct egldata {
     EGLDisplay display;
@@ -145,77 +148,76 @@ static int rotationID = 0;
 static int engine_init_display(struct engine* engine) {
     // initialize OpenGL ES and EGL
 
-	int EGL_DEPTH_ENCODING_NV = 0x30E2;
-	int EGL_DEPTH_ENCODING_NONLINEAR_NV = 0x30E3;
+	if ( done )
+	{
+		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
 
-	EGLint w, h, dummy, format;
-	EGLint numConfigs;
-	EGLSurface surface;
-	EGLContext context;
+		engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
+		if ( engine_surface == EGL_NO_SURFACE )
+		{
+			LOGE( "Failed to create EGL surface: %d", eglGetError() );
+			return 0;
+		}
 
-	EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
+		{
+			LOGE( "Unable to eglMakeCurrent: %d", eglGetError() );
+			return 0;
+		}
 
-	eglInitialize(display, 0, 0);
+		EGLint w, h;
+		eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
+		eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
 
-    /*
-     * Here specify the attributes of the desired configuration.
-     * Below, we select an EGLConfig with at least 8 bits per color
-     * component compatible with on-screen windows
-     */
+		LOGI( "Width: %d Height: %d", w, h );
 
-#if g_iColorMode == 0
-	// select 16 bit back buffer for performance
-    const EGLint attribs[] = {
-            EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-            EGL_BUFFER_SIZE, 16,
-            EGL_DEPTH_SIZE, 16,
-            EGL_STENCIL_SIZE, 0,
-            EGL_CONFIG_CAVEAT, EGL_NONE,
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-            EGL_DEPTH_ENCODING_NV, EGL_DEPTH_ENCODING_NONLINEAR_NV,
-            EGL_NONE
-    };
-#else
-    // select 32 bit back buffer for quality
-    const EGLint attribs[] = {
-			EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-			EGL_BLUE_SIZE, 8,
-			EGL_GREEN_SIZE, 8,
-			EGL_RED_SIZE, 8,
-			EGL_ALPHA_SIZE, 8,
-			EGL_BUFFER_SIZE, 32,
-			EGL_DEPTH_SIZE, 16,
-			EGL_STENCIL_SIZE, 0,
-			EGL_CONFIG_CAVEAT, EGL_NONE,
-			EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-			EGL_DEPTH_ENCODING_NV, EGL_DEPTH_ENCODING_NONLINEAR_NV,
-			EGL_NONE
-    };
-#endif
+		engine_width = w;
+		engine_height = h;
+		
+		struct egldata data;
+		data.display = engine_display;
+		data.surface = engine_surface;
+		data.context = engine_context;
+		data.activity = engine->app->activity;
+		data.format = engine_format;
+		data.window = engine->app->window;
 
-    /* Here, the application chooses the configuration it desires. In this
-     * sample, we have a very simplified selection process, where we pick
-     * the first EGLConfig that matches our criteria */
-    EGLConfig allConfigs[20];
-    eglChooseConfig(display, attribs, allConfigs, 20, &numConfigs);
-    config = allConfigs[0];
+		LOGI( "Updating" );
+    	updateptr( &data );
+	}
+	else
+	{
+		int EGL_DEPTH_ENCODING_NV = 0x30E2;
+		int EGL_DEPTH_ENCODING_NONLINEAR_NV = 0x30E3;
 
-    if ( numConfigs == 0 )
-    {
-    	LOGW( "Linear depth not supported, adjusting requested parameters" );
+		EGLint w, h, dummy, format;
+		EGLint numConfigs;
+		EGLSurface surface;
+		EGLContext context;
 
-#if g_iColorMode == 0
+		EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+
+		eglInitialize(display, 0, 0);
+
+		/*
+		 * Here specify the attributes of the desired configuration.
+		 * Below, we select an EGLConfig with at least 8 bits per color
+		 * component compatible with on-screen windows
+		 */
+
+	#if g_iColorMode == 0
 		// select 16 bit back buffer for performance
 		const EGLint attribs[] = {
 				EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 				EGL_BUFFER_SIZE, 16,
-				EGL_DEPTH_SIZE, 24,
+				EGL_DEPTH_SIZE, 16,
 				EGL_STENCIL_SIZE, 0,
 				EGL_CONFIG_CAVEAT, EGL_NONE,
 				EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+				EGL_DEPTH_ENCODING_NV, EGL_DEPTH_ENCODING_NONLINEAR_NV,
 				EGL_NONE
 		};
-#else
+	#else
 		// select 32 bit back buffer for quality
 		const EGLint attribs[] = {
 				EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -224,33 +226,38 @@ static int engine_init_display(struct engine* engine) {
 				EGL_RED_SIZE, 8,
 				EGL_ALPHA_SIZE, 8,
 				EGL_BUFFER_SIZE, 32,
-				EGL_DEPTH_SIZE, 24,
+				EGL_DEPTH_SIZE, 16,
 				EGL_STENCIL_SIZE, 0,
 				EGL_CONFIG_CAVEAT, EGL_NONE,
 				EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+				EGL_DEPTH_ENCODING_NV, EGL_DEPTH_ENCODING_NONLINEAR_NV,
 				EGL_NONE
 		};
-#endif
+	#endif
 
+		/* Here, the application chooses the configuration it desires. In this
+		 * sample, we have a very simplified selection process, where we pick
+		 * the first EGLConfig that matches our criteria */
+		EGLConfig allConfigs[20];
 		eglChooseConfig(display, attribs, allConfigs, 20, &numConfigs);
 		config = allConfigs[0];
 
 		if ( numConfigs == 0 )
 		{
-			LOGW( "24 bit depth not supported, adjusting requested parameters" );
+    		LOGW( "Linear depth not supported, adjusting requested parameters" );
 
-#if g_iColorMode == 0
+	#if g_iColorMode == 0
 			// select 16 bit back buffer for performance
 			const EGLint attribs[] = {
 					EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 					EGL_BUFFER_SIZE, 16,
-					EGL_DEPTH_SIZE, 16,
+					EGL_DEPTH_SIZE, 24,
 					EGL_STENCIL_SIZE, 0,
 					EGL_CONFIG_CAVEAT, EGL_NONE,
 					EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 					EGL_NONE
 			};
-#else
+	#else
 			// select 32 bit back buffer for quality
 			const EGLint attribs[] = {
 					EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -259,166 +266,194 @@ static int engine_init_display(struct engine* engine) {
 					EGL_RED_SIZE, 8,
 					EGL_ALPHA_SIZE, 8,
 					EGL_BUFFER_SIZE, 32,
-					EGL_DEPTH_SIZE, 16,
+					EGL_DEPTH_SIZE, 24,
 					EGL_STENCIL_SIZE, 0,
 					EGL_CONFIG_CAVEAT, EGL_NONE,
 					EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 					EGL_NONE
 			};
-#endif
+	#endif
 
 			eglChooseConfig(display, attribs, allConfigs, 20, &numConfigs);
 			config = allConfigs[0];
 
 			if ( numConfigs == 0 )
 			{
-				LOGE( "Failed to find suitable render format" );
-				exit(0);
+				LOGW( "24 bit depth not supported, adjusting requested parameters" );
+
+	#if g_iColorMode == 0
+				// select 16 bit back buffer for performance
+				const EGLint attribs[] = {
+						EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+						EGL_BUFFER_SIZE, 16,
+						EGL_DEPTH_SIZE, 16,
+						EGL_STENCIL_SIZE, 0,
+						EGL_CONFIG_CAVEAT, EGL_NONE,
+						EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+						EGL_NONE
+				};
+	#else
+				// select 32 bit back buffer for quality
+				const EGLint attribs[] = {
+						EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+						EGL_BLUE_SIZE, 8,
+						EGL_GREEN_SIZE, 8,
+						EGL_RED_SIZE, 8,
+						EGL_ALPHA_SIZE, 8,
+						EGL_BUFFER_SIZE, 32,
+						EGL_DEPTH_SIZE, 16,
+						EGL_STENCIL_SIZE, 0,
+						EGL_CONFIG_CAVEAT, EGL_NONE,
+						EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+						EGL_NONE
+				};
+	#endif
+
+				eglChooseConfig(display, attribs, allConfigs, 20, &numConfigs);
+				config = allConfigs[0];
+
+				if ( numConfigs == 0 )
+				{
+					LOGE( "Failed to find suitable render format" );
+					exit(0);
+				}
 			}
 		}
-    }
 
-    int i = 0;
-    for ( i = 0; i < numConfigs; i++ )
-    {
-    	if ( i > 19 ) continue;
-    	EGLint red;
-    	EGLint green;
-    	EGLint blue;
-    	EGLint alpha;
-    	EGLint depth;
-    	EGLint stencil;
-    	EGLint window;
-    	EGLint render;
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_RED_SIZE, &red );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_GREEN_SIZE, &green );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_BLUE_SIZE, &blue );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_ALPHA_SIZE, &alpha );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_DEPTH_SIZE, &depth );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_STENCIL_SIZE, &stencil );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_SURFACE_TYPE, &window );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_NATIVE_VISUAL_ID, &format );
-    	eglGetConfigAttrib( display, allConfigs[i], EGL_RENDERABLE_TYPE, &render );
-
-    	LOGI( "R: %d, G: %d, B: %d, A: %d, D: %d, W: %d, F: %d, S: %d, R: %d", red, green, blue, alpha, depth, window, format, stencil, render );
-    }
-
-    int formatIndex = 0;
-
-    // check for devices that need special render formats (Wildfire S being one)
-    if ( checkformat( engine->app->activity ) > 0 )
-    {
-    	LOGW( "Adjusting render format for device" );
-
-    	for ( i = 0; i < numConfigs; i++ )
+		int i = 0;
+		for ( i = 0; i < numConfigs; i++ )
 		{
-			if ( i > 19 ) continue;
-			eglGetConfigAttrib( display, allConfigs[i], EGL_NATIVE_VISUAL_ID, &format );
-			if ( format > 0 )
+    		if ( i > 19 ) continue;
+    		EGLint red;
+    		EGLint green;
+    		EGLint blue;
+    		EGLint alpha;
+    		EGLint depth;
+    		EGLint stencil;
+    		EGLint window;
+    		EGLint render;
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_RED_SIZE, &red );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_GREEN_SIZE, &green );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_BLUE_SIZE, &blue );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_ALPHA_SIZE, &alpha );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_DEPTH_SIZE, &depth );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_STENCIL_SIZE, &stencil );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_SURFACE_TYPE, &window );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_NATIVE_VISUAL_ID, &format );
+    		eglGetConfigAttrib( display, allConfigs[i], EGL_RENDERABLE_TYPE, &render );
+
+    		LOGI( "R: %d, G: %d, B: %d, A: %d, D: %d, W: %d, F: %d, S: %d, R: %d", red, green, blue, alpha, depth, window, format, stencil, render );
+		}
+
+		int formatIndex = 0;
+
+		// check for devices that need special render formats (Wildfire S being one)
+		if ( checkformat( engine->app->activity ) > 0 )
+		{
+    		LOGW( "Adjusting render format for device" );
+
+    		for ( i = 0; i < numConfigs; i++ )
 			{
-				config = allConfigs[i];
-				formatIndex = -1;
-				break;
+				if ( i > 19 ) continue;
+				eglGetConfigAttrib( display, allConfigs[i], EGL_NATIVE_VISUAL_ID, &format );
+				if ( format > 0 )
+				{
+					config = allConfigs[i];
+					formatIndex = -1;
+					break;
+				}
 			}
 		}
-    }
 
-	LOGI( "Window Old Width: %d Height: %d", windowWidth, windowHeight );
+		LOGI( "Window Old Width: %d Height: %d", windowWidth, windowHeight );
 
-	if ( done == 0 )
-	{
-		windowHeight = ANativeWindow_getHeight( engine->app->window );
-		windowWidth = ANativeWindow_getWidth( engine->app->window );
-	}
-	else
-	{
-		float timeout = getagktimer() + 0.5f;
-		int width, height;
-		do
+		if ( done == 0 )
 		{
-    		width = ANativeWindow_getWidth( engine->app->window );
-			height = ANativeWindow_getHeight( engine->app->window );
-		} while( (width != windowWidth || height != windowHeight) && getagktimer() < timeout );
-		windowWidth = width;
-		windowHeight = height;
-	}
-
-	LOGI( "Window Width: %d Height: %d", windowWidth, windowHeight );
-
-    eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-    int result = ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
-    LOGI( "Result: %d", result );
-
-    surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
-	while ( surface == EGL_NO_SURFACE )
-	{
-		LOGW( "Failed to create EGL surface: %d, trying different format", eglGetError() );
-
-		formatIndex++;
-		if ( formatIndex >= numConfigs || formatIndex > 19 )
+			windowHeight = ANativeWindow_getHeight( engine->app->window );
+			windowWidth = ANativeWindow_getWidth( engine->app->window );
+		}
+		else
 		{
-			LOGE( "Failed to find compatible format" );
+			float timeout = getagktimer() + 0.5f;
+			int width, height;
+			do
+			{
+    			width = ANativeWindow_getWidth( engine->app->window );
+				height = ANativeWindow_getHeight( engine->app->window );
+			} while( (width != windowWidth || height != windowHeight) && getagktimer() < timeout );
+			windowWidth = width;
+			windowHeight = height;
+		}
+
+		LOGI( "Window Width: %d Height: %d", windowWidth, windowHeight );
+
+		eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
+		int result = ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+		LOGI( "Result: %d", result );
+
+		surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
+		while ( surface == EGL_NO_SURFACE )
+		{
+			LOGW( "Failed to create EGL surface: %d, trying different format", eglGetError() );
+
+			formatIndex++;
+			if ( formatIndex >= numConfigs || formatIndex > 19 )
+			{
+				LOGE( "Failed to find compatible format" );
+				return -1;
+			}
+
+			config = allConfigs[ formatIndex ];
+			surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
+		}
+
+		/* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
+		 * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
+		 * As soon as we picked a EGLConfig, we can safely reconfigure the
+		 * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
+		//eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
+		//int result = ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+		//LOGI( "Result: %d", result );
+
+		const EGLint contextAttribList[] = {EGL_CONTEXT_CLIENT_VERSION, 2,EGL_NONE};
+		context = eglCreateContext(display, config, NULL, contextAttribList);
+		if ( context == EGL_NO_CONTEXT )
+		{
+			LOGE( "Failed to create EGL context: %d", eglGetError() );
 			return -1;
 		}
 
-		config = allConfigs[ formatIndex ];
-		surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
-	}
+		if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
+    		int error = eglGetError();
+			LOGE("Unable to eglMakeCurrent: %d", eglGetError());
+			return -1;
+		}
 
-	/* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-	 * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-	 * As soon as we picked a EGLConfig, we can safely reconfigure the
-	 * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
-	//eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-	//int result = ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
-	//LOGI( "Result: %d", result );
+		eglQuerySurface(display, surface, EGL_WIDTH, &w);
+		eglQuerySurface(display, surface, EGL_HEIGHT, &h);
 
-	const EGLint contextAttribList[] = {EGL_CONTEXT_CLIENT_VERSION, 2,EGL_NONE};
-	context = eglCreateContext(display, config, NULL, contextAttribList);
-    if ( context == EGL_NO_CONTEXT )
-	{
-		LOGE( "Failed to create EGL context: %d", eglGetError() );
-		return -1;
-	}
+		LOGI( "Width: %d Height: %d", w, h );
 
-    if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
-    	int error = eglGetError();
-        LOGE("Unable to eglMakeCurrent: %d", eglGetError());
-        return -1;
-    }
+		engine_display = display;
+		engine_context = context;
+		engine_surface = surface;
+		engine_width = w;
+		engine_height = h;
+		engine->state.angle = 0;
+		engine_format = format;
 
-    eglQuerySurface(display, surface, EGL_WIDTH, &w);
-    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
+		struct egldata data;
+		data.display = display;
+		data.surface = surface;
+		data.context = context;
+		data.activity = engine->app->activity;
+		data.format = format;
+		data.window = engine->app->window;
 
-    LOGI( "Width: %d Height: %d", w, h );
-
-    engine->display = display;
-    engine->context = context;
-    engine->surface = surface;
-    engine->width = w;
-    engine->height = h;
-    engine->state.angle = 0;
-    engine->format = format;
-
-    struct egldata data;
-    data.display = display;
-    data.surface = surface;
-    data.context = context;
-    data.activity = engine->app->activity;
-    data.format = format;
-    data.window = engine->app->window;
-
-    if ( done != 0 )
-    {
-    	LOGI( "Updating" );
-    	updateptr( &data );
-    }
-    else
-    {
-    	LOGI( "Initialising" );
+		LOGI( "Initialising" );
     	init( &data );
-    }
-
+	}
+	
     //begin();
 
     p_AMotionEvent_getAxisValue = dlsym(RTLD_DEFAULT, "AMotionEvent_getAxisValue");
@@ -439,12 +474,12 @@ static int engine_init_display(struct engine* engine) {
  * Just the current frame in the display.
  */
 static void engine_draw_frame(struct engine* engine) {
-    if (engine->display == NULL) {
+    if (engine_display == NULL) {
         // No display.
         return;
     }
 
-    if (engine->surface == NULL) {
+    if (engine_surface == NULL) {
 		// No surface.
 		return;
 	}
@@ -458,20 +493,20 @@ static void engine_draw_frame(struct engine* engine) {
 		windowWidth = width;
 		windowHeight = height;
 
-		eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroySurface(engine->display, engine->surface);
+		eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroySurface(engine_display, engine_surface);
 
-		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine->format);
+		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
 		LOGI( "Result: %d", result );
 
-		engine->surface = eglCreateWindowSurface(engine->display, config, engine->app->window, NULL);
-		if ( engine->surface == EGL_NO_SURFACE )
+		engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
+		if ( engine_surface == EGL_NO_SURFACE )
 		{
 			LOGE( "Failed to create EGL surface: %d", eglGetError() );
 			return;
 		}
 
-		if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE)
+		if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
 		{
 			int error = eglGetError();
 			LOGE("Unable to eglMakeCurrent: %d", eglGetError());
@@ -479,21 +514,21 @@ static void engine_draw_frame(struct engine* engine) {
 		}
 
 		EGLint w, h;
-		eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
-		eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
+		eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
+		eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
 
 		LOGI("Width: %d Height: %d",w,h);
 
-		engine->width = w;
-		engine->height = h;
+		engine_width = w;
+		engine_height = h;
 		engine->state.angle = 0;
 
 		struct egldata data;
-		data.display = engine->display;
-		data.surface = engine->surface;
-		data.context = engine->context;
+		data.display = engine_display;
+		data.surface = engine_surface;
+		data.context = engine_context;
 		data.activity = engine->app->activity;
-		data.format = engine->format;
+		data.format = engine_format;
 		data.window = engine->app->window;
 
 		updateptr2( &data );
@@ -503,27 +538,27 @@ static void engine_draw_frame(struct engine* engine) {
 
     if ( getinternaldata(1) == 1 )
     {
-    	if (engine->surface == EGL_NO_SURFACE) return;
+    	if (engine_surface == EGL_NO_SURFACE) return;
 
     	g_userWidth = getinternaldata(2);
     	g_userHeight = getinternaldata(3);
 
     	int oldmode = engine->animating;
 		engine->animating = 0;
-		eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroySurface(engine->display, engine->surface);
+		eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroySurface(engine_display, engine_surface);
 
-		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine->format);
+		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
 		LOGI( "Result: %d", result );
 
-		engine->surface = eglCreateWindowSurface(engine->display, config, engine->app->window, NULL);
-		if ( engine->surface == EGL_NO_SURFACE )
+		engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
+		if ( engine_surface == EGL_NO_SURFACE )
 		{
 			LOGE( "Failed to create EGL surface: %d", eglGetError() );
 			return;
 		}
 
-		if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE)
+		if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
 		{
 		   int error = eglGetError();
 		   LOGE("Unable to eglMakeCurrent: %d", eglGetError());
@@ -531,21 +566,21 @@ static void engine_draw_frame(struct engine* engine) {
 		}
 
 		EGLint w, h;
-		eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
-		eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
+		eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
+		eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
 
 		LOGI("Width: %d Height: %d",w,h);
 
-		engine->width = w;
-		engine->height = h;
+		engine_width = w;
+		engine_height = h;
 		engine->state.angle = 0;
 
 		struct egldata data;
-		data.display = engine->display;
-		data.surface = engine->surface;
-		data.context = engine->context;
+		data.display = engine_display;
+		data.surface = engine_surface;
+		data.context = engine_context;
 		data.activity = engine->app->activity;
-		data.format = engine->format;
+		data.format = engine_format;
 		data.window = engine->app->window;
 
 		updateptr2( &data );
@@ -635,22 +670,15 @@ static void engine_draw_frame(struct engine* engine) {
  */
 static void engine_term_display(struct engine* engine)
 {
-    if (engine->display != EGL_NO_DISPLAY)
+    if (engine_display != EGL_NO_DISPLAY)
     {
-		windowclosing();
-        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (engine->context != EGL_NO_CONTEXT) {
-            eglDestroyContext(engine->display, engine->context);
-        }
-        if (engine->surface != EGL_NO_SURFACE) {
-            eglDestroySurface(engine->display, engine->surface);
-        }
-        eglTerminate(engine->display);
-    }
+		windowclosing(); 
+	}
     engine->animating = 0;
-    engine->display = EGL_NO_DISPLAY;
-    engine->context = EGL_NO_CONTEXT;
-    engine->surface = EGL_NO_SURFACE;
+    
+	eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (engine_surface != EGL_NO_SURFACE) eglDestroySurface(engine_display, engine_surface);
+    engine_surface = EGL_NO_SURFACE;
 }
 
 int initialised = 0;
@@ -1065,7 +1093,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
        {
     	   //usleep( 500000 );
 
-		   if ( engine->surface == EGL_NO_SURFACE ) break;
+		   if ( engine_surface == EGL_NO_SURFACE ) break;
 
     	   AConfiguration *config2 = AConfiguration_new();
 		   AConfiguration_fromAssetManager( config2, engine->app->activity->assetManager);
@@ -1094,24 +1122,24 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 		   LOGI("New Width: %d, New Height: %d", windowWidth, windowHeight);
     	   
     	   {
-			   if (engine->surface == EGL_NO_SURFACE) break;
+			   if (engine_surface == EGL_NO_SURFACE) break;
 
 			   int oldmode = engine->animating;
 			   engine->animating = 0;
-			   eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			   eglDestroySurface(engine->display, engine->surface);
+			   eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			   eglDestroySurface(engine_display, engine_surface);
 
-			   int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine->format);
+			   int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
 			   LOGI( "Result: %d", result );
 
-			   engine->surface = eglCreateWindowSurface(engine->display, config, engine->app->window, NULL);
-			   if ( engine->surface == EGL_NO_SURFACE )
+			   engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
+			   if ( engine_surface == EGL_NO_SURFACE )
 			   {
 				   LOGE( "Failed to create EGL surface: %d", eglGetError() );
 				   break;
 			   }
 
-			   if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE)
+			   if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
 			   {
 				   int error = eglGetError();
 				   LOGE("Unable to eglMakeCurrent: %d", eglGetError());
@@ -1119,21 +1147,21 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 			   }
 
 			   EGLint w, h;
-			   eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
-			   eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
+			   eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
+			   eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
 
 			   LOGI("Width: %d Height: %d",w,h);
 
-			   engine->width = w;
-			   engine->height = h;
+			   engine_width = w;
+			   engine_height = h;
 			   engine->state.angle = 0;
 
 			   struct egldata data;
-			   data.display = engine->display;
-			   data.surface = engine->surface;
-			   data.context = engine->context;
+			   data.display = engine_display;
+			   data.surface = engine_surface;
+			   data.context = engine_context;
 			   data.activity = engine->app->activity;
-			   data.format = engine->format;
+			   data.format = engine_format;
 			   data.window = engine->app->window;
 
 			   updateptr2( &data );
@@ -1286,11 +1314,19 @@ void android_main(struct android_app* state) {
             if (state->destroyRequested != 0)
             {
             	LOGI("Exiting");
-                cleanup();
-				engine_term_display(&engine);
-                exit(0);
+                // deleting anything here will cause an error if the activity is recreated since the native
+				// side of the end never truely ends. The thread stops but the heap remains. Also can't call
+				// exit(0) to force the native side to end as that's a crash in Android 10
+                //cleanup();
+				//done = 0;
+				//initialised = 0;
+				//app_mode = -2;
+				//g_iDisableLightProxSensor = 0;
+				//rotationID = 0;
+                //exit(0);
                 return;
             }
+			
         }
 
         if (engine.animating)

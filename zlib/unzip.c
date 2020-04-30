@@ -188,8 +188,15 @@ typedef struct
     int isZip64;
 
 #    ifndef NOUNCRYPT
-    unsigned long keys[3];     /* keys defining the pseudo-random sequence */
-    const unsigned long* pcrc_32_tab;
+
+	//PE: Support arm 64 bit. should with with all platforms, 21-02-2020: need testing.
+	unsigned int keys[3];     /* keys defining the pseudo-random sequence */
+	const unsigned int* pcrc_32_tab;
+
+	//PE: Old code.
+	//unsigned long keys[3];     /* keys defining the pseudo-random sequence */
+	//const unsigned long* pcrc_32_tab;
+
 #    endif
 } unz64_s;
 

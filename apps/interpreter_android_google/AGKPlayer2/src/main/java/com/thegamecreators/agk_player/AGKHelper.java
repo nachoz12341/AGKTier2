@@ -128,7 +128,8 @@ import com.google.android.vending.expansion.downloader.impl.DownloaderService;
 import com.google.android.vending.expansion.downloader.impl.BroadcastDownloaderClient;
 
 import com.google.api.services.drive.model.FileList;
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.*;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.snapchat.kit.sdk.SnapCreative;
 import com.snapchat.kit.sdk.creative.api.SnapCreativeKitApi;
 import com.snapchat.kit.sdk.creative.exceptions.SnapMediaSizeException;
@@ -139,11 +140,13 @@ import com.snapchat.kit.sdk.creative.media.SnapSticker;
 import com.snapchat.kit.sdk.creative.models.SnapPhotoContent;
 import com.thegamecreators.agk_player.iap.*;
 
+/*
 import com.facebook.*;
 import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
 import com.facebook.android.Facebook.DialogListener;
 import com.facebook.android.FacebookError;
+*/
 
 import android.view.Surface;
 import android.webkit.MimeTypeMap;
@@ -1102,6 +1105,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 	public int m_height = 1;
 	public volatile String m_filename = "";
 	public int m_filetype = 0;
+	public int m_isStream = 0;
 	
 	public int prepared = 0;
 	public int isPlaying = 0;
@@ -1160,6 +1164,7 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		V1 = 0;
 		U2 = 1;
 		V2 = 1;
+		m_isStream = 0;
 		
 		if ( player != null )
 		{
@@ -1234,6 +1239,11 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 					afd.close();
 					break;
 				}
+				case 3:
+				{
+					m_isStream = 1;
+					break;
+				}
 				default:
 				{
 					Log.e("Video","Unrecognised file type");
@@ -1241,59 +1251,56 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 					return;
 				}
 			}
-			
-			int tempprepared = 0;
-			
-			String duration = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-			if ( duration != null ) 
+
+			if ( m_isStream == 1 )
 			{
-				m_duration = Integer.valueOf(duration); 
+				m_duration = 1000;
+				m_videoWidth = 1024;
+				m_videoHeight = 768;
 			}
 			else
 			{
-				Log.w("Video","Duration is null");
-				try
-				{
-					tempPlayer.prepare();
-					tempprepared = 1;
-					m_duration = tempPlayer.getDuration();
+				int tempprepared = 0;
+
+				String duration = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+				if (duration != null) {
+					m_duration = Integer.valueOf(duration);
+				} else {
+					Log.w("Video", "Duration is null");
+					try {
+						tempPlayer.prepare();
+						tempprepared = 1;
+						m_duration = tempPlayer.getDuration();
+					} catch (Exception e) {
+						Log.e("Video", "Temp player couldn't prepare");
+					}
 				}
-				catch( Exception e )
-				{
-					Log.e("Video","Temp player couldn't prepare");
+
+				Bitmap bmp = metaRetriever.getFrameAtTime();
+				if (bmp != null) {
+					m_videoWidth = bmp.getWidth();
+					m_videoHeight = bmp.getHeight();
+				} else {
+					Log.w("Video", "Bitmap is null");
+					try {
+						if (tempprepared == 0) tempPlayer.prepare();
+						tempprepared = 1;
+						m_videoWidth = tempPlayer.getVideoWidth();
+						m_videoHeight = tempPlayer.getVideoHeight();
+					} catch (Exception e) {
+						Log.e("Video", "Temp player couldn't prepare 2");
+					}
 				}
+
+				Log.d("Video", "Duration: " + m_duration);
+				Log.d("Video", "Width: " + Integer.toString(m_videoWidth) + " Height: " + Integer.toString(m_videoHeight));
+				if (m_videoWidth == 0) m_videoWidth = -1;
+				if (m_videoHeight == 0) m_videoHeight = -1;
+
+				tempPlayer.reset();
+				tempPlayer.release();
+				tempPlayer = null;
 			}
-			
-			Bitmap bmp = metaRetriever.getFrameAtTime();
-			if ( bmp != null )
-			{
-				m_videoWidth = bmp.getWidth();
-				m_videoHeight = bmp.getHeight();
-			}
-			else 
-			{
-				Log.w("Video","Bitmap is null");
-				try
-				{
-					if ( tempprepared == 0 ) tempPlayer.prepare();
-					tempprepared = 1;
-					m_videoWidth = tempPlayer.getVideoWidth();
-					m_videoHeight = tempPlayer.getVideoHeight();
-				}
-				catch( Exception e )
-				{
-					Log.e("Video","Temp player couldn't prepare 2");
-				}
-			}
-			 
-			Log.d("Video","Duration: "+m_duration);
-			Log.d("Video","Width: "+Integer.toString(m_videoWidth)+" Height: "+Integer.toString(m_videoHeight));
-			if ( m_videoWidth == 0 ) m_videoWidth = -1;
-			if ( m_videoHeight == 0 ) m_videoHeight = -1;
-		
-			tempPlayer.reset();
-			tempPlayer.release();
-			tempPlayer = null;
 		}
 		catch(Exception e)
 		{
@@ -1561,6 +1568,12 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 					}
 					newplayer.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(), afd.getLength());
 					afd.close();
+					break;
+				}
+				case 3:
+				{
+					// streaming
+					newplayer.setDataSource(m_filename);
 					break;
 				}
 				default:
@@ -1866,6 +1879,7 @@ class AGKCamera
 	}
 }
 
+/*
 class RunnableFacebook implements Runnable
 {
 	String szID;
@@ -1906,6 +1920,7 @@ class RunnableFacebook implements Runnable
 		});
 	}
 }
+*/
 
 class AGKLocationListener implements GoogleApiClient.ConnectionCallbacks,
 									 GoogleApiClient.OnConnectionFailedListener,
@@ -3953,41 +3968,41 @@ public class AGKHelper {
 	
 	public static int registerPushNotification( Activity nativeactivityptr )
 	{
-		if ( FCM_Sender_ID == null || FCM_Sender_ID.equals("") )
-		{
-			ShowMessage( nativeactivityptr, "You must call SetPushNotificationKeys before calling PushNotificationSetup" );
-			return 0;
-		}
+		FirebaseMessaging.getInstance().setAutoInitEnabled( true );
 
-		try
-		{
-			GCM_PNRegID = FirebaseInstanceId.getInstance().getToken(FCM_Sender_ID, "FCM");
-			Log.e( "Push Token", "Token: " + GCM_PNRegID );
-			return 1;
-		}
-		catch( IOException e )
-		{
-			Log.e( "Push Token", "Failed to get push token: " + e.toString() );
-			return 0;
-		}
+		FirebaseInstanceId.getInstance().getInstanceId()
+				.addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+					@Override
+					public void onComplete(@NonNull Task<InstanceIdResult> task) {
+						if (!task.isSuccessful()) {
+							Log.w( "Firebase", "getInstanceId failed", task.getException());
+							return;
+						}
+
+						GCM_PNRegID = task.getResult().getToken();
+						Log.i( "Firebase", "PN Token: " + GCM_PNRegID );
+					}
+				});
+
+		return 1;
 	}
-	
+
 	public static String getPNRegID()
 	{
 		if ( GCM_PNRegID == null ) return "Error";
 		else return GCM_PNRegID;
 	}
-	
+
 	public static String GetAppName(Activity act)
 	{
 		final PackageManager pm = act.getApplicationContext().getPackageManager();
-		
+
 		ApplicationInfo ai;
-		try 
+		try
 		{
 		    ai = pm.getApplicationInfo( act.getPackageName(), 0);
-		} 
-		catch (final NameNotFoundException e) 
+		}
+		catch (final NameNotFoundException e)
 		{
 		    ai = null;
 		}
@@ -4091,25 +4106,28 @@ public class AGKHelper {
 	public static void FacebookSetup( Activity act, String appID )
 	{
 		FacebookAppID = appID;
-		Settings.setApplicationId( appID );
+		//Settings.setApplicationId( appID );
 	}
 
 	public static void FacebookActivateAppTracking( Activity act )
 	{
-		AppEventsLogger.activateApp( act );
+		//AppEventsLogger.activateApp( act );
 	}
 		
 	public static void FacebookLogin(Activity act, String ID)
 	{
+		/*
 		facebookLoginState = 1;
 		Looper.prepare();
 		
 		Intent myIntent = new Intent(act, MyFacebookActivity.class);
 		act.startActivity(myIntent);
+		*/
 	}
 	
 	public static void FacebookLogout()
 	{
+		/*
 		facebookLoginState = 1;
 		Session session = Session.getActiveSession();
         if ( session != null && !session.isClosed() ) 
@@ -4118,11 +4136,13 @@ public class AGKHelper {
         }
         Session.setActiveSession(null);
         facebookLoginState = 1;
+        */
 	}
 	
 	public static int FacebookGetLoginState()
 	{
 		if( facebookLoginState == 1 ) return 0;
+		/*
 		if ( Session.getActiveSession() == null ) return -1;
 		{
 			if( Session.getActiveSession().getAccessToken().equals("") )
@@ -4131,19 +4151,24 @@ public class AGKHelper {
 				return -1;
 			}
 		}
+		*/
 		return 1; 
 	}
 	
 	public static String FacebookGetAccessToken()
 	{
-		//Log.e("AGK",Session.getActiveSession().getAccessToken());
 		if ( facebookLoginState == 1 ) return "";
+		/*
 		if ( Session.getActiveSession() == null ) return "Error";
 		return Session.getActiveSession().getAccessToken();
+		*/
+
+		return "";
 	}
 	
 	public static void FacebookPost( Activity act, String szID, String szLink, String szPicture, String szName, String szCaption, String szDescription )
 	{
+		/*
 		if ( Session.getActiveSession() == null )
 		{
 			AGKHelper.ShowMessage(act, "Unable to share on Facebook as you are not logged in");
@@ -4161,6 +4186,7 @@ public class AGKHelper {
 			feed.session = Session.getActiveSession();
 			act.runOnUiThread( feed );
 		}
+		*/
 	}
 	
 	public static String ConvertString( String s )

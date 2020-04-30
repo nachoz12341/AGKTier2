@@ -8,6 +8,7 @@ ODIR = $(OUT$(ARCH))/obj
 INC = -Icommon/include -Icommon -Igiflib -Izxing -Ilibpng -Ilibjpeg -Izlib -Iassimp -Ibullet -Ibullet/BulletCollision/CollisionShapes -Ilibogg/include -Ifreetype/include -Icurl -Icurl/include 
 
 CFLAGS = -O2
+CPPFLAGS = -O2 -std=c++11
 
 _OBJS = AGKMotionState.o \
         AGKToBullet.o \
@@ -925,16 +926,16 @@ setup:
 	mkdir -p $(OUT$(ARCH))/obj/curl/vtls
 
 $(ODIR)/%.o: common/Source/%.cpp
-	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/%.o: common/%.cpp
-	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/%.o: platform/linux/Source/%.cpp
-	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/%.o: renderer/OpenGL2/%.cpp
-	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/zlib/%.o: zlib/%.c
 	gcc -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
@@ -949,10 +950,10 @@ $(ODIR)/giflib/%.o: giflib/%.c
 	$(CC) -DAGK_LINUX -Wno-unused-result -DHAVE_CONFIG_H -c $(INC) -o $@ $< $(CFLAGS)
 	
 $(ODIR)/zxing/%.o: zxing/%.cpp
-	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/assimp/%.o: assimp/%.cpp
-	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/assimp/%.o: assimp/%.c
 	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
@@ -961,7 +962,7 @@ $(ODIR)/assimp/%.o: assimp/%.cc
 	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
 	
 $(ODIR)/bullet/%.o: bullet/%.cpp
-	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)
+	$(CC) -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CPPFLAGS)
 	
 $(ODIR)/libogg/%.o: libogg/%.c
 	gcc -DAGK_LINUX -Wno-unused-result -c $(INC) -o $@ $< $(CFLAGS)

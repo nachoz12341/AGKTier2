@@ -1,14 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
     sourceSets.main.jni.srcDirs = []
 
     defaultConfig {
         applicationId "com.mycompany.mytemplate"
-        minSdkVersion 19
-        targetSdkVersion 28
+        minSdkVersion 16
+        targetSdkVersion 29
+        ndk{
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
     }
 
     buildTypes {

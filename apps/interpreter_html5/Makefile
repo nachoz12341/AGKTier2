@@ -1,7 +1,7 @@
 CC = emcc
 ODIR = build/obj
 INC = -I../../common/include -I../../common -I../interpreter -I../../bullet -I../../bullet/BulletCollision/CollisionShapes
-CFLAGS = -O2
+CFLAGS = -O2 -std=c++11
 ifeq ($(2D),1)
 	CFLAGS += -DAGK_2D_ONLY
 endif

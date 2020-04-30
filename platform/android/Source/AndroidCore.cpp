@@ -1421,77 +1421,11 @@ void agk::UpdatePtr( void *ptr )
 	m_iRealDeviceWidth = ANativeWindow_getWidth( g_window );
 	m_iRealDeviceHeight = ANativeWindow_getHeight( g_window );
 
-	m_iCurrentBlendEnabled = -1;
-	m_iCurrentBlendFunc1 = -1;
-	m_iCurrentBlendFunc2 = -1;
-	m_iCurrentBoundVBO = 0xffffffff;
-	m_iCurrentBoundIndexVBO = 0xffffffff;
-	m_iCurrentDepthTest = -1;
-	m_iCurrentDepthFunc = -1;
-	m_iCurrentDepthWrite = -1;
-	m_iCurrentCullMode = -1;
-	m_fCurrentDepthBias = -1;
-	m_fCurrentDepthNear = -1;
-	m_fCurrentDepthFar = -1;
-
-	agk::PlatformSetAlignment( 1 ); // not using memory alignment
-	
-	PlatformPrepareDefaultDraw();
-	
 	RecalculateDisplay();
 
-	FrameBuffer::ClearAll();
-	cImage::ReloadAllImages();
-	AGKFont::RebuildAllFontImages();
-	AGKShader::ReloadAll();
-	cObject3D::ReloadAll();
-	AGKShader::NoShader();
+	// video
+	agk::SetVideoDimensions( m_fVideoX, m_fVideoY, m_fVideoWidth, m_fVideoHeight );
 
-	JNIEnv* lJNIEnv = g_pActivity->env;
-	JavaVM* vm = g_pActivity->vm;
-	vm->AttachCurrentThread(&lJNIEnv, NULL);
-	jobject lNativeActivity = g_pActivity->clazz;
-	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-
-	if ( m_iVideoTextureRaw != 0 ) 
-	{
-		RegenerateExternalTexture( &m_iVideoTextureRaw );
-
-		// send the texture to Android
-		jmethodID Video = lJNIEnv->GetStaticMethodID( AGKHelper, "PlayVideoToTexture","(Landroid/app/Activity;I)V" );
-		lJNIEnv->CallStaticVoidMethod( AGKHelper, Video, lNativeActivity, m_iVideoTextureRaw );
-	}
-
-	if ( m_pVideoTextureFBO )
-	{
-		m_pVideoTextureFBO = new FrameBuffer( m_pVideoTexture, true, 0, true, false );
-	}
-
-	if ( m_iCameraTextureRaw != 0 ) 
-	{
-		RegenerateExternalTexture( &m_iCameraTextureRaw );
-
-		// send the texture to Android
-		jmethodID Camera = lJNIEnv->GetStaticMethodID( AGKHelper, "SetDeviceCameraToImage","(Landroid/app/Activity;II)V" );
-		lJNIEnv->CallStaticVoidMethod( AGKHelper, Camera, lNativeActivity, m_iCameraTextureRaw, m_iDeviceCameraID );
-	}
-
-	if ( m_pCameraTextureFBO )
-	{
-		m_pCameraTextureFBO = new FrameBuffer( m_pCameraTexture, true, 0, true, false );
-	}
-
-	if ( g_iARTextureRaw )
-	{
-		RegenerateExternalTexture( &g_iARTextureRaw );
-
-		ArSession_setCameraTextureName( g_pARSession, g_iARTextureRaw );
-	}
-
-	vm->DetachCurrentThread();
-			
-	PlatformSwap();
 	agk::ClearScreen();
 }
 
@@ -4923,7 +4857,8 @@ int agk::LoadVideo( const char *szFilename )
 	int type = -1;
 
 	uString sPath( szFilename );
-	if ( strncmp( szFilename, "expansion:", 10 ) == 0 ) type = 2;
+	if ( strncmp( szFilename, "http://", 7 ) == 0 || strncmp( szFilename, "https://", 8 ) == 0 ) type = 3;
+	else if ( strncmp( szFilename, "expansion:", 10 ) == 0 ) type = 2;
 	else
 	{
 		type = 1;
@@ -4934,6 +4869,7 @@ int agk::LoadVideo( const char *szFilename )
 			agk::PlatformGetFullPathRead(sPath);
 			type = 0;
 		}
+		else type = -1;
 	}
 
 	// file not found?

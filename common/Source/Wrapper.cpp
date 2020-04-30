@@ -2259,7 +2259,7 @@ void agk::AppResuming()
 
 void agk::LosingContext()
 {
-	cImage::SaveAllImages();
+	//cImage::SaveAllImages();
 }
 
 void agk::VideoResumed()
@@ -4135,7 +4135,7 @@ void agk::RenderShadowMap( )
 		proj.Set( view.GetFloatPtr() );
 		proj.Mult( ortho );
 		AGKShader::SetShadowProjMatrices( proj.GetFloatPtr() );
-		agk::PlatformSetDepthRange( 0.01f, 1 );
+		agk::PlatformSetDepthRange( 0, 1 );
 
 		// draw managed objects in the camera frustum
 		m_cObjectMgr.DrawShadowMap();
@@ -4212,7 +4212,7 @@ void agk::RenderShadowMap( )
 		proj.Set( view.GetFloatPtr() );
 		proj.Mult( ortho );
 		AGKShader::SetShadowProjMatrices( proj.GetFloatPtr() );
-		agk::PlatformSetDepthRange( 0.01f, 1 );
+		agk::PlatformSetDepthRange( 0, 1 );
 
 		// draw managed objects in the camera frustum
 		m_cObjectMgr.DrawShadowMap();
@@ -4295,7 +4295,7 @@ void agk::RenderShadowMap( )
 			shadowProj[i].Set( view.GetFloatPtr() );
 			shadowProj[i].Mult( ortho );
 			AGKShader::SetShadowProjMatrices( shadowProj[i].GetFloatPtr() );
-			agk::PlatformSetDepthRange( 0.01f, 1 );
+			agk::PlatformSetDepthRange( 0, 1 );
 
 			// draw managed objects in the camera frustum
 			m_cObjectMgr.DrawShadowMap();
@@ -5481,6 +5481,13 @@ void* agk::GetVulkanVRImageData ( uint32_t iImageIndex )
 
 // for Tier 2 use only
 void agk::SetVRImage ( uint32_t iImageIndex, int mode )
+//***2
+{
+
+}
+
+// for Tier 2 use only
+void agk::ResetVRImages()
 //***2
 {
 
@@ -24113,6 +24120,26 @@ void agk::SetRawTouchMoveSensitivity( int distance )
 // Sound functions
 //
 
+//****f* Sound/Device/SetSoundDeviceMode
+// FUNCTION
+//   Sets whether the app will allow background music from other apps to continue playing (mode=0)
+//   or silence other apps whilst this app is active (mode=1). Note that in mode 0 the device considers
+//   your app audio to be unimportant so will be silenced if the device ringer is set to silent.<br/><br/>
+//   This only works on iOS.
+// INPUTS
+//   mode -- The sound mode to use (default=0)
+// SOURCE
+void agk::SetSoundDeviceMode( int mode )
+//****
+{
+#ifdef AGK_IOS
+	AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+	if ( mode == 1 ) [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+	else [audioSession setCategory:AVAudioSessionCategoryAmbient error:nil];
+	[audioSession setActive:YES error:nil];
+#endif
+}
+
 //****f* Sound/Creation/LoadSound
 // FUNCTION
 //   Loads a sound file from the application media folder. File paths must be relative, not absolute, you cannot load sound files
@@ -29413,9 +29440,9 @@ UINT agk::CreateNetworkMessage( )
 //****f* Multiplayer/Messages/CopyNetworkMessage
 // FUNCTION
 //   Creates a network message that is a copy of an existing message. It returns an ID that can be used to
-//   interact with the message. Messages created in this way can only be added to, not read from, but the 
-//   source messsage can be either a message you have created, or one you have received. The new message
-//   becomes completely independent of the source message and can be sent using <i>SendNetworkMessage</i>
+//   interact with the message. Messages created in this way can read from the beginning or added to, and 
+//   the source messsage can be either a message you have created, or one you have received. The new message 
+//   becomes completely independent of the source message and can be sent using <i>SendNetworkMessage</i> 
 //   without affecting the original.
 // INPUTS
 //  iFromMsgID -- The ID of the message to copy
@@ -29439,13 +29466,38 @@ UINT agk::CopyNetworkMessage( UINT iFromMsgID )
 	return ID;
 }
 
-//****f* Multiplayer/Messages/AddNetworkMessageInteger
+//****f* Multiplayer/Messages/AddNetworkMessageByte
 // FUNCTION
-//   Adds an integer to a previously created network message. This can only be called on messages created by 
-//   <i>CreateNetworkMessage</i>, using this function on messages received from the network is undefined.
+//   Adds an unsigned byte to a previously created network message. This can be called on messages created by 
+//   <i>CreateNetworkMessage</i> or on messages received from the network.
 // INPUTS
 //   iMsgID -- The ID of the message to modify.
-//   value -- The value to add to the meessage.
+//   value -- The value to add to the message.
+// SOURCE
+void agk::AddNetworkMessageByte( UINT iMsgID, UINT value )
+//****
+{
+	cNetworkMessage *pMsg = m_cNetMessageList.GetItem( iMsgID );
+	if ( !pMsg )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to add message byte, Message ID %d does not exist", iMsgID );
+		agk::Error( err );
+#endif
+		return;
+	}
+
+	pMsg->AddByte( value );
+}
+
+//****f* Multiplayer/Messages/AddNetworkMessageInteger
+// FUNCTION
+//   Adds an integer to a previously created network message. This can be called on messages created by 
+//   <i>CreateNetworkMessage</i> or on messages received from the network.
+// INPUTS
+//   iMsgID -- The ID of the message to modify.
+//   value -- The value to add to the message.
 // SOURCE
 void agk::AddNetworkMessageInteger( UINT iMsgID, int value )
 //****
@@ -29466,11 +29518,11 @@ void agk::AddNetworkMessageInteger( UINT iMsgID, int value )
 
 //****f* Multiplayer/Messages/AddNetworkMessageFloat
 // FUNCTION
-//   Adds a float to a previously created network message. This can only be called on messages created by 
-//   <i>CreateNetworkMessage</i>, using this function on messages received from the network is undefined.
+//   Adds a float to a previously created network message. This can be called on messages created by 
+//   <i>CreateNetworkMessage</i> or on messages received from the network.
 // INPUTS
 //   iMsgID -- The ID of the message to modify.
-//   value -- The value to add to the meessage.
+//   value -- The value to add to the message.
 // SOURCE
 void agk::AddNetworkMessageFloat( UINT iMsgID, float value )
 //****
@@ -29491,11 +29543,11 @@ void agk::AddNetworkMessageFloat( UINT iMsgID, float value )
 
 //****f* Multiplayer/Messages/AddNetworkMessageString
 // FUNCTION
-//   Adds a string to a previously created network message. This can only be called on messages created by 
-//   <i>CreateNetworkMessage</i>, using this function on messages received from the network is undefined.
+//   Adds a string to a previously created network message. This can be called on messages created by 
+//   <i>CreateNetworkMessage</i> or on messages received from the network.
 // INPUTS
 //   iMsgID -- The ID of the message to modify.
-//   value -- The string to add to the meessage.
+//   value -- The string to add to the message.
 // SOURCE
 void agk::AddNetworkMessageString( UINT iMsgID, const char *value )
 //****
@@ -29602,11 +29654,36 @@ UINT agk::GetNetworkMessageFromClient( UINT iMsgID )
 	return pMsg->GetSenderID();
 }
 
+//****f* Multiplayer/Messages/GetNetworkMessageByte
+// FUNCTION
+//   Gets a single unsigned byte from the message and advances the message pointer to the next message item. 
+//   Messages should be created and read according to known formats, e.g. string, int, string as there is no
+//   immediate way for the receiver to know the format of a message. You could use an initial integer to specify a 
+//   message type ID which you can use to identify the message format.
+// INPUTS
+//   iMsgID -- The ID of the message to read.
+// SOURCE
+UINT agk::GetNetworkMessageByte( UINT iMsgID )
+//****
+{
+	cNetworkMessage *pMsg = m_cNetMessageList.GetItem( iMsgID );
+	if ( !pMsg )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString err;
+		err.Format( "Failed to get message byte, Message ID %d does not exist", iMsgID );
+		agk::Error( err );
+#endif
+		return 0;
+	}
+
+	return pMsg->GetByte();
+}
+
 //****f* Multiplayer/Messages/GetNetworkMessageInteger
 // FUNCTION
-//   Gets a single integer from the message and advances the message pointer to the next message item. This can only be
-//   called on messages received from network devices, calling it on messages created locally will result in undefined 
-//   behaviour. Messages should be created and read according to known formats, e.g. string, int, string as there is no
+//   Gets a single integer from the message and advances the message pointer to the next message item. 
+//   Messages should be created and read according to known formats, e.g. string, int, string as there is no
 //   immediate way for the receiver to know the format of a message. You could use an initial integer to specify a 
 //   message type ID which you can use to identify the message format.
 // INPUTS
@@ -29631,9 +29708,8 @@ int agk::GetNetworkMessageInteger( UINT iMsgID )
 
 //****f* Multiplayer/Messages/GetNetworkMessageFloat
 // FUNCTION
-//   Gets a single float from the message and advances the message pointer to the next message item. This can only be
-//   called on messages received from network devices, calling it on messages created locally will result in undefined 
-//   behaviour. Messages should be created and read according to known formats, e.g. string, int, string as there is no
+//   Gets a single float from the message and advances the message pointer to the next message item. 
+//   Messages should be created and read according to known formats, e.g. string, int, string as there is no
 //   immediate way for the receiver to know the format of a message. You could use an initial integer to specify a 
 //   message type ID which you can use to identify the message format.
 // INPUTS
@@ -29658,9 +29734,8 @@ float agk::GetNetworkMessageFloat( UINT iMsgID )
 
 //****f* Multiplayer/Messages/GetNetworkMessageString
 // FUNCTION
-//   Gets a single string from the message and advances the message pointer to the next message item. This can only be
-//   called on messages received from network devices, calling it on messages created locally will result in undefined 
-//   behaviour. Messages should be created and read according to known formats, e.g. string, int, string as there is no
+//   Gets a single string from the message and advances the message pointer to the next message item. 
+//   Messages should be created and read according to known formats, e.g. string, int, string as there is no
 //   immediate way for the receiver to know the format of a message. You could use an initial integer to specify a 
 //   message type ID which you can use to identify the message format.
 // INPUTS
@@ -37139,10 +37214,7 @@ void agk::TwitterMessage ( const char* szMessage )
 
 //****f* Extras/Facebook/FacebookSetup
 // FUNCTION
-//   Set up facebook. Pass in the AppID given to you by Facebook when you set up your app.
-//   This will work on Android, but on iOS you must also change the Info.plist file, read
-//   part 5 of http://developers.facebook.com/docs/getting-started/facebook-sdk-for-ios/3.1/
-//   This command is currently only supported on iOS and Android.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // INPUTS
 //   szID -- your Facebook app ID.
 // SOURCE
@@ -37154,8 +37226,7 @@ void agk::FacebookSetup ( const char* szID )
 
 //****f* Extras/Facebook/GetFacebookLoggedIn
 // FUNCTION
-//   Returns 1 if the user is logged in to Facebook, 0 if not, or -1 if an error occurred during login.
-//   This command is currently only supported on iOS and Android.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 int agk::GetFacebookLoggedIn()
 //****
@@ -37165,8 +37236,7 @@ int agk::GetFacebookLoggedIn()
 
 //****f* Extras/Facebook/FacebookGetUserID
 // FUNCTION
-//   Returns the Facebook user ID.
-//   If you call this from Tier 2 then you must delete the returned string with agk::DeleteString when you are done with it.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 char* agk::FacebookGetUserID()
 //****
@@ -37176,8 +37246,7 @@ char* agk::FacebookGetUserID()
 
 //****f* Extras/Facebook/FacebookGetUserName
 // FUNCTION
-//   Returns the Facebook user name.
-//   If you call this from Tier 2 then you must delete the returned string with agk::DeleteString when you are done with it.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 char* agk::FacebookGetUserName()
 //****
@@ -37187,9 +37256,7 @@ char* agk::FacebookGetUserName()
 
 //****f* Extras/Facebook/FacebookGetAccessToken
 // FUNCTION
-//   Returns the Facebook access token that was generated when the user logged in. This can be used in
-//   HTTP calls to the Facebook graph API.
-//   If you call this from Tier 2 then you must delete the returned string with agk::DeleteString when you are done with it.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 char* agk::FacebookGetAccessToken()
 //****
@@ -37199,9 +37266,7 @@ char* agk::FacebookGetAccessToken()
 
 //****f* Extras/Facebook/FacebookLogin
 // FUNCTION
-//   Call this to start the process of logging in to Facebook. If the user
-//   is already logged in nothing will happen when calling this command.
-//   This command is currently only supported on iOS and Android.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 void agk::FacebookLogin()
 //****
@@ -37211,8 +37276,7 @@ void agk::FacebookLogin()
 
 //****f* Extras/Facebook/FacebookLogout
 // FUNCTION
-//   Use this command to logout of Facebook.
-//   This command is currently only supported on iOS and Android.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 void agk::FacebookLogout()
 //****
@@ -37222,19 +37286,8 @@ void agk::FacebookLogout()
 
 //****f* Extras/Facebook/FacebookPostOnMyWall
 // FUNCTION
-//   Post a message on your wall. This will display a dialog where the user can enter
-//   a specific message.
-//   This command is currently only supported on iOS and Android.
-//   <br/><br/>
-//   The more recently added commands <i>ShareImage</i> and <i>ShareText</i> may be a better
-//   alternative to this command. They will open a dialog box giving the user the option to
-//   share via various installed apps, including Facebook.
-// INPUTS
-//   szLink        -- link to a URL, this must match the URL given to Facebook in the Website with Facebook Login section.
-//   szPicture     -- link to a picture.
-//   szName        -- name to be displayed.
-//   szCaption     -- caption.
-//   szDescription -- description of post.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything. You can use <i>ShareText</i> or <i>ShareImage</i>
+//   give the user the option of how to share their information.
 // SOURCE
 void agk::FacebookPostOnMyWall ( const char* szLink, const char* szPicture, const char* szName, const char* szCaption, const char* szDescription )
 //****
@@ -37244,16 +37297,7 @@ void agk::FacebookPostOnMyWall ( const char* szLink, const char* szPicture, cons
 
 //****f* Extras/Facebook/FacebookPostOnFriendsWall
 // FUNCTION
-//   Post a message on the wall of a friend. This will display a dialog where the user can enter
-//   a specific message.
-//   This command is currently only supported on iOS and Android.
-// INPUTS
-//   szID          -- ID of the friend.
-//   szLink        -- link to a URL, this must match the URL given to Facebook in the Website with Facebook Login section.
-//   szPicture     -- link to a picture.
-//   szName        -- name to be displayed.
-//   szCaption     -- caption.
-//   szDescription -- description of post.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 void agk::FacebookPostOnFriendsWall ( const char* szID, const char* szLink, const char* szPicture, const char* szName, const char* szCaption, const char* szDescription )
 //****
@@ -37263,10 +37307,7 @@ void agk::FacebookPostOnFriendsWall ( const char* szID, const char* szLink, cons
 
 //****f* Extras/Facebook/FacebookInviteFriend
 // FUNCTION
-//   This command is not currently supported
-// INPUTS
-//   szID      -- ID of the friend.
-//   szMessage -- the message.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 void agk::FacebookInviteFriend ( const char* szID, const char* szMessage )
 //****
@@ -37302,9 +37343,7 @@ void agk::FacebookDestroyLikeButton()
 
 //****f* Extras/Facebook/FacebookGetFriends
 // FUNCTION
-//   Get a list of friends for the user logged in.
-//   This command is currently only supported on iOS and Android.
-//   Facebook recently modified the way this command works so it will only return the friends that also have your app installed.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 void agk::FacebookGetFriends()
 //****
@@ -37314,8 +37353,7 @@ void agk::FacebookGetFriends()
 
 //****f* Extras/Facebook/FacebookGetFriendsState
 // FUNCTION
-//   Returns 1 when the list of friends has been downloaded, 0 if the download is in progress, or -1 if an error occurred during download.
-//   This command is currently only supported on iOS and Android.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 int agk::FacebookGetFriendsState()
 //****
@@ -37325,9 +37363,7 @@ int agk::FacebookGetFriendsState()
 
 //****f* Extras/Facebook/FacebookGetFriendsCount
 // FUNCTION
-//   Returns number of friends.
-//   This command is currently only supported on iOS and Android.
-//   Facebook recently modified the way this command works so it will only return the friends that also have your app installed.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 int agk::FacebookGetFriendsCount()
 //****
@@ -37337,10 +37373,7 @@ int agk::FacebookGetFriendsCount()
 
 //****f* Extras/Facebook/FacebookGetFriendsName
 // FUNCTION
-//   Returns name for the specified index.
-//   This command is currently only supported on iOS and Android.
-// INPUTS
-//   iIndex -- index for the player starting at 0.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 char* agk::FacebookGetFriendsName ( int iIndex )
 //****
@@ -37350,10 +37383,7 @@ char* agk::FacebookGetFriendsName ( int iIndex )
 
 //****f* Extras/Facebook/FacebookGetFriendsID
 // FUNCTION
-//   Returns ID for the specified index.
-//   This command is currently only supported on iOS and Android.
-// INPUTS
-//   iIndex -- index for the player starting at 0.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 char* agk::FacebookGetFriendsID ( int iIndex )
 //****
@@ -37363,10 +37393,7 @@ char* agk::FacebookGetFriendsID ( int iIndex )
 
 //****f* Extras/Facebook/FacebookDownloadFriendsPhoto
 // FUNCTION
-//   Download the specified friends photo.
-//   This command is currently only supported on iOS and Android.
-// INPUTS
-//   iIndex -- index for the player starting at 0.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 void agk::FacebookDownloadFriendsPhoto ( int iIndex )
 //****
@@ -37376,9 +37403,7 @@ void agk::FacebookDownloadFriendsPhoto ( int iIndex )
 
 //****f* Extras/Facebook/GetFacebookDownloadState
 // FUNCTION
-//   Returns 0 when nothing is happening, 1 when downloading is taking place,
-//   2 when the download has finished, or a negative value if an error occurred.
-//   This command is currently only supported on iOS and Android.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 int agk::GetFacebookDownloadState()
 //****
@@ -37388,8 +37413,7 @@ int agk::GetFacebookDownloadState()
 
 //****f* Extras/Facebook/GetFacebookDownloadFile
 // FUNCTION
-//   Returns the filename of the last downloaded file.
-//   This command is currently only supported on iOS and Android.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 char* agk::GetFacebookDownloadFile()
 //****
@@ -37437,7 +37461,7 @@ void agk::NotificationReset()
 //   you can use the command <i>GetUnixTime</i> to return the current date and time then modify it as needed.
 //   If the date and time is in the past then the notification will be ignored, it will not overwrite any 
 //   existing notification.
-//   The ID must be in the range 1 to 50 inclusive.
+//   The ID must be in the range 1 to 100 inclusive.
 // INPUTS
 //   iID -- The ID to use to reference this notification in future
 //   datetime -- The date and time to show this notification in unix time
@@ -37447,9 +37471,9 @@ void agk::NotificationReset()
 void agk::SetLocalNotification( int iID, int datetime, const char *szMessage, const char *szDeepLink )
 //****
 {
-	if ( iID < 1 || iID > 50 )
+	if ( iID < 1 || iID > 100 )
 	{
-		agk::Error( "Local notification ID must be in the range 1 to 50" );
+		agk::Error( "Local notification ID must be in the range 1 to 100" );
 		return;
 	}
 
@@ -37480,7 +37504,7 @@ void agk::SetLocalNotification( int iID, int datetime, const char *szMessage, co
 //   you can use the command <i>GetUnixTime</i> to return the current date and time then modify it as needed.
 //   If the date and time is in the past then the notification will be ignored, it will not overwrite any 
 //   existing notification.
-//   The ID must be in the range 1 to 50 inclusive.
+//   The ID must be in the range 1 to 100 inclusive.
 // INPUTS
 //   iID -- The ID to use to reference this notification in future
 //   datetime -- The date and time to show this notification in unix time
@@ -37501,9 +37525,9 @@ void agk::SetLocalNotification( int iID, int datetime, const char *szMessage )
 void agk::CancelLocalNotification( int iID )
 //****
 {
-	if ( iID < 1 || iID > 50 )
+	if ( iID < 1 || iID > 100 )
 	{
-		agk::Error( "Local notification ID must be in the range 1 to 50" );
+		agk::Error( "Local notification ID must be in the range 1 to 100" );
 		return;
 	}
 
@@ -37526,9 +37550,9 @@ void agk::CancelLocalNotification( int iID )
 int agk::GetLocalNotificationExists( int iID )
 //****
 {
-	if ( iID < 1 || iID > 50 )
+	if ( iID < 1 || iID > 100 )
 	{
-		agk::Error( "Local notification ID must be in the range 1 to 50" );
+		agk::Error( "Local notification ID must be in the range 1 to 100" );
 		return 0;
 	}
 
@@ -37549,9 +37573,9 @@ int agk::GetLocalNotificationExists( int iID )
 int agk::GetLocalNotificationTime( int iID )
 //****
 {
-	if ( iID < 1 || iID > 50 )
+	if ( iID < 1 || iID > 100 )
 	{
-		agk::Error( "Local notification ID must be in the range 1 to 50" );
+		agk::Error( "Local notification ID must be in the range 1 to 100" );
 		return 0;
 	}
 
@@ -37579,9 +37603,9 @@ int agk::GetLocalNotificationTime( int iID )
 char* agk::GetLocalNotificationMessage( int iID )
 //****
 {
-	if ( iID < 1 || iID > 50 )
+	if ( iID < 1 || iID > 100 )
 	{
-		agk::Error( "Local notification ID must be in the range 1 to 50" );
+		agk::Error( "Local notification ID must be in the range 1 to 100" );
 		char *str = new char[1]; *str = 0;
 		return str;
 	}
@@ -37622,7 +37646,7 @@ void agk::CheckLocalNotifications()
 	char num[ 5 ];
 	strcpy( filename, "/agk_notification_" );
 
-	for ( int i = 1; i <= 50; i++ )
+	for ( int i = 1; i <= 100; i++ )
 	{
 		sprintf( num, "%d", i );
 		filename[18] = 0;
@@ -49443,6 +49467,75 @@ float agk::GetCameraZ( UINT cameraID )
 	return pCamera->GetZ();
 }
 
+//****f* 3D/Cameras/GetCameraWorldX
+// FUNCTION
+//   Returns the current X position of the camera after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldX( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world x for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldX();
+}
+
+//****f* 3D/Cameras/GetCameraWorldY
+// FUNCTION
+//   Returns the current Y position of the camera after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldY( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world y for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldY();
+}
+
+//****f* 3D/Cameras/GetCameraWorldZ
+// FUNCTION
+//   Returns the current Z position of the camera after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldZ( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world z for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldZ();
+}
+
 //****f* 3D/Cameras/GetCameraAngleX
 // FUNCTION
 //   Returns the X component of the camera's current rotation converted to Euler angles.
@@ -49868,6 +49961,62 @@ float agk::GetCameraFOV( UINT cameraID )
 	}
 
 	return pCamera->GetFOV();
+}
+
+//****f* 3D/Cameras/FixCameraToObject
+// FUNCTION
+//   Fixes a camera to an object so that any movement of the object also affects the camera.
+//   The camera uses its current position, rotation, and scale as an offset to the 
+//   object. For example if the object was placed at 10,5,0 and a camera was fixed to it with
+//   a current position of 0,10,0 then the camera would now inherit the position of the object, 
+//   combine it with its own, and the camera would be placed at 10,15,0. The same applies to 
+//   rotation and scaling, so if the object was rotated around the Y axis then the camera would 
+//   rotate by the same amount. 
+//   Note that using <i>GetCameraY</i> would only show its local position relative to 
+//   the parent object (in this case it would return 10). To get the final world position of the camera
+//   use <i>GetCameraWorldY</i>, which in this case would return 15.
+//   There is no limit to the number of objects or cameras an object can have fixed to it, nor is there a 
+//   limit to objects being fixed to objects which are fixed to other objects, just don't 
+//   create any loops.
+//   To stop a camera being fixed to anything set objID to 0 and it will become independent 
+//   again.
+// INPUTS
+//   cameraID -- The ID of the camera to fix, must be equal to 1
+//   objID -- The ID of the object to fix it to.
+// SOURCE
+void agk::FixCameraToObject( UINT cameraID, UINT objID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to fix camera " );
+		errStr.AppendUInt( cameraID ).Append( " to object - camera does not exist" );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	if ( objID == 0 )
+	{
+		pCamera->RemoveFromParent();
+	}
+	else
+	{
+		cObject3D *pToObject = m_cObject3DList.GetItem( objID );
+		if ( !pToObject )
+		{
+	#ifdef _AGK_ERROR_CHECK
+			uString errStr;
+			errStr.Format( "Failed to fix camera to object %d - object does not exist", objID );
+			Error( errStr );
+	#endif
+			return;
+		}
+
+		pToObject->AddChild( pCamera );
+	}
 }
 
 void agk::SetCurrentCamera( cCamera *pCamera ) 
@@ -50350,7 +50499,7 @@ void agk::SetShadowCascadeValues( float cascade1, float cascade2, float cascade3
 	if ( cascade1 <= 0 ) return;
 	if ( cascade2 < cascade1 ) return;
 	if ( cascade3 < cascade2 ) return;
-	if ( cascade3 < 1.0 ) return;
+	if ( cascade3 >= 1.0 ) return;
 
 	m_fShadowCascade1 = cascade1;
 	m_fShadowCascade2 = cascade2;

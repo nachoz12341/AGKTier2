@@ -6,6 +6,7 @@
 #define AGK_BONE_INHERIT_SCALE		0x0004
 #define AGK_BONE_ROOT				0x0008
 #define AGK_BONE_PRE_SCALE			0x0010
+#define AGK_BONE_UPDATED			0x0020
 
 #define AGK_SKELETON_PLAYING        0x0001
 #define AGK_SKELETON_LOOPING        0x0002
@@ -17,6 +18,68 @@
 
 namespace AGK
 {
+	// items will be added and removed like a stack
+	template<class T> class AGKStackArray
+	{
+		public:
+			AGKStackArray( UINT size=2 ) { m_iMaxSize = size; if ( m_iMaxSize ) m_pItems = new T[ m_iMaxSize ]; }
+			~AGKStackArray() { if ( m_pItems ) delete [] m_pItems; }
+
+			void Resize( UINT size ) 
+			{ 
+				if ( size < m_iNumItems ) size = m_iNumItems;
+				if ( size < 2 ) size = 2;
+				if ( m_iMaxSize != size )
+				{
+					m_iMaxSize = size;
+					T* newArray = new T[ m_iMaxSize ];
+					if ( m_pItems )
+					{
+						memcpy( newArray, m_pItems, sizeof(T)*m_iNumItems );
+						delete [] m_pItems;
+					}
+					m_pItems = newArray;
+				}
+			}
+
+			void Clear() { m_iNumItems = 0; }
+
+			void PushItem( T item )
+			{
+				if ( m_iMaxSize < m_iNumItems+1 )
+				{
+					if ( m_iMaxSize <= 1 ) m_iMaxSize = 2;
+					else m_iMaxSize = m_iMaxSize + m_iMaxSize/2;
+					T* newArray = new T[ m_iMaxSize ];
+					if ( m_pItems )
+					{
+						memcpy( newArray, m_pItems, sizeof(T)*m_iNumItems );
+						delete [] m_pItems;
+					}
+					m_pItems = newArray;
+				}
+
+				m_pItems[ m_iNumItems ] = item;
+				m_iNumItems++;
+			}
+
+			T PopItem()
+			{
+				if ( m_iNumItems == 0 ) return 0;
+				m_iNumItems--;
+				return m_pItems[ m_iNumItems ];
+			}
+
+			UINT NumItems() { return m_iNumItems; }
+			T& operator[](UINT i) { return m_pItems[ i ]; }
+			T GetItem(UINT i) { return m_pItems[ i ]; }
+		
+		protected:
+			T* m_pItems = 0;
+			UINT m_iNumItems = 0;
+			UINT m_iMaxSize = 0;
+	};
+
 	class cSprite;
 	class Bone2D;
 
@@ -310,6 +373,74 @@ namespace AGK
 			}
 	};
 
+	// offset keyframes
+	class Anim2DKeyFrameOffset
+	{
+		public:
+			float m_fTime;
+			float m_fOffsetX;
+			float m_fOffsetY;
+
+			Anim2DKeyFrameOffset() {}
+			virtual ~Anim2DKeyFrameOffset() {}
+
+			virtual void Interpolate( Anim2DKeyFrameOffset* pNext, float t, float &x, float &y )
+			{
+				if ( !pNext ) 
+				{
+					x = m_fOffsetX;
+					y = m_fOffsetY;
+					return;
+				}
+
+				x = m_fOffsetX + t*(pNext->m_fOffsetX - m_fOffsetX);
+				y = m_fOffsetY + t*(pNext->m_fOffsetY - m_fOffsetY);
+			}
+	};
+
+	class Anim2DKeyFrameOffsetStepped : public Anim2DKeyFrameOffset
+	{
+		public:
+			Anim2DKeyFrameOffsetStepped() {}
+			virtual ~Anim2DKeyFrameOffsetStepped() {}
+
+			virtual void Interpolate( Anim2DKeyFrameOffset* pNext, float t, float &x, float &y )
+			{
+				x = m_fOffsetX;
+				y = m_fOffsetY;
+			}
+	};
+
+	class Anim2DKeyFrameOffsetCurved : public Anim2DKeyFrameOffset
+	{
+		public:
+			float c1, c2, c3, c4;
+
+			Anim2DKeyFrameOffsetCurved() {}
+			virtual ~Anim2DKeyFrameOffsetCurved() {}
+
+			virtual void Interpolate( Anim2DKeyFrameOffset* pNext, float t, float &x, float &y )
+			{
+				float guess = 0.5f;
+				float newGuess = t;
+				int iter = 0;
+
+				// use newton raphson to find s for t (t=beizer x axis)
+				do
+				{
+					guess = newGuess;
+					newGuess = guess - ( (EvaluateBezier(c1, c3, guess) - t) / EvaluateBezierDt(c1, c3, guess) );
+					iter++;
+				} while ( fabs(newGuess-guess) > 0.00001f && iter < 10 );
+
+				// get new t (from bezier y axis) for this s
+				t = EvaluateBezier(c2, c4, newGuess);
+
+				x = m_fOffsetX + t*(pNext->m_fOffsetX - m_fOffsetX);
+				y = m_fOffsetY + t*(pNext->m_fOffsetY - m_fOffsetY);
+			}
+	};
+
 	class Anim2DSlot
 	{
 		public:
@@ -338,6 +469,9 @@ namespace AGK
 			UINT m_iNumScales;
 			Anim2DKeyFrameScale **m_pScales;
 
+			UINT m_iNumOffsets;
+			Anim2DKeyFrameOffset **m_pOffsets;
+
 			Anim2DSlot();
 			~Anim2DSlot();
 	};
@@ -345,13 +479,15 @@ namespace AGK
 	class Slot2D
 	{
 		public:
+			Skeleton2D* m_pSkeleton;
+
 			uString m_sName;
 			Bone2D *m_pParent;
 			UINT m_bFlags;
 
 			cSprite *m_pSprite;
 			UINT m_iColor;
-			float x, y, angle, sX, sY;
+			float x, y, angle, sX, sY, offsetX, offsetY;
 
 			cSprite *m_pOrigSprite;
 			UINT m_iOrigColor;
@@ -368,6 +504,7 @@ namespace AGK
 			UINT m_iPrevFrameRotation;
 			UINT m_iPrevFramePosition;
 			UINT m_iPrevFrameScale;
+			UINT m_iPrevFrameOffset;
 			
 			UINT m_iCurrFrameColor;
 			UINT m_iCurrFrameAttachment;
@@ -376,8 +513,9 @@ namespace AGK
 			UINT m_iCurrFrameRotation;
 			UINT m_iCurrFramePosition;
 			UINT m_iCurrFrameScale;
+			UINT m_iCurrFrameOffset;
 
-			Slot2D();
+			Slot2D( Skeleton2D* parent );
 			~Slot2D();
 
 			void Tween( float prevtime, float currtime, float s );
@@ -411,6 +549,8 @@ namespace AGK
 	class Bone2D
 	{
 		public:
+			Skeleton2D* m_pSkeleton;
+
 			uString m_sName;
 			float length;
 			float origX, origY, origAngle, origSX, origSY;
@@ -476,22 +616,107 @@ namespace AGK
 			~ExternalSprite() {}
 	};
 
+	class SpriterSprite
+	{
+		public:
+			cSprite* m_pSprite = 0;
+			int m_iInUse = -1;
+
+			SpriterSprite() {}
+			~SpriterSprite() {}
+	};
+
+	class SpriterFile
+	{
+		public:
+			AGKStackArray<SpriterSprite> m_pSprites;
+			float m_offsetX;
+			float m_offsetY;
+
+			SpriterFile() {}
+			~SpriterFile() {}
+
+			void ResetUsage() 
+			{
+				for( UINT i = 0; i < m_pSprites.NumItems(); i++ ) m_pSprites[ i ].m_iInUse = -1;
+			}
+
+			cSprite* GetSprite( int forSlot, UINT* isNew=0 )
+			{
+				if ( m_pSprites.NumItems() == 0 ) return 0;
+
+				cSprite* pSprite = 0;
+				for( UINT i = 0; i < m_pSprites.NumItems(); i++ )
+				{
+					if ( m_pSprites[ i ].m_iInUse == forSlot || m_pSprites[ i ].m_iInUse == -1 )
+					{
+						pSprite = m_pSprites[ i ].m_pSprite;
+						m_pSprites[ i ].m_iInUse = forSlot;
+						break;
+					}
+				}
+
+				if ( !pSprite )
+				{
+					pSprite = new cSprite( m_pSprites[0].m_pSprite );
+					SpriterSprite newSprite;
+					newSprite.m_pSprite = pSprite;
+					newSprite.m_iInUse = forSlot;
+					m_pSprites.PushItem( newSprite );
+					if ( isNew ) *isNew = 1;
+				}
+				else
+				{
+					if ( isNew ) *isNew = 0;
+				}
+
+				return pSprite;
+			}
+
+			void AddSprite( cSprite* pSprite, float offsetX, float offsetY )
+			{
+				SpriterSprite newSprite;
+				newSprite.m_iInUse = -1;
+				newSprite.m_pSprite = pSprite;
+				m_pSprites.PushItem( newSprite );
+				m_offsetX = offsetX;
+				m_offsetY = offsetY;
+			}
+	};
+
+	class SpriterFolder
+	{
+		public:
+			AGKStackArray<SpriterFile*> m_pFiles;
+
+			SpriterFolder() {}
+			~SpriterFolder() 
+			{
+				for( UINT i = 0; i < m_pFiles.NumItems(); i++ ) delete m_pFiles[ i ];
+			}
+			
+			void ResetUsage() 
+			{
+				for( UINT i = 0; i < m_pFiles.NumItems(); i++ ) m_pFiles[ i ]->ResetUsage();
+			}
+	};
+
 	class Skeleton2D
 	{
 			friend class agk;
 
 		protected:
-			UINT m_iNumBones;
-			Bone2D *m_pBones;
-
-			UINT m_iNumSprites;
-			cSprite *m_pSprites;
+			int m_isSpriter;
 
 			UINT m_iNumAnimations;
 			Animation2D *m_pAnimations;
 
-			UINT m_iNumSlots;
-			Slot2D *m_pSlots;
+			UINT m_iNumBones;
+			Bone2D *m_pBones;
+
+			AGKStackArray<Slot2D*> m_pSlots;
+			AGKStackArray<SpriterFolder*> m_pFolders;
+			AGKStackArray<cSprite*> m_pSprites;
 
 			ExternalSprite *m_pFirstExtSprite;
 
@@ -515,6 +740,8 @@ namespace AGK
 		public:
 			Skeleton2D();
 			~Skeleton2D();
+
+			int IsSpriter() { return m_isSpriter; }
 
 			void LoadFromSpine( const char* filename, float scale, cImage *pAtlas, int loadAnim );
 			void LoadFromSpriter( const char* filename, float scale, cImage *pAtlas );

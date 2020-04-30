@@ -459,6 +459,7 @@
     <ClInclude Include="assimp\XGLLoader.h" />
     <ClInclude Include="common\include\3DParticles.h" />
     <ClInclude Include="common\include\AGKFont.h" />
+    <ClInclude Include="common\include\NetworkPacket.h" />
     <ClInclude Include="renderer\OpenGL2\OpenGL2.h" />
     <ClInclude Include="common\include\sha2.h" />
     <ClInclude Include="libpng\png.h" />

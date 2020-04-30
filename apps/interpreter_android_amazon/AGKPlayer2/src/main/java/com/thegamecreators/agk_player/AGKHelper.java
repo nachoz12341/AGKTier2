@@ -2,11 +2,13 @@
 package com.thegamecreators.agk_player;
 
 import com.amazon.device.iap.PurchasingService;
+/*
 import com.facebook.*;
 import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
 import com.facebook.android.FacebookError;
 import com.facebook.android.Facebook.DialogListener;
+*/
 
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.*;
@@ -1802,6 +1804,7 @@ class AGKCamera
 	}
 }
 
+/*
 class RunnableFacebook implements Runnable
 {
 	String szID;
@@ -1835,6 +1838,7 @@ class RunnableFacebook implements Runnable
 	    });
 	}
 }
+*/
 
 class AGKSpeechListener  implements TextToSpeech.OnInitListener, TextToSpeech.OnUtteranceCompletedListener
 {
@@ -3417,25 +3421,28 @@ public class AGKHelper {
 	public static void FacebookSetup( Activity act, String appID )
 	{
 		FacebookAppID = appID;
-		Settings.setApplicationId( appID );
+		//Settings.setApplicationId( appID );
 	}
 
 	public static void FacebookActivateAppTracking( Activity act )
 	{
-		AppEventsLogger.activateApp(act);
+		//AppEventsLogger.activateApp( act );
 	}
 
 	public static void FacebookLogin(Activity act, String ID)
 	{
+		/*
 		facebookLoginState = 1;
 		Looper.prepare();
 		
 		Intent myIntent = new Intent(act, MyFacebookActivity.class);
 		act.startActivity(myIntent);
+		*/
 	}
 	
 	public static void FacebookLogout()
 	{
+		/*
 		facebookLoginState = 1;
 		Session session = Session.getActiveSession();
         if ( session != null && !session.isClosed() ) 
@@ -3444,11 +3451,13 @@ public class AGKHelper {
         }
         Session.setActiveSession(null);
         facebookLoginState = 1;
+        */
 	}
 	
 	public static int FacebookGetLoginState()
 	{
 		if( facebookLoginState == 1 ) return 0;
+		/*
 		if ( Session.getActiveSession() == null ) return -1;
 		{
 			if( Session.getActiveSession().getAccessToken().equals("") )
@@ -3457,19 +3466,24 @@ public class AGKHelper {
 				return -1;
 			}
 		}
+		*/
 		return 1; 
 	}
 	
 	public static String FacebookGetAccessToken()
 	{
-		//Log.e("AGK",Session.getActiveSession().getAccessToken());
 		if ( facebookLoginState == 1 ) return "";
+		/*
 		if ( Session.getActiveSession() == null ) return "Error";
 		return Session.getActiveSession().getAccessToken();
+		*/
+
+		return "";
 	}
 	
 	public static void FacebookPost( Activity act, String szID, String szLink, String szPicture, String szName, String szCaption, String szDescription )
 	{
+		/*
 		if ( Session.getActiveSession() == null )
 		{
 			AGKHelper.ShowMessage(act, "Unable to share on Facebook as you are not logged in");
@@ -3487,6 +3501,7 @@ public class AGKHelper {
 			feed.session = Session.getActiveSession();
 			act.runOnUiThread(feed);
 		}
+		*/
 	}
 	
 	public static String ConvertString( String s )

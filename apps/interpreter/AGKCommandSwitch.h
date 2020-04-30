@@ -13934,5 +13934,49 @@ case AGKI_GETRAWMOUSEFIFTHRELEASED_L_0:
     m_pStack[ m_iStackPtr++ ].i = agk::GetRawMouseFifthReleased( );
     break;
 }
+case AGKI_SETSOUNDDEVICEMODE_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetSoundDeviceMode( param0 );
+    break;
+}
+case AGKI_ADDNETWORKMESSAGEBYTE_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::AddNetworkMessageByte( param0, param1 );
+    break;
+}
+case AGKI_GETNETWORKMESSAGEBYTE_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetNetworkMessageByte( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDX_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldX( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDY_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldY( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDZ_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldZ( param0 );
+    break;
+}
+case AGKI_FIXCAMERATOOBJECT_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::FixCameraToObject( param0, param1 );
+    break;
+}
 
 

@@ -3,28 +3,20 @@
 #import <GoogleMobileAds/GADBannerView.h>
 #import <GoogleMobileAds/GADInterstitial.h>
 
+//#define USE_FACEBOOK_SDK
+
 #ifndef LITEVERSION
-//#import "SA_OAuthTwitterEngine.h"
-//#import "SA_OAuthTwitterController.h"
-#import "FacebookSDK/FacebookSDK.h"
+  #ifdef USE_FACEBOOK_SDK
+    #import <FBSDKCoreKit/FBSDKCoreKit.h>
+    #import <FBSDKLoginKit/FBSDKLoginKit.h>
+  #endif
 #endif
 
 @interface SocialPlugins : NSObject
-#ifndef LITEVERSION
-//< SA_OAuthTwitterControllerDelegate >
-#endif
 {
     @public
         GADBannerView*          bannerView_;
-#ifndef LITEVERSION
-//        SA_OAuthTwitterEngine*  twitter;
-#endif
 }
-
-#ifndef LITEVERSION
-    //@property ( strong, nonatomic ) FBSession* session;
-    //@property ( strong, nonatomic ) Facebook*  facebook;
-#endif
 
 @end
 

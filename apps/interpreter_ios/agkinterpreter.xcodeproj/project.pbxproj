@@ -19,7 +19,6 @@
 		4A01977519CE608F006204A7 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A01977419CE608F006204A7 /* CoreTelephony.framework */; };
 		4A02FCFA22B0141F00BECD20 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A02FCF922B0141F00BECD20 /* UserNotifications.framework */; };
 		4A0710FC1C78CB1700FB45C4 /* AmazonAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0710FB1C78CB1700FB45C4 /* AmazonAd.framework */; };
-		4A0770C01AFA768A0076C749 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0770BF1AFA768A0076C749 /* FacebookSDK.framework */; };
 		4A0A41141D9EA1920065F425 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4A0A41131D9EA1920065F425 /* GoogleService-Info.plist */; };
 		4A0E7D0F1DF86084007BC5C8 /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0E7D0E1DF86084007BC5C8 /* GoogleMobileAds.framework */; };
 		4A0E7D151DF862B7007BC5C8 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0E7D141DF862B7007BC5C8 /* GLKit.framework */; };
@@ -27,36 +26,24 @@
 		4A1DB88A19C10D390048316C /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A1DB88919C10D390048316C /* CoreMotion.framework */; };
 		4A1DB89019C1DC6A0048316C /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A1DB88F19C1DC6A0048316C /* CoreLocation.framework */; };
 		4A26DEC11D7F11D500AAF62F /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A26DEC01D7F11D500AAF62F /* CoreVideo.framework */; };
-		4A44D45F1FBC84190074C59C /* Default-375w-812h@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A44D45E1FBC84190074C59C /* Default-375w-812h@3x.png */; };
 		4A54011220C5E8F2002874FA /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A54011120C5E8F2002874FA /* PersonalizedAdConsent.framework */; };
 		4A54011420C5F476002874FA /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4A54011320C5F476002874FA /* PersonalizedAdConsent.bundle */; };
 		4A58BA55206AA23C0038F2F0 /* FirebaseAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA4E206AA23B0038F2F0 /* FirebaseAnalytics.framework */; };
-		4A58BA56206AA23C0038F2F0 /* FirebaseCoreDiagnostics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA4F206AA23B0038F2F0 /* FirebaseCoreDiagnostics.framework */; };
-		4A58BA57206AA23C0038F2F0 /* FirebaseInstanceID.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA50206AA23B0038F2F0 /* FirebaseInstanceID.framework */; };
 		4A58BA58206AA23C0038F2F0 /* FirebaseCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA51206AA23B0038F2F0 /* FirebaseCore.framework */; };
-		4A58BA59206AA23C0038F2F0 /* FirebaseNanoPB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA52206AA23C0038F2F0 /* FirebaseNanoPB.framework */; };
-		4A58BA5A206AA23C0038F2F0 /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA53206AA23C0038F2F0 /* nanopb.framework */; };
-		4A58BA5B206AA23C0038F2F0 /* GoogleToolboxForMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA54206AA23C0038F2F0 /* GoogleToolboxForMac.framework */; };
 		4A58BA5D206AA2970038F2F0 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA5C206AA2970038F2F0 /* libsqlite3.tbd */; };
 		4A5C2D66230AE9F900E42FE5 /* SCSDKCreativeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A5C2D6E230B4A7C00E42FE5 /* SCSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		4A5D07E0245A0AE4008DBD9E /* FirebaseInstallations.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5D07DE245A0AE4008DBD9E /* FirebaseInstallations.framework */; };
+		4A5D07E1245A0AE4008DBD9E /* PromisesObjC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5D07DF245A0AE4008DBD9E /* PromisesObjC.framework */; };
 		4A5FF6F61F6C2F0F00BFF8C8 /* ReplayKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5FF6F51F6C2F0F00BFF8C8 /* ReplayKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4A653C1F20642CFE008B519B /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A653C1E20642CFE008B519B /* ARKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		4A6879F11EB0F72000281DB2 /* Default-375w-667h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F01EB0F72000281DB2 /* Default-375w-667h@2x.png */; };
-		4A6879FB1EB0F81A00281DB2 /* Default-414w-736h@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F21EB0F81A00281DB2 /* Default-414w-736h@3x.png */; };
-		4A6879FC1EB0F81A00281DB2 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F31EB0F81A00281DB2 /* Default-568h@2x.png */; };
-		4A6879FD1EB0F81A00281DB2 /* Default-Landscape-1366h@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F41EB0F81A00281DB2 /* Default-Landscape-1366h@2x~ipad.png */; };
-		4A6879FE1EB0F81A00281DB2 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F51EB0F81A00281DB2 /* Default-Landscape@2x~ipad.png */; };
-		4A6879FF1EB0F81A00281DB2 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F61EB0F81A00281DB2 /* Default-Landscape~ipad.png */; };
-		4A687A001EB0F81A00281DB2 /* Default-Portrait-1366h@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F71EB0F81A00281DB2 /* Default-Portrait-1366h@2x~ipad.png */; };
-		4A687A011EB0F81A00281DB2 /* Default-Portrait@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F81EB0F81A00281DB2 /* Default-Portrait@2x~ipad.png */; };
-		4A687A021EB0F81A00281DB2 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879F91EB0F81A00281DB2 /* Default-Portrait~ipad.png */; };
-		4A687A031EB0F81A00281DB2 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A6879FA1EB0F81A00281DB2 /* Default@2x.png */; };
 		4A769D4620DAB68400843C60 /* SafariServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A769D4520DAB68400843C60 /* SafariServices.framework */; };
 		4A769D4820DAB6A700843C60 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A769D4720DAB6A700843C60 /* JavaScriptCore.framework */; };
 		4A92A6912332654C00955DFD /* SCSDKCoreKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4A92A6922332654C00955DFD /* SCSDKCreativeKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4A952B111FA00CC2006F2215 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A952B101FA00CC2006F2215 /* WatchConnectivity.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		4A9628682408739C003AC147 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4A9628662408739C003AC147 /* LaunchScreen.storyboard */; };
+		4A9628692408739C003AC147 /* SplashLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 4A9628672408739C003AC147 /* SplashLogo.png */; };
 		4A9A52821FDF6BEE00E3AE27 /* Icons.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4A9A52811FDF6BEE00E3AE27 /* Icons.xcassets */; };
 		4A9D50791996814400473873 /* ProgramData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A9D50781996814400473873 /* ProgramData.cpp */; };
 		4AB6380720CAD754007F0A18 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB6380620CAD754007F0A18 /* WebKit.framework */; };
@@ -114,7 +101,6 @@
 		4A01977419CE608F006204A7 /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		4A02FCF922B0141F00BECD20 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		4A0710FB1C78CB1700FB45C4 /* AmazonAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AmazonAd.framework; path = "../../platform/apple/Source/Social Plugins/AmazonAd.framework"; sourceTree = "<group>"; };
-		4A0770BF1AFA768A0076C749 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = "../../platform/apple/Source/Social Plugins/FacebookSDK/FacebookSDK.framework"; sourceTree = "<group>"; };
 		4A0A41131D9EA1920065F425 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		4A0E7D0E1DF86084007BC5C8 /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = "../../platform/apple/Source/Social Plugins/GoogleMobileAds.framework"; sourceTree = "<group>"; };
 		4A0E7D141DF862B7007BC5C8 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
@@ -122,35 +108,24 @@
 		4A1DB88919C10D390048316C /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		4A1DB88F19C1DC6A0048316C /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		4A26DEC01D7F11D500AAF62F /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
-		4A44D45E1FBC84190074C59C /* Default-375w-812h@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-375w-812h@3x.png"; sourceTree = "<group>"; };
 		4A54011120C5E8F2002874FA /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
 		4A54011320C5F476002874FA /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
 		4A58BA4E206AA23B0038F2F0 /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseAnalytics.framework"; sourceTree = "<group>"; };
-		4A58BA4F206AA23B0038F2F0 /* FirebaseCoreDiagnostics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseCoreDiagnostics.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseCoreDiagnostics.framework"; sourceTree = "<group>"; };
-		4A58BA50206AA23B0038F2F0 /* FirebaseInstanceID.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseInstanceID.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseInstanceID.framework"; sourceTree = "<group>"; };
 		4A58BA51206AA23B0038F2F0 /* FirebaseCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseCore.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseCore.framework"; sourceTree = "<group>"; };
-		4A58BA52206AA23C0038F2F0 /* FirebaseNanoPB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseNanoPB.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseNanoPB.framework"; sourceTree = "<group>"; };
-		4A58BA53206AA23C0038F2F0 /* nanopb.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = nanopb.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/nanopb.framework"; sourceTree = "<group>"; };
-		4A58BA54206AA23C0038F2F0 /* GoogleToolboxForMac.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleToolboxForMac.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/GoogleToolboxForMac.framework"; sourceTree = "<group>"; };
 		4A58BA5C206AA2970038F2F0 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSDKCreativeKit.framework; path = "../../platform/apple/Source/Social Plugins/SCSDKCreativeKit.framework"; sourceTree = "<group>"; };
 		4A5C2D68230AFE3F00E42FE5 /* ProgramData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ProgramData.h; path = ../../interpreter/ProgramData.h; sourceTree = "<group>"; };
 		4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSDKCoreKit.framework; path = "../../platform/apple/Source/Social Plugins/SCSDKCoreKit.framework"; sourceTree = "<group>"; };
+		4A5D07DE245A0AE4008DBD9E /* FirebaseInstallations.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseInstallations.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/FirebaseInstallations.framework"; sourceTree = "<group>"; };
+		4A5D07DF245A0AE4008DBD9E /* PromisesObjC.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PromisesObjC.framework; path = "../../platform/apple/Source/Social Plugins/Firebase/PromisesObjC.framework"; sourceTree = "<group>"; };
 		4A5FF6F51F6C2F0F00BFF8C8 /* ReplayKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ReplayKit.framework; path = System/Library/Frameworks/ReplayKit.framework; sourceTree = SDKROOT; };
 		4A653C1E20642CFE008B519B /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
-		4A6879F01EB0F72000281DB2 /* Default-375w-667h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-375w-667h@2x.png"; sourceTree = "<group>"; };
-		4A6879F21EB0F81A00281DB2 /* Default-414w-736h@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-414w-736h@3x.png"; sourceTree = "<group>"; };
-		4A6879F31EB0F81A00281DB2 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
-		4A6879F41EB0F81A00281DB2 /* Default-Landscape-1366h@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape-1366h@2x~ipad.png"; sourceTree = "<group>"; };
-		4A6879F51EB0F81A00281DB2 /* Default-Landscape@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape@2x~ipad.png"; sourceTree = "<group>"; };
-		4A6879F61EB0F81A00281DB2 /* Default-Landscape~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Landscape~ipad.png"; sourceTree = "<group>"; };
-		4A6879F71EB0F81A00281DB2 /* Default-Portrait-1366h@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait-1366h@2x~ipad.png"; sourceTree = "<group>"; };
-		4A6879F81EB0F81A00281DB2 /* Default-Portrait@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait@2x~ipad.png"; sourceTree = "<group>"; };
-		4A6879F91EB0F81A00281DB2 /* Default-Portrait~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-Portrait~ipad.png"; sourceTree = "<group>"; };
-		4A6879FA1EB0F81A00281DB2 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		4A65BC0823DF41AF00035613 /* NetworkPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkPacket.h; sourceTree = "<group>"; };
 		4A769D4520DAB68400843C60 /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
 		4A769D4720DAB6A700843C60 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		4A952B101FA00CC2006F2215 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		4A9628662408739C003AC147 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		4A9628672408739C003AC147 /* SplashLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = SplashLogo.png; sourceTree = "<group>"; };
 		4A9A52811FDF6BEE00E3AE27 /* Icons.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Icons.xcassets; sourceTree = "<group>"; };
 		4A9D50781996814400473873 /* ProgramData.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = ProgramData.cpp; path = ../../interpreter/ProgramData.cpp; sourceTree = "<group>"; };
 		4AB6380620CAD754007F0A18 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
@@ -219,6 +194,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A5D07E0245A0AE4008DBD9E /* FirebaseInstallations.framework in Frameworks */,
+				4A5D07E1245A0AE4008DBD9E /* PromisesObjC.framework in Frameworks */,
 				4AF8AE9822F2068900CC735F /* nanopb.framework in Frameworks */,
 				4AF8AE9922F2068900CC735F /* GoogleUtilities.framework in Frameworks */,
 				4AF8AE9522F2060C00CC735F /* GoogleAppMeasurement.framework in Frameworks */,
@@ -236,20 +213,16 @@
 				4A0E7D151DF862B7007BC5C8 /* GLKit.framework in Frameworks */,
 				4A0E7D0F1DF86084007BC5C8 /* GoogleMobileAds.framework in Frameworks */,
 				4A26DEC11D7F11D500AAF62F /* CoreVideo.framework in Frameworks */,
-				4A58BA5A206AA23C0038F2F0 /* nanopb.framework in Frameworks */,
 				4ABD90A41AB88A4400ADB1BA /* AdSupport.framework in Frameworks */,
 				4A01977519CE608F006204A7 /* CoreTelephony.framework in Frameworks */,
 				4A01977319CE6063006204A7 /* EventKitUI.framework in Frameworks */,
 				4A58BA58206AA23C0038F2F0 /* FirebaseCore.framework in Frameworks */,
-				4A58BA5B206AA23C0038F2F0 /* GoogleToolboxForMac.framework in Frameworks */,
 				4A01977119CE6053006204A7 /* EventKit.framework in Frameworks */,
 				4A1DB89019C1DC6A0048316C /* CoreLocation.framework in Frameworks */,
-				4A0770C01AFA768A0076C749 /* FacebookSDK.framework in Frameworks */,
 				4ABD90A61AB88FCF00ADB1BA /* Chartboost.framework in Frameworks */,
 				4A1DB88A19C10D390048316C /* CoreMotion.framework in Frameworks */,
 				D87D02CE16C962100019D29E /* GameKit.framework in Frameworks */,
 				726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */,
-				4A58BA56206AA23C0038F2F0 /* FirebaseCoreDiagnostics.framework in Frameworks */,
 				D8C10A48161211B900665788 /* CoreMedia.framework in Frameworks */,
 				D823630F16120226008BD7C0 /* MediaPlayer.framework in Frameworks */,
 				D854AEE31546FC8A00651682 /* SystemConfiguration.framework in Frameworks */,
@@ -257,12 +230,10 @@
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */,
-				4A58BA59206AA23C0038F2F0 /* FirebaseNanoPB.framework in Frameworks */,
 				28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */,
 				D891016A125FFD84008C4A30 /* CoreGraphics.framework in Frameworks */,
 				4A5C2D66230AE9F900E42FE5 /* SCSDKCreativeKit.framework in Frameworks */,
 				D8A3468812B14DE800DBEBEC /* AVFoundation.framework in Frameworks */,
-				4A58BA57206AA23C0038F2F0 /* FirebaseInstanceID.framework in Frameworks */,
 				4A0710FC1C78CB1700FB45C4 /* AmazonAd.framework in Frameworks */,
 				D8A3468C12B14DF700DBEBEC /* OpenAL.framework in Frameworks */,
 				D8A346A612B14E0B00DBEBEC /* AudioToolbox.framework in Frameworks */,
@@ -325,18 +296,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4A9628662408739C003AC147 /* LaunchScreen.storyboard */,
+				4A9628672408739C003AC147 /* SplashLogo.png */,
 				4A54011320C5F476002874FA /* PersonalizedAdConsent.bundle */,
-				4A44D45E1FBC84190074C59C /* Default-375w-812h@3x.png */,
-				4A6879F21EB0F81A00281DB2 /* Default-414w-736h@3x.png */,
-				4A6879F31EB0F81A00281DB2 /* Default-568h@2x.png */,
-				4A6879F41EB0F81A00281DB2 /* Default-Landscape-1366h@2x~ipad.png */,
-				4A6879F51EB0F81A00281DB2 /* Default-Landscape@2x~ipad.png */,
-				4A6879F61EB0F81A00281DB2 /* Default-Landscape~ipad.png */,
-				4A6879F71EB0F81A00281DB2 /* Default-Portrait-1366h@2x~ipad.png */,
-				4A6879F81EB0F81A00281DB2 /* Default-Portrait@2x~ipad.png */,
-				4A6879F91EB0F81A00281DB2 /* Default-Portrait~ipad.png */,
-				4A6879FA1EB0F81A00281DB2 /* Default@2x.png */,
-				4A6879F01EB0F72000281DB2 /* Default-375w-667h@2x.png */,
 				4A0A41131D9EA1920065F425 /* GoogleService-Info.plist */,
 				4AD751D41D81B231001DE9C0 /* AppGameKit Player.entitlements */,
 				D8897F6712ADCB6500573108 /* MainWindow.xib */,
@@ -349,6 +311,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4A5D07DE245A0AE4008DBD9E /* FirebaseInstallations.framework */,
+				4A5D07DF245A0AE4008DBD9E /* PromisesObjC.framework */,
 				4A5C2D6C230B4A6F00E42FE5 /* SCSDKCoreKit.framework */,
 				4A5C2D64230AE9F900E42FE5 /* SCSDKCreativeKit.framework */,
 				4AF8AE9722F2068800CC735F /* GoogleUtilities.framework */,
@@ -370,7 +334,6 @@
 				4ABD90AB1AB890EB00ADB1BA /* libAGKiOS.a */,
 				4A0E7D0E1DF86084007BC5C8 /* GoogleMobileAds.framework */,
 				4A0710FB1C78CB1700FB45C4 /* AmazonAd.framework */,
-				4A0770BF1AFA768A0076C749 /* FacebookSDK.framework */,
 				4ABD90A51AB88FCF00ADB1BA /* Chartboost.framework */,
 				4ABD90A31AB88A4400ADB1BA /* AdSupport.framework */,
 				4A01977419CE608F006204A7 /* CoreTelephony.framework */,
@@ -401,11 +364,6 @@
 			children = (
 				4A58BA4E206AA23B0038F2F0 /* FirebaseAnalytics.framework */,
 				4A58BA51206AA23B0038F2F0 /* FirebaseCore.framework */,
-				4A58BA4F206AA23B0038F2F0 /* FirebaseCoreDiagnostics.framework */,
-				4A58BA50206AA23B0038F2F0 /* FirebaseInstanceID.framework */,
-				4A58BA52206AA23C0038F2F0 /* FirebaseNanoPB.framework */,
-				4A58BA54206AA23C0038F2F0 /* GoogleToolboxForMac.framework */,
-				4A58BA53206AA23C0038F2F0 /* nanopb.framework */,
 			);
 			name = Firebase;
 			sourceTree = "<group>";
@@ -413,6 +371,7 @@
 		D87EBF721615183B00B12E6C /* include */ = {
 			isa = PBXGroup;
 			children = (
+				4A65BC0823DF41AF00035613 /* NetworkPacket.h */,
 				D87EBF731615183B00B12E6C /* 3DMath.h */,
 				D87EBF741615183B00B12E6C /* agk.h */,
 				D87EBF751615183B00B12E6C /* agkKeys.h */,
@@ -526,22 +485,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4A6879FD1EB0F81A00281DB2 /* Default-Landscape-1366h@2x~ipad.png in Resources */,
 				D8897F6812ADCB6500573108 /* MainWindow.xib in Resources */,
-				4A687A001EB0F81A00281DB2 /* Default-Portrait-1366h@2x~ipad.png in Resources */,
 				4A54011420C5F476002874FA /* PersonalizedAdConsent.bundle in Resources */,
-				4A6879FE1EB0F81A00281DB2 /* Default-Landscape@2x~ipad.png in Resources */,
-				4A687A021EB0F81A00281DB2 /* Default-Portrait~ipad.png in Resources */,
-				4A6879FC1EB0F81A00281DB2 /* Default-568h@2x.png in Resources */,
-				4A44D45F1FBC84190074C59C /* Default-375w-812h@3x.png in Resources */,
-				4A6879FF1EB0F81A00281DB2 /* Default-Landscape~ipad.png in Resources */,
-				4A6879F11EB0F72000281DB2 /* Default-375w-667h@2x.png in Resources */,
-				4A6879FB1EB0F81A00281DB2 /* Default-414w-736h@3x.png in Resources */,
 				4A9A52821FDF6BEE00E3AE27 /* Icons.xcassets in Resources */,
+				4A9628682408739C003AC147 /* LaunchScreen.storyboard in Resources */,
 				72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */,
-				4A687A031EB0F81A00281DB2 /* Default@2x.png in Resources */,
-				4A687A011EB0F81A00281DB2 /* Default-Portrait@2x~ipad.png in Resources */,
 				4A0A41141D9EA1920065F425 /* GoogleService-Info.plist in Resources */,
+				4A9628692408739C003AC147 /* SplashLogo.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -598,14 +548,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2091;
+				CURRENT_PROJECT_VERSION = 2093;
 				DEVELOPMENT_TEAM = 4245WA8N82;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../platform/apple/Source/Social\\ Plugins/FacebookSDK\"",
-					"\"../../platform/apple/Source/Social\\ Plugins\"",
-					"\"../../platform/apple/Source/Social\\ Plugins/Firebase\"",
+					"\"../../platform/apple/Source/Social Plugins\"",
+					"\"../../platform/apple/Source/Social Plugins/Firebase\"",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -631,7 +580,7 @@
 					../../platform/apple/Lib/Debug,
 					../../platform/apple/Lib/Release,
 				);
-				MARKETING_VERSION = 2019.11.27;
+				MARKETING_VERSION = 2019.12.16;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.thegamecreators.agk2player;
@@ -657,14 +606,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)";
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = 2091;
+				CURRENT_PROJECT_VERSION = 2093;
 				DEVELOPMENT_TEAM = 4245WA8N82;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"../../platform/apple/Source/Social\\ Plugins/FacebookSDK\"",
-					"\"../../platform/apple/Source/Social\\ Plugins\"",
-					"\"../../platform/apple/Source/Social\\ Plugins/Firebase\"",
+					"\"../../platform/apple/Source/Social Plugins\"",
+					"\"../../platform/apple/Source/Social Plugins/Firebase\"",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = agkinterpreter_Prefix.pch;
@@ -684,7 +632,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "\"../../platform/apple/Lib/Release\"";
-				MARKETING_VERSION = 2019.11.27;
+				MARKETING_VERSION = 2019.12.16;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.thegamecreators.agk2player;

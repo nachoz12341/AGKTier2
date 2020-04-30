@@ -17,10 +17,12 @@
 #include "jpeglib.h"
 
 #ifndef LITEVERSION
-    #import <FirebaseAnalytics/FIRApp.h>
+    #import <FirebaseCore/FIRApp.h>
     #import <FirebaseAnalytics/FIRAnalytics.h>
-    #import "FacebookSDK/FBAppEvents.h"
-
+  #ifdef USE_FACEBOOK_SDK
+    #import "FBSDKCoreKit/FBSDKAppEvents.h"
+  #endif
+    
   #if !defined(__i386__) && !defined(__x86_64__)
     #include <SCSDKCreativeKit/SCSDKCreativeKit.h>
   #endif
@@ -4256,22 +4258,30 @@ int agk::LoadVideo( const char *szFilename )
     }
      */
     
-    g_sVideoFile.SetStr(szFilename);
-    uString sPath( g_sVideoFile );
-    
-    if ( !GetRealPath( sPath ) )
-	{
-		agk::Error( "Failed to load video file - file not found" );
-		return 0;
-	}
-    
     m_fVideoX = 0;
-	m_fVideoY = 0;
-	m_fVideoWidth = (float) agk::GetVirtualWidth();
-	m_fVideoHeight = (float) agk::GetVirtualHeight();
+    m_fVideoY = 0;
+    m_fVideoWidth = (float) agk::GetVirtualWidth();
+    m_fVideoHeight = (float) agk::GetVirtualHeight();
     
-    NSString* pString = [ NSString stringWithUTF8String:sPath ];
-    NSURL *fileURL = [NSURL fileURLWithPath:pString];
+    NSURL *fileURL;
+    if ( strncmp( szFilename, "http://", 7 ) == 0 || strncmp( szFilename, "https://", 8 ) == 0 )
+    {
+        fileURL = [NSURL URLWithString:[NSString stringWithUTF8String:szFilename]];
+    }
+    else
+    {
+        g_sVideoFile.SetStr(szFilename);
+        uString sPath( g_sVideoFile );
+        
+        if ( !GetRealPath( sPath ) )
+        {
+            agk::Error( "Failed to load video file - file not found" );
+            return 0;
+        }
+        
+        NSString* pString = [ NSString stringWithUTF8String:sPath ];
+        fileURL = [NSURL fileURLWithPath:pString];
+    }
     
     // new video code
     videoplayer = [[AVPlayer alloc] initWithURL:fileURL];
@@ -6514,7 +6524,7 @@ void agk::ShareFile( const char* szFilename )
 void agk::FacebookActivateAppTracking()
 //****
 {
-#ifndef LITEVERSION
+#if !defined(LITEVERSION) && defined(USE_FACEBOOK_SDK)
     [FBAppEvents activateApp];
 #endif
 }

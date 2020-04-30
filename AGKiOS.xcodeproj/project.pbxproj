@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		4A0710F81C788B4F00FB45C4 /* AmazonAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0710F71C788B4F00FB45C4 /* AmazonAd.framework */; };
-		4A0A411A1D9EA34B0065F425 /* FacebookSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0A41191D9EA34B0065F425 /* FacebookSDK.framework */; };
 		4A104FDA1DA5560700343096 /* sha2.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A104FD91DA5560700343096 /* sha2.h */; };
 		4A104FDC1DA5561300343096 /* sha2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A104FDB1DA5561300343096 /* sha2.cpp */; };
 		4A12DDA51DFA605F00BD53CA /* DefaultFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A12DDA41DFA605F00BD53CA /* DefaultFont.h */; };
@@ -210,6 +209,7 @@
 		4A58BA4D206AA20B0038F2F0 /* FirebaseAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */; };
 		4A5C2D62230AD21E00E42FE5 /* SCSDKCreativeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D60230AD21E00E42FE5 /* SCSDKCreativeKit.framework */; };
 		4A5C2D63230AD21E00E42FE5 /* SCSDKCoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5C2D61230AD21E00E42FE5 /* SCSDKCoreKit.framework */; };
+		4A5D07DD245A088C008DBD9E /* NetworkPacket.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A5D07DC245A088C008DBD9E /* NetworkPacket.h */; };
 		4A653C1D2062C68F008B519B /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A653C1C2062C68F008B519B /* ARKit.framework */; };
 		4A6E38031FDF325B0098EFBA /* b2MotorJoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A6E38011FDF325A0098EFBA /* b2MotorJoint.h */; };
 		4A6E38041FDF325B0098EFBA /* b2MotorJoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A6E38021FDF325B0098EFBA /* b2MotorJoint.cpp */; };
@@ -1431,7 +1431,6 @@
 
 /* Begin PBXFileReference section */
 		4A0710F71C788B4F00FB45C4 /* AmazonAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AmazonAd.framework; path = "platform/apple/Source/Social Plugins/AmazonAd.framework"; sourceTree = "<group>"; };
-		4A0A41191D9EA34B0065F425 /* FacebookSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FacebookSDK.framework; path = "platform/apple/Source/Social Plugins/FacebookSDK/FacebookSDK.framework"; sourceTree = "<group>"; };
 		4A104FD91DA5560700343096 /* sha2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha2.h; path = common/include/sha2.h; sourceTree = SOURCE_ROOT; };
 		4A104FDB1DA5561300343096 /* sha2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha2.cpp; sourceTree = "<group>"; };
 		4A12DDA41DFA605F00BD53CA /* DefaultFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DefaultFont.h; path = common/include/DefaultFont.h; sourceTree = SOURCE_ROOT; };
@@ -1633,6 +1632,7 @@
 		4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = "platform/apple/Source/Social Plugins/Firebase/FirebaseAnalytics.framework"; sourceTree = "<group>"; };
 		4A5C2D60230AD21E00E42FE5 /* SCSDKCreativeKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSDKCreativeKit.framework; path = "platform/apple/Source/Social Plugins/SCSDKCreativeKit.framework"; sourceTree = "<group>"; };
 		4A5C2D61230AD21E00E42FE5 /* SCSDKCoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SCSDKCoreKit.framework; path = "platform/apple/Source/Social Plugins/SCSDKCoreKit.framework"; sourceTree = "<group>"; };
+		4A5D07DC245A088C008DBD9E /* NetworkPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetworkPacket.h; path = common/include/NetworkPacket.h; sourceTree = SOURCE_ROOT; };
 		4A653C1C2062C68F008B519B /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
 		4A6E38011FDF325A0098EFBA /* b2MotorJoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = b2MotorJoint.h; sourceTree = "<group>"; };
 		4A6E38021FDF325B0098EFBA /* b2MotorJoint.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = b2MotorJoint.cpp; sourceTree = "<group>"; };
@@ -2876,7 +2876,6 @@
 				4A54010E20C59D7F002874FA /* PersonalizedAdConsent.framework in Frameworks */,
 				4A653C1D2062C68F008B519B /* ARKit.framework in Frameworks */,
 				4A367B8C1D6F164F00CF46E6 /* CoreVideo.framework in Frameworks */,
-				4A0A411A1D9EA34B0065F425 /* FacebookSDK.framework in Frameworks */,
 				4A1DB88E19C1D7C80048316C /* CoreLocation.framework in Frameworks */,
 				4A1DB88C19C10DCA0048316C /* CoreMotion.framework in Frameworks */,
 				D893E52B1616883D000304BA /* MediaPlayer.framework in Frameworks */,
@@ -2931,7 +2930,6 @@
 				4A54010D20C59D7E002874FA /* PersonalizedAdConsent.framework */,
 				4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */,
 				4A653C1C2062C68F008B519B /* ARKit.framework */,
-				4A0A41191D9EA34B0065F425 /* FacebookSDK.framework */,
 				4A367B8B1D6F164F00CF46E6 /* CoreVideo.framework */,
 				4A0710F71C788B4F00FB45C4 /* AmazonAd.framework */,
 				4A5720E519F0716F001BA462 /* Chartboost.framework */,
@@ -4300,6 +4298,7 @@
 		D806E34B124A5D110067F527 /* Include */ = {
 			isa = PBXGroup;
 			children = (
+				4A5D07DC245A088C008DBD9E /* NetworkPacket.h */,
 				4AE876B81F1E55D0003AD977 /* 3DParticles.h */,
 				4ABC614E1E30448500EE7809 /* PlatformDefines.h */,
 				4A12DDA41DFA605F00BD53CA /* DefaultFont.h */,
@@ -5140,6 +5139,7 @@
 				4AF8FBD21BCEB85100850A31 /* ScenePrivate.h in Headers */,
 				4AF8F8031BCEB3C800850A31 /* btDefaultCollisionConfiguration.h in Headers */,
 				D899C9B2140D1DDA005A5A3A /* b2PolygonShape.h in Headers */,
+				4A5D07DD245A088C008DBD9E /* NetworkPacket.h in Headers */,
 				D899C9B3140D1DDA005A5A3A /* b2Shape.h in Headers */,
 				D899C9C2140D1DEC005A5A3A /* b2BlockAllocator.h in Headers */,
 				4A8567591BCEC95D00224EAA /* Ray.h in Headers */,
@@ -6481,7 +6481,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(DEVELOPER_DIR)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/FacebookSDK\"",
 					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/Firebase\"",
 					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins\"",
 				);
@@ -6540,7 +6539,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(DEVELOPER_DIR)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/FacebookSDK\"",
 					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/Firebase\"",
 					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins\"",
 				);
@@ -6677,7 +6675,6 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(DEVELOPER_DIR)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/FacebookSDK\"",
 					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/Firebase\"",
 					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins\"",
 				);

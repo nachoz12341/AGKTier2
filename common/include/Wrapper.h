@@ -1230,6 +1230,7 @@ namespace AGK
 			static int GetSpriteCurrentFrame( UINT iSpriteIndex );
 			static int GetSpriteFrameCount( UINT iSpriteIndex );
 			static void SetSpriteTransparency( UINT iSpriteIndex, int mode );
+			static void SetSpriteBlendModes( UINT iSpriteIndex, int src, int dst );
 			static void SetSpriteOffset( UINT iSpriteIndex, float x, float y );
 			static void SetSpriteColor( UINT iSpriteIndex, int iRed, int iGreen, int iBlue, int iAlpha );
 			static void SetSpriteColorRed( UINT iSpriteIndex, int iRed );

@@ -2167,8 +2167,7 @@ AGKShader* AGKShader::MakeFinalShader( AGKShader *pBaseShader, int sunActive, in
 			strcat ( srcVertShader, "    shadowVarying = agk_ShadowProj * vec4(pos,1.0);\n");
 			if ( agk::GetShadowMappingMode() != 2 ) // not LiSPM
 			{
-				strcat ( srcVertShader, "    shadowVarying.xy = shadowVarying.xy*0.5 + 0.5;\n");
-				strcat ( srcVertShader, "    shadowVarying.z = shadowVarying.z*0.495 + 0.505;\n");
+				strcat ( srcVertShader, "    shadowVarying.xyz = shadowVarying.xyz*0.5 + 0.5;\n");
 			}
 			if ( agk::GetShadowMappingMode() == 3 ) // cascade
 			{
@@ -2176,14 +2175,9 @@ AGKShader* AGKShader::MakeFinalShader( AGKShader *pBaseShader, int sunActive, in
 				strcat ( srcVertShader, "    shadow3Varying = (agk_Shadow3Proj * vec4(pos,1.0)).xyz;\n");
 				strcat ( srcVertShader, "    shadow4Varying = (agk_Shadow4Proj * vec4(pos,1.0)).xyz;\n");
 
-				strcat ( srcVertShader, "    shadow2Varying.xy = shadow2Varying.xy*0.5 + 0.5;\n");
-				strcat ( srcVertShader, "    shadow2Varying.z = shadow2Varying.z*0.495 + 0.505;\n");
-
-				strcat ( srcVertShader, "    shadow3Varying.xy = shadow3Varying.xy*0.5 + 0.5;\n");
-				strcat ( srcVertShader, "    shadow3Varying.z = shadow3Varying.z*0.495 + 0.505;\n");
-
-				strcat ( srcVertShader, "    shadow4Varying.xy = shadow4Varying.xy*0.5 + 0.5;\n");
-				strcat ( srcVertShader, "    shadow4Varying.z = shadow4Varying.z*0.495 + 0.505;\n");
+				strcat ( srcVertShader, "    shadow2Varying.xyz = shadow2Varying.xyz*0.5 + 0.5;\n");
+				strcat ( srcVertShader, "    shadow3Varying.xyz = shadow3Varying.xyz*0.5 + 0.5;\n");
+				strcat ( srcVertShader, "    shadow4Varying.xyz = shadow4Varying.xyz*0.5 + 0.5;\n");
 			}
 			strcat ( srcVertShader, "    depth = gl_Position.w;\n");
 		}

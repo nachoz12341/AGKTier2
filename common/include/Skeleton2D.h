@@ -619,10 +619,10 @@ namespace AGK
 	class SpriterSprite
 	{
 		public:
-			cSprite* m_pSprite = 0;
-			int m_iInUse = -1;
+			cSprite* m_pSprite;
+			int m_iInUse;
 
-			SpriterSprite() {}
+			SpriterSprite() { m_pSprite = 0; m_iInUse = -1; }
 			~SpriterSprite() {}
 	};
 

@@ -9156,6 +9156,12 @@ void agk::SetSpriteTransparency( UINT iSpriteIndex, int mode )
 	pSprite->SetTransparency( mode );
 }
 
+void agk::SetSpriteBlendModes( uint32_t iSpriteIndex, int src, int dst )
+//****
+{
+	// not supported in AGK Classic, but must exist to use the AGK Studio player
+}
+
 //****f* Sprite/Properties/SetSpriteOffset
 // FUNCTION
 //   The offset point is the point that the sprite will rotate around, with (0,0) being the top left corner and (width,height)
@@ -42802,15 +42808,19 @@ void agk::SetObjectMeshImage( UINT objID, UINT meshIndex, UINT imageID, UINT tex
 		return;	
 	}
 
-	cImage *pImage = m_cImageList.GetItem( imageID );
-	if ( !pImage )
+	cImage *pImage = 0;
+	if ( imageID > 0 )
 	{
+		pImage = m_cImageList.GetItem( imageID );
+		if ( !pObject )
+		{
 #ifdef _AGK_ERROR_CHECK
-		uString errStr;
-		errStr.Format( "Failed to set mesh image for object %d - image %d does not exist", objID, imageID );
-		Error( errStr );
+			uString errStr;
+			errStr.Format( "Failed to set mesh image for object %d - image %d does not exist", objID, imageID );
+			Error( errStr );
 #endif
-		return;
+			return;
+		}
 	}
 
 	cMesh *pMesh = pObject->GetMesh( meshIndex-1 );

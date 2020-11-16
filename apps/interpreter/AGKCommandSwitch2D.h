@@ -10263,3 +10263,11 @@ case AGKI_GETNETWORKMESSAGEBYTE_L_L:
     m_pStack[ m_iStackPtr++ ].i = agk::GetNetworkMessageByte( param0 );
     break;
 }
+case AGKI_SETSPRITEBLENDMODES_0_L_L_L:
+{
+    int param2 = m_pStack[ --m_iStackPtr ].i;
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetSpriteBlendModes( param0, param1, param2 );
+    break;
+}

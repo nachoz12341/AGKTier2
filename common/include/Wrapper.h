@@ -498,6 +498,8 @@ namespace AGK
 			static int PlatformGetNumProcessors();
 			static bool PlatformGetDeviceID( uString &out );
 			static float PlatformDeviceScale();
+			static void PlatformRendererFinish();
+			static void PlatformSetScreenRecordingParams( void* param1, void* param2 );
 			static int PlatformGetMaxVSUniforms();
 			static int PlatformGetMaxPSUniforms();
 			static int PlatformGetMaxVertexTextures();

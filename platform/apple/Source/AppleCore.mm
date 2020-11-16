@@ -1833,38 +1833,7 @@ bool agk::PlatformGetDeviceID( uString &out )
 
 float agk::PlatformDeviceScale()
 {
-    float realWidth = m_iRenderWidth;
-    float realHeight = m_iRenderHeight;
-    
-    struct utsname systemInfo;
-    uname(&systemInfo);
-    // iPad 1 and iPod touch 4th gen have 256MB RAM but high res screens, force them to lower res.
-    if ( strncmp( systemInfo.machine, "iPad1", 5 ) == 0 || strncmp( systemInfo.machine, "iPod4", 5 ) == 0 )
-	{
-        if ( realWidth > 700 || realHeight > 700 )
-        {
-            realWidth *= 0.5;
-            realHeight *= 0.5;
-        }
-	}
-    
-	float max1 = m_iIntendedWidth;
-	if ( m_iIntendedHeight > max1 ) max1 = m_iIntendedHeight;
-	if ( max1 <= 0 ) return  1.0f;
-
-	float max2 = realWidth;
-	if ( realHeight > max2 ) max2 = realHeight;
-	if ( max2 <= 0 ) return  1.0f;
-
-	float scale = 1.0f;
-	while ( max1 / max2 >= 1.6 )
-	{
-		scale /= 2.0f;
-		max2 *= 2;
-	}
-
-	if ( scale < 0.25f ) scale = 0.25f;
-	return scale;
+    return 1.0f;
 }
 
 int agk::PlatformGetNumProcessors()
@@ -2933,12 +2902,14 @@ float agk::Abs( float a )
 int agk::Mod( int a, int b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return a % b;
 }
 
 float agk::FMod( float a, float b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return fmod( a, b );
 }
 

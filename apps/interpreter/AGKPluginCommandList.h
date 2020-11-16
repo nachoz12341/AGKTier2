@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2046;
+int g_iNumAGKFunctions = 2047;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -1739,6 +1739,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SETSPRITEANGLERAD_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::SetSpriteAngleRad) },
 	{"SETSPRITEANGLE_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::SetSpriteAngle) },
 	{"SETSPRITEANIMATION_0_L_L_L_L", (AGKVoidFunc) (void(*)(UINT,int,int,int)) (agk::SetSpriteAnimation) },
+	{"SETSPRITEBLENDMODES_0_L_L_L", (AGKVoidFunc) (void(*)(uint32_t,int,int)) (agk::SetSpriteBlendModes) },
 	{"SETSPRITECATEGORYBITS_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::SetSpriteCategoryBits) },
 	{"SETSPRITECATEGORYBITS_0_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,int)) (agk::SetSpriteCategoryBits) },
 	{"SETSPRITECATEGORYBIT_0_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,int)) (agk::SetSpriteCategoryBit) },

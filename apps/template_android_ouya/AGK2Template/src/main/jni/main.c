@@ -19,6 +19,8 @@
 #include <unistd.h>
 #include <jni.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
@@ -84,16 +86,6 @@ int windowWidth = 0;
 #define g_iColorMode 1
 
 /**
- * Our saved state data.
- */
-struct saved_state {
-    float angle;
-    int32_t x;
-    int32_t y;
-};
-
-
-/**
  * Shared state for our app.
  */
 struct engine {
@@ -109,21 +101,21 @@ struct engine {
     ASensorEventQueue* sensorEventQueue;
 
     int animating;
-    EGLDisplay display;
-    EGLSurface surface;
-    EGLContext context;
-    int32_t width;
-    int32_t height;
-    struct saved_state state;
-    EGLint format;
 };
+
+EGLDisplay engine_display;
+EGLSurface engine_surface;
+EGLContext engine_context;
+int32_t engine_width;
+int32_t engine_height;
+EGLint engine_format;
 
 struct egldata {
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
     struct ANativeActivity *activity;
-    EGLint format;
+    EGLConfig config;
     ANativeWindow* window;
 };
 
@@ -145,6 +137,45 @@ static int rotationID = 0;
 static int engine_init_display(struct engine* engine) {
     // initialize OpenGL ES and EGL
 
+	if ( done )
+	{
+		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
+
+		engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
+		if ( engine_surface == EGL_NO_SURFACE )
+		{
+			LOGE( "Failed to create EGL surface: %d", eglGetError() );
+			return 0;
+		}
+
+		if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
+		{
+			LOGE( "Unable to eglMakeCurrent: %d", eglGetError() );
+			return 0;
+		}
+
+		EGLint w, h;
+		eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
+		eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
+
+		LOGI( "Width: %d Height: %d", w, h );
+
+		engine_width = w;
+		engine_height = h;
+		
+		struct egldata data;
+		data.display = engine_display;
+		data.surface = engine_surface;
+		data.context = engine_context;
+		data.activity = engine->app->activity;
+		data.config = config;
+		data.window = engine->app->window;
+
+		LOGI( "Updating" );
+    	updateptr( &data );
+	}
+	else
+	{
 	int EGL_DEPTH_ENCODING_NV = 0x30E2;
 	int EGL_DEPTH_ENCODING_NONLINEAR_NV = 0x30E3;
 
@@ -392,29 +423,21 @@ static int engine_init_display(struct engine* engine) {
 
     LOGI( "Width: %d Height: %d", w, h );
 
-    engine->display = display;
-    engine->context = context;
-    engine->surface = surface;
-    engine->width = w;
-    engine->height = h;
-    engine->state.angle = 0;
-    engine->format = format;
+		engine_display = display;
+		engine_context = context;
+		engine_surface = surface;
+		engine_width = w;
+		engine_height = h;
+		engine_format = format;
 
     struct egldata data;
     data.display = display;
     data.surface = surface;
     data.context = context;
     data.activity = engine->app->activity;
-    data.format = format;
+		data.config = config;
     data.window = engine->app->window;
 
-    if ( done != 0 )
-    {
-    	LOGI( "Updating" );
-    	updateptr( &data );
-    }
-    else
-    {
     	LOGI( "Initialising" );
     	init( &data );
     }
@@ -439,12 +462,12 @@ static int engine_init_display(struct engine* engine) {
  * Just the current frame in the display.
  */
 static void engine_draw_frame(struct engine* engine) {
-    if (engine->display == NULL) {
+    if (engine_display == NULL) {
         // No display.
         return;
     }
 
-    if (engine->surface == NULL) {
+    if (engine_surface == NULL) {
 		// No surface.
 		return;
 	}
@@ -458,20 +481,20 @@ static void engine_draw_frame(struct engine* engine) {
 		windowWidth = width;
 		windowHeight = height;
 
-		eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroySurface(engine->display, engine->surface);
+		eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroySurface(engine_display, engine_surface);
 
-		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine->format);
+		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
 		LOGI( "Result: %d", result );
 
-		engine->surface = eglCreateWindowSurface(engine->display, config, engine->app->window, NULL);
-		if ( engine->surface == EGL_NO_SURFACE )
+		engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
+		if ( engine_surface == EGL_NO_SURFACE )
 		{
 			LOGE( "Failed to create EGL surface: %d", eglGetError() );
 			return;
 		}
 
-		if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE)
+		if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
 		{
 			int error = eglGetError();
 			LOGE("Unable to eglMakeCurrent: %d", eglGetError());
@@ -479,21 +502,20 @@ static void engine_draw_frame(struct engine* engine) {
 		}
 
 		EGLint w, h;
-		eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
-		eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
+		eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
+		eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
 
 		LOGI("Width: %d Height: %d",w,h);
 
-		engine->width = w;
-		engine->height = h;
-		engine->state.angle = 0;
+		engine_width = w;
+		engine_height = h;
 
 		struct egldata data;
-		data.display = engine->display;
-		data.surface = engine->surface;
-		data.context = engine->context;
+		data.display = engine_display;
+		data.surface = engine_surface;
+		data.context = engine_context;
 		data.activity = engine->app->activity;
-		data.format = engine->format;
+		data.config = config;
 		data.window = engine->app->window;
 
 		updateptr2( &data );
@@ -503,27 +525,27 @@ static void engine_draw_frame(struct engine* engine) {
 
     if ( getinternaldata(1) == 1 )
     {
-    	if (engine->surface == EGL_NO_SURFACE) return;
+    	if (engine_surface == EGL_NO_SURFACE) return;
 
     	g_userWidth = getinternaldata(2);
     	g_userHeight = getinternaldata(3);
 
     	int oldmode = engine->animating;
 		engine->animating = 0;
-		eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglDestroySurface(engine->display, engine->surface);
+		eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglDestroySurface(engine_display, engine_surface);
 
-		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine->format);
+		int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
 		LOGI( "Result: %d", result );
 
-		engine->surface = eglCreateWindowSurface(engine->display, config, engine->app->window, NULL);
-		if ( engine->surface == EGL_NO_SURFACE )
+		engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
+		if ( engine_surface == EGL_NO_SURFACE )
 		{
 			LOGE( "Failed to create EGL surface: %d", eglGetError() );
 			return;
 		}
 
-		if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE)
+		if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
 		{
 		   int error = eglGetError();
 		   LOGE("Unable to eglMakeCurrent: %d", eglGetError());
@@ -531,21 +553,20 @@ static void engine_draw_frame(struct engine* engine) {
 		}
 
 		EGLint w, h;
-		eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
-		eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
+		eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
+		eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
 
 		LOGI("Width: %d Height: %d",w,h);
 
-		engine->width = w;
-		engine->height = h;
-		engine->state.angle = 0;
+		engine_width = w;
+		engine_height = h;
 
 		struct egldata data;
-		data.display = engine->display;
-		data.surface = engine->surface;
-		data.context = engine->context;
+		data.display = engine_display;
+		data.surface = engine_surface;
+		data.context = engine_context;
 		data.activity = engine->app->activity;
-		data.format = engine->format;
+		data.config = config;
 		data.window = engine->app->window;
 
 		updateptr2( &data );
@@ -635,22 +656,15 @@ static void engine_draw_frame(struct engine* engine) {
  */
 static void engine_term_display(struct engine* engine)
 {
-    if (engine->display != EGL_NO_DISPLAY)
+    if (engine_display != EGL_NO_DISPLAY)
     {
 		windowclosing();
-        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (engine->context != EGL_NO_CONTEXT) {
-            eglDestroyContext(engine->display, engine->context);
         }
-        if (engine->surface != EGL_NO_SURFACE) {
-            eglDestroySurface(engine->display, engine->surface);
-        }
-        eglTerminate(engine->display);
-    }
     engine->animating = 0;
-    engine->display = EGL_NO_DISPLAY;
-    engine->context = EGL_NO_CONTEXT;
-    engine->surface = EGL_NO_SURFACE;
+    
+	eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (engine_surface != EGL_NO_SURFACE) eglDestroySurface(engine_display, engine_surface);
+    engine_surface = EGL_NO_SURFACE;
 }
 
 int initialised = 0;
@@ -664,7 +678,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 {
 	if ( initialised == 0 ) return 0;
 
-	struct engine* engine = (struct engine*)app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION)
 	{
 		// touch event
@@ -894,10 +907,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
     switch (cmd) {
         case APP_CMD_SAVE_STATE:
         	LOGI("Save State");
-            // The system has asked us to save our current state.  Do so.
-            engine->app->savedState = malloc(sizeof(struct saved_state));
-            *((struct saved_state*)engine->app->savedState) = engine->state;
-            engine->app->savedStateSize = sizeof(struct saved_state);
             break;
         case APP_CMD_PAUSE:
 			LOGI("App Paused");
@@ -975,10 +984,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
         case APP_CMD_INIT_WINDOW:
         	LOGI("Window Init");
             // The window is being shown, get it ready.
-            if (engine->app->window != NULL) {
                 engine_init_display(engine);
                 initialised = 1;
-            }
             resumeapp2();
             engine->animating = 1;
             break;
@@ -1063,10 +1070,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 
        case APP_CMD_CONFIG_CHANGED:
        {
-    	   //usleep( 500000 );
-
-		   if ( engine->surface == EGL_NO_SURFACE ) break;
-
     	   AConfiguration *config2 = AConfiguration_new();
 		   AConfiguration_fromAssetManager( config2, engine->app->activity->assetManager);
 		   int orien = AConfiguration_getOrientation( config2 );
@@ -1078,72 +1081,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 		   if ( keyboard == ACONFIGURATION_KEYBOARD_QWERTY ) keyboardmode( 1 ); // physical
     	   else keyboardmode( 2 ); // virtual
 
-		   /*
-		   LOGI("Old Width: %d, Old Height: %d", windowWidth, windowHeight);
-
-		   float timeout = getagktimer() + 0.5f;
-		   int width, height;
-		   do
-		   {
-    		   width = ANativeWindow_getWidth( engine->app->window );
-			   height = ANativeWindow_getHeight( engine->app->window );
-		   } while( (width == windowWidth || height == windowHeight) && getagktimer() < timeout );
-		   windowWidth = width;
-		   windowHeight = height;
-
-		   LOGI("New Width: %d, New Height: %d", windowWidth, windowHeight);
-    	   
-    	   {
-			   if (engine->surface == EGL_NO_SURFACE) break;
-
-			   int oldmode = engine->animating;
-			   engine->animating = 0;
-			   eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			   eglDestroySurface(engine->display, engine->surface);
-
-			   int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine->format);
-			   LOGI( "Result: %d", result );
-
-			   engine->surface = eglCreateWindowSurface(engine->display, config, engine->app->window, NULL);
-			   if ( engine->surface == EGL_NO_SURFACE )
-			   {
-				   LOGE( "Failed to create EGL surface: %d", eglGetError() );
 				   break;
 			   }
-
-			   if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE)
-			   {
-				   int error = eglGetError();
-				   LOGE("Unable to eglMakeCurrent: %d", eglGetError());
-				   break;
-			   }
-
-			   EGLint w, h;
-			   eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
-			   eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
-
-			   LOGI("Width: %d Height: %d",w,h);
-
-			   engine->width = w;
-			   engine->height = h;
-			   engine->state.angle = 0;
-
-			   struct egldata data;
-			   data.display = engine->display;
-			   data.surface = engine->surface;
-			   data.context = engine->context;
-			   data.activity = engine->app->activity;
-			   data.format = engine->format;
-			   data.window = engine->app->window;
-
-			   updateptr2( &data );
-//			   devicerotate();
-			   engine->animating = oldmode;
-    	   }
-		   */
-
-    	   break;
-       }
        default:
        {
     	   //LOGW( "Unknown engine command: %d", cmd );
@@ -1226,11 +1165,6 @@ void android_main(struct android_app* state) {
 
     engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
 
-    if (state->savedState != NULL) {
-        // We are starting with a previous saved state; restore from it.
-        engine.state = *(struct saved_state*)state->savedState;
-    }
-
     // loop waiting for stuff to do.
 
     while (1) {
@@ -1286,11 +1220,19 @@ void android_main(struct android_app* state) {
             if (state->destroyRequested != 0)
             {
             	LOGI("Exiting");
-                cleanup();
-				engine_term_display(&engine);
+                // deleting anything here will cause an error if the activity is recreated since the native
+				// side of the end never truely ends. The thread stops but the heap remains. Also can't call
+				// exit(0) to force the native side to end as that's a crash in Android 10
+                //cleanup();
+				//done = 0;
+				//initialised = 0;
+				//app_mode = -2;
+				//g_iDisableLightProxSensor = 0;
+				//rotationID = 0;
                 //exit(0);
                 return;
             }
+			
         }
 
         if (engine.animating)

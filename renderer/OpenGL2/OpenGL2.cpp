@@ -736,6 +736,16 @@ void agk::SetAntialiasMode( int mode )
 	else glDisable( GL_MULTISAMPLE );
 }
 
+void agk::PlatformRendererFinish()
+{
+	glFinish();
+}
+
+void agk::PlatformSetScreenRecordingParams( void* param1, void* param2 )
+{
+
+}
+
 int agk::PlatformGetMaxVSUniforms()
 {
 	int maxUniformVectors;
@@ -1187,7 +1197,8 @@ int cImage::GetRawDataFull( unsigned char** pData )
 
 void cImage::PlatformLoadFromData( int width, int height, UINT *bits )
 {
-	UINT glformat = GL_RGBA;
+	UINT glformat = GL_RGBA8;
+	UINT glformat2 = GL_RGBA;
 	UINT glbytesize = GL_UNSIGNED_BYTE;
 
 	switch( m_iImageMode )
@@ -1195,6 +1206,7 @@ void cImage::PlatformLoadFromData( int width, int height, UINT *bits )
 		case 2: 
 		{
 			glformat = GL_ALPHA;
+			glformat2 = GL_ALPHA;
 			break;
 		}
 	}
@@ -1208,7 +1220,7 @@ void cImage::PlatformLoadFromData( int width, int height, UINT *bits )
 		else glTexParameterf( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE );
 	}
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, glformat, width, height, 0, glformat, glbytesize, bits );
+	glTexImage2D(GL_TEXTURE_2D, 0, glformat, width, height, 0, glformat2, glbytesize, bits );
 
 	if ( glGenerateMipmap )
 	{
@@ -1281,7 +1293,7 @@ void cImage::PlatformCreateBlank( int width, int height, UINT format, UINT mipma
 		m_bMipmapped = false;
 	}
 
-	UINT glformat = GL_RGBA;
+	UINT glformat = GL_RGBA8;
 	UINT glformat2 = GL_RGBA;
 	UINT glsize = GL_UNSIGNED_BYTE;
 	switch( format )
@@ -1384,7 +1396,7 @@ void cImage::PlatformReloadFromData()
 	//if ( !m_pCompressedPixelData ) return;  still want to create the image even if it doesn't have data
 	if ( m_pParentImage ) return;
 
-	UINT glformat = GL_RGBA;
+	UINT glformat = GL_RGBA8;
 	UINT glformat2 = GL_RGBA;
 	UINT glbytesize = GL_UNSIGNED_BYTE;
 	uLong size = m_iWidth*m_iHeight*4;

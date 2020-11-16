@@ -540,15 +540,6 @@ inline void RemoveDirectoryUTF8( const char* szPath )
 
 namespace AGK
 {
-	class SleepControl
-	{
-		public:
-			SleepControl() { timeBeginPeriod( 1 ); }
-			~SleepControl() { timeEndPeriod( 1 ); }
-	};
-
-	SleepControl g_SleepControl();
-
 	// ****************
 	// webcam functions
 	// ****************
@@ -2305,6 +2296,8 @@ void agk::PlatformInitCommon()
 
 void agk::PlatformInitExternal( void* ptr, int width, int height, void(*swap)(void*), void* swapParam )
 {
+	timeBeginPeriod( 1 );
+
 	if ( !swap ) agk::Warning( "AGK was initialised with InitExternal but no swap function was given" );
 
 	g_hWnd = 0;
@@ -2351,7 +2344,7 @@ void agk::PlatformInitExternal( void* ptr, int width, int height, void(*swap)(vo
 // has grown to be a lot more than just OpenGL setup, but difficult to change the function name now
 void agk::PlatformInitGL ( void* ptr )
 {
-	//timeBeginPeriod( 5 );
+	timeBeginPeriod( 1 );
 
 	HWND hWnd = (HWND) ptr;
 	g_hWnd = hWnd;
@@ -2430,7 +2423,7 @@ void agk::PlatformInitGL ( void* ptr )
 
 void agk::PlatformInitConsole()
 {
-	//timeBeginPeriod( 5 );
+	timeBeginPeriod( 1 );
 
 	if ( g_bGLInit ) return;
 
@@ -2490,6 +2483,8 @@ void agk::PlatformCleanUp()
 
 	// Free Ultrabook command code
 	if ( g_bGLInit ) FreeSensorCommands();
+
+	timeEndPeriod( 1 );
 
 	/*
 	uString sPath( szWriteDir );
@@ -3461,6 +3456,7 @@ float agk::Abs( float a )
 int agk::Mod( int a, int b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return a % b;
 }
 
@@ -3474,6 +3470,7 @@ int agk::Mod( int a, int b )
 float agk::FMod( float a, float b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return fmod( a, b );
 }
 
@@ -7181,18 +7178,22 @@ void agk::SetVideoPosition( float seconds )
 //****f* Video/Recording/StartScreenRecording
 // FUNCTION
 //   Starts recording the screen and saving it to a file. Currently only supported on iOS 9.0 and above 
-//   and Android 5.0 and above.
-//   On iOS the filename is ignored as the device will always save the recording in the camera roll.
-//   The microphone parameter should be set to 1 to record audio from the device microphone during the 
-//   recording. Unfortunately Android does not support recording audio directly from the app, so using 
-//   a value of 0 will produce a silent video. The audio output from the app may be audible through the 
-//   microphone recording though. Recording through the microphone requires that you enable the 
-//   "RecordAudio" permission when exporting your APK. On iOS a microphone value of 1 will record both
-//   the app audio output and the microphone, a value of 0 will only record the app audio.<br/><br/>
+//   and Android 5.0 and above. On iOS the filename is ignored as the device will always save the 
+//   recording in the camera roll.<br/><br/>
+//
+//   On Android the microphone parameter can be set to 1 to record audio from the device microphone 
+//   during the recording. A value of 0 will produce a silent video as Android does not support 
+//   recording audio directly from the app. However the audio output from the app may be audible through 
+//   the microphone when using mode 1. Recording through the microphone requires that you enable the 
+//   "RecordAudio" permission when exporting your APK. <br/><br/>
+//
+//   On iOS a microphone value of 1 will record both the app audio output and the microphone, a value of 
+//   0 will only record the app audio.<br/><br/>
+//
 //   On Android 6 and below the recording may stop at any time, for example if the app is sent to the 
-//   background, or if another activity is activated such as an In App Purchase, or using the 
-//   <i>FacebookLogin</i> command. On Android 7 and above the recording will pause when the app is in the
-//   background and resume when the app resumes. 
+//   background, or if another activity is activated such as an In App Purchase. 
+//   On Android 7 and above the recording will pause when the app is in the background and resume when 
+//   the app resumes. 
 //   On iOS the recording will continue after such interruptions, until <i>StopScreenRecording</i> is called.
 // INPUTS
 //   szFilename -- The path to save the video, should end in .mp4, can be a "raw:" file path
@@ -7687,9 +7688,10 @@ char* agk::GetReadPath()
 //   Returns the directory that contains the current users documents. On Windows this will be something like 
 //   "C:\Users\Me\My Documents", on iOS this will just be the app write directory.
 //   By default all apps write to the system specified app settings folder, for example "C:\Users\Me\AppData" 
-//   on Windows, "/home/user/.config" on Linux, and a protected app data folder on Android. The documents path
-//   is guaranteed to be visible to the user, for example on Android it will be the sdcard folder. Only iOS 
-//   can't provide a publicly accessible location to write to.
+//   on Windows, "/home/user/.config" on Linux, and a protected app data folder on Android. Where possible the 
+//   contents pf the documents path is visible to the user, for example on Android 10 and below it will be the 
+//   sdcard folder. iOS and Android 11 and higher can't provide a publicly accessible location to write to so 
+//   will return the app write directory instead, which is not visible to the user.
 // SOURCE
 char* agk::GetDocumentsPath()
 //****
@@ -10508,17 +10510,19 @@ void agk::SetSharedVariableAppGroup( const char* group )
 
 //****f* Extras/Shared Variables/SaveSharedVariable
 // FUNCTION
-//   Saves a variable so it can be accessed from other apps. This only works on iOS, Android, and HTML5 platforms, 
-//   and apps can only share a variable if they meet certain requirements based on the platform.<br/><br/>
+//   Saves a variable so it can be accessed from other apps. This only works on iOS, Android 10 and below, and HTML5 platforms.
+//   Apps can only share a variable if they meet certain requirements based on the platform.<br/><br/>
 //
 //   On iOS the apps must be created by the same Apple developer account, and have the same App Group added 
 //   to their App IDs on the Apple developer portal. You will need to regenerate the provisioning profile 
 //   after doing this. On iOS you must tell AGK what the App Group is by using <i>SetSharedVariableAppGroup</i>.<br/><br/>
 //
-//   On Android the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
+//   On Android 10 and below the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
 //   to the last dot. For example com.mycompany.mygroup.myapp1 and com.mycompany.mygroup.myapp2 would be able 
 //   to share variables. On Android shared variables are written to a user accessible location, so be aware 
 //   that users may be able to read and/or edit the variables that you save.<br/><br/>
+//
+//   On Android 11 or higher this command will not work as apps are restricted from writing to shared locations.<br/><br/>
 //
 //   On HTML the apps must be hosted on the same domain, the values are stored as cookies.<br/><br/>
 //
@@ -10543,17 +10547,19 @@ void agk::SaveSharedVariable( const char *varName, const char *varValue )
 
 //****f* Extras/Shared Variables/LoadSharedVariable
 // FUNCTION
-//   Loads a variable that was saved by this app, or another app. This only works on iOS, Android, and HTML5 platforms, 
-//   and apps can only share a variable if they meet certain requirements based on the platform.<br/><br/>
+//   Loads a variable that was saved by this app, or another app. This only works on iOS, Android 10 and below, and HTML5 platforms. 
+//   Apps can only share a variable if they meet certain requirements based on the platform.<br/><br/>
 //
 //   On iOS the apps must have the same Bundle Seed ID (also called App ID Prefix) and have the same 
 //   explicit App ID up to the last dot. For example com.mycompany.mygroup.myapp1 and 
 //   com.mycompany.mygroup.myapp2 would be able to share variables.<br/><br/>
 //
-//   On Android the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
+//   On Android 10 and below the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
 //   to the last dot. For example com.mycompany.mygroup.myapp1 and com.mycompany.mygroup.myapp2 would be able 
 //   to share variables. On Android shared variables are written to a user accessible location, so be aware 
 //   that users may be able to read and/or edit the variables that you save.<br/><br/>
+//
+//   On Android 11 or higher this command will not work as apps are restricted from writing to shared locations.<br/><br/>
 //
 //   On HTML the apps must be hosted on the same domain, the values are stored as cookies.<br/><br/>
 //

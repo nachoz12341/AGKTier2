@@ -444,6 +444,8 @@ bool UDPManager::RecvPacket( char *fromIP, int *fromPort, AGKPacket *packet )
 		return false;
 	}
 
+	packet->SetSize( result );
+
 	if ( result > 0 ) 
 	{
 		packet->SetPos( 0 );
@@ -1632,6 +1634,7 @@ bool BroadcastListener::GetPacket( AGKPacket &packet, UINT &fromPort, char *from
 	}
 
 	packet.SetPos( 0 );
+	packet.SetSize( result );
 
 	if ( result > 0 ) 
 	{
@@ -1922,7 +1925,11 @@ bool cHTTPConnection::SetHost( const char *szHost, int iSecure, const char *szUs
 		return false;
 	}
 
-	InternetSetOption( m_hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, (LPVOID)&m_iTimeout, sizeof(m_iTimeout) );  
+	DWORD connections = 8;
+	InternetSetOption( m_hInetConnect, INTERNET_OPTION_MAX_CONNS_PER_SERVER, &connections, sizeof(connections) );
+	InternetSetOption( m_hInetConnect, INTERNET_OPTION_CONNECT_TIMEOUT, &m_iTimeout, sizeof(m_iTimeout) );  
+	BOOL decode = TRUE;
+	InternetSetOption( m_hInetConnect, INTERNET_OPTION_HTTP_DECODING, &decode, sizeof(decode) );  
 
 	m_sURL = new char[ strlen(szHost) + 1 ];
 	strcpy( m_sURL, szHost );
@@ -2347,7 +2354,7 @@ char* cHTTPConnection::SendRequestInternal()
 	UINT iPostLength = m_szPostData.GetLength();
 
 	// send request with header
-	BOOL bSendResult = HttpSendRequest( hHttpRequest, NULL, -1, (void*)(m_szPostData.GetStr()), iPostLength );
+	BOOL bSendResult = HttpSendRequest( hHttpRequest, NULL, 0, iPostLength ? (void*)(m_szPostData.GetStr()) : 0, iPostLength );
 	if ( !bSendResult )
 	{
 #ifdef _AGK_ERROR_CHECK

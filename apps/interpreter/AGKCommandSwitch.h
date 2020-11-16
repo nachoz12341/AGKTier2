@@ -13978,5 +13978,13 @@ case AGKI_FIXCAMERATOOBJECT_0_L_L:
     agk::FixCameraToObject( param0, param1 );
     break;
 }
+case AGKI_SETSPRITEBLENDMODES_0_L_L_L:
+{
+    int param2 = m_pStack[ --m_iStackPtr ].i;
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetSpriteBlendModes( param0, param1, param2 );
+    break;
+}
 
 

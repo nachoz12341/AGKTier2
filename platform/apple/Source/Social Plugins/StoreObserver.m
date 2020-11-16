@@ -100,5 +100,9 @@
 	[[StoreManager sharedManager] finishedRestore:0];
 }
 
+- (BOOL)paymentQueue:(SKPaymentQueue *)queue shouldAddStorePayment:(SKPayment *)payment forProduct:(SKProduct *)product
+{
+    return TRUE;
+}
 
 @end

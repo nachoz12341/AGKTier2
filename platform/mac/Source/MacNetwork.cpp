@@ -154,6 +154,8 @@ bool UDPManager::RecvPacket( char *fromIP, int *fromPort, AGKPacket *packet )
 		return false;
 	}
 
+	packet->SetSize( result );
+
 	if ( result > 0 ) 
 	{
 		packet->SetPos( 0 );
@@ -1266,6 +1268,7 @@ bool BroadcastListener::GetPacket( AGKPacket &packet, UINT &fromPort, char *from
 	}
 	
 	packet.SetPos( 0 );
+	packet.SetSize( result );
 	
 	if ( result > 0 ) 
 	{

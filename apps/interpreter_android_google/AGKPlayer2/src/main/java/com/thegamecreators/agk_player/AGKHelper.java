@@ -1,6 +1,8 @@
 // Temporary until the NDK build system can deal with there being no Java source.
 package com.thegamecreators.agk_player;
 
+import com.chartboost.sdk.Privacy.model.DataUseConsent;
+import com.chartboost.sdk.Privacy.model.GDPR;
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.AdSize;
@@ -128,6 +130,8 @@ import com.google.android.vending.expansion.downloader.impl.DownloaderService;
 import com.google.android.vending.expansion.downloader.impl.BroadcastDownloaderClient;
 
 import com.google.api.services.drive.model.FileList;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.iid.*;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.snapchat.kit.sdk.SnapCreative;
@@ -139,14 +143,6 @@ import com.snapchat.kit.sdk.creative.media.SnapPhotoFile;
 import com.snapchat.kit.sdk.creative.media.SnapSticker;
 import com.snapchat.kit.sdk.creative.models.SnapPhotoContent;
 import com.thegamecreators.agk_player.iap.*;
-
-/*
-import com.facebook.*;
-import com.facebook.android.DialogError;
-import com.facebook.android.Facebook;
-import com.facebook.android.Facebook.DialogListener;
-import com.facebook.android.FacebookError;
-*/
 
 import android.view.Surface;
 import android.webkit.MimeTypeMap;
@@ -180,8 +176,6 @@ import android.media.MediaMetadataRetriever;
 
 import com.chartboost.sdk.*; 
 import com.chartboost.sdk.Model.CBError.CBImpressionError;
-
-import com.amazon.device.ads.*;
 
 import com.android.vending.expansion.zipfile.*;
 import com.google.android.vending.expansion.downloader.*;
@@ -483,11 +477,10 @@ class RunnableChartboost implements Runnable
 				cached = 0;
 				caching = 1;
 				Chartboost.startWithAppId(this.act, AppID, AppSig);
-				Chartboost.restrictDataCollection(this.act, !consent);
-				Chartboost.onCreate(this.act);
+				DataUseConsent dataUseConsent = new GDPR( consent ? GDPR.GDPR_CONSENT.BEHAVIORAL : GDPR.GDPR_CONSENT.NON_BEHAVIORAL );
+				Chartboost.addDataUseConsent(this.act, dataUseConsent);
                 Chartboost.setShouldRequestInterstitialsInFirstSession(true);
 				Chartboost.setDelegate(this.chartBoostDelegate);
-                Chartboost.onStart(this.act);
                 Chartboost.cacheInterstitial(CBLocation.LOCATION_DEFAULT);
                 break;
             }
@@ -563,94 +556,6 @@ class RunnableChartboost implements Runnable
             }
         }
     }
-}
-
-class RunnableAmazonAds implements Runnable
-{
-	public Activity act;
-	public int action = 0;
-	public static int caching = 0;
-	public static int cached = 0;
-	public static int testing = 0;
-	public static String AppID;
-	private static com.amazon.device.ads.InterstitialAd interstitialAd;
-
-	private DefaultAdListener AmazonAdsDelegate = new DefaultAdListener() {
-		@Override
-		public void onAdLoaded(final Ad ad, final AdProperties adProperties) {
-			Log.i("Amazon Ads", "Interstitial loaded");
-			caching = 0;
-			cached = 1;
-		}
-
-		@Override
-		public void onAdFailedToLoad(final Ad view, final AdError error) {
-			caching = 0;
-			cached = 0;
-			Log.e("Amazon Ads", "Failed to load interstitial - Error: " + error.getMessage());
-		}
-
-		@Override
-		public void onAdDismissed(final Ad ad) {
-			Log.i("Amazon Ads", "Interstitial dismissed");
-			if ( cached == 0 && caching == 0 )
-			{
-				caching = 1;
-				interstitialAd.loadAd();
-			}
-		}
-	};
-
-	@Override
-	public void run() {
-		switch ( action )
-		{
-			case 1: // initialize
-			{
-				Log.i("Amazon Ads", "Initializing Amazon Ads SDK");
-
-				cached = 0;
-				caching = 1;
-				interstitialAd = new com.amazon.device.ads.InterstitialAd(act);
-				AdRegistration.setAppKey(AppID);
-				AdRegistration.enableTesting(testing != 0 ? true : false);
-				interstitialAd.setListener(AmazonAdsDelegate);
-				interstitialAd.loadAd();
-				break;
-			}
-			case 2:
-			{
-				AdRegistration.enableTesting(testing != 0 ? true : false);
-				break;
-			}
-			case 3: // show ad
-			{
-				Log.i("Amazon Ads", "Display Ad");
-
-				if ( cached == 0 )
-				{
-					if ( caching == 0 )
-					{
-						caching = 1;
-						interstitialAd.loadAd();
-					}
-				}
-				else
-				{
-					Log.i("Amazon Ads", "Showing Ad");
-					cached = 0;
-					interstitialAd.showAd();
-				}
-
-				break;
-			}
-			default:
-			{
-				Log.i("Amazon Ads", "undefined action");
-				break;
-			}
-		}
-	}
 }
 
 // Used for agk::CreateAdvert()
@@ -2051,27 +1956,78 @@ public class AGKHelper {
 	static Activity g_pImmersiveAct = null;
 	public static String g_sLastURI = null;
 
-	static MediaProjectionManager mMediaProjectionManager = null;
 	static MediaRecorder mMediaRecorder = null;
-	static MediaProjection mMediaProjection = null;
-	static VirtualDisplay mVirtualDisplay = null;
-	static int g_iScreenRecordMic = 0;
-	static String g_sScreenRecordFile = "";
-	public static void StartScreenRecording( Activity act, String filename, int microphone )
+	public static int StartScreenRecording( Activity act, String filename, int microphone )
 	{
 		if ( g_pAct == null ) g_pAct = act;
 		if ( Build.VERSION.SDK_INT >= 21 ) {
-			if ( mMediaRecorder != null ) return;
-			g_iScreenRecordMic = microphone;
-			g_sScreenRecordFile = filename;
-			mMediaProjectionManager = (MediaProjectionManager) act.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-			act.startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), 10002);
+			if ( mMediaRecorder != null ) return 0;
+
+			int width = AGKHelper.g_pAct.getWindow().getDecorView().getWidth();
+			int height = AGKHelper.g_pAct.getWindow().getDecorView().getHeight();
+			if (width > height) {
+				if (width > 1280 || height > 720 )
+				{
+					float scaleW = 1280.0f / width;
+					float scaleH = 720.0f / height;
+					if ( scaleH < scaleW ) scaleW = scaleH;
+					width = (int) (width * scaleW);
+					height = (int) (height * scaleW);
+		}
+			} else {
+				if (width > 720 || height > 1280 )
+				{
+					float scaleW = 720.0f / width;
+					float scaleH = 1280.0f / height;
+					if (scaleH < scaleW) scaleW = scaleH;
+					width = (int) (width * scaleW);
+					height = (int) (height * scaleW);
+				}
+			}
+			int audioSource = 0;
+			if (microphone == 1) {
+				if (ContextCompat.checkSelfPermission(act, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+					audioSource = MediaRecorder.AudioSource.MIC;
+				} else {
+					Log.w("Screen Recording", "The app does not have the RECORD_AUDIO permission, video will have no audio");
+				}
+			}
+
+			AGKHelper.mMediaRecorder = new MediaRecorder();
+			if (audioSource > 0) AGKHelper.mMediaRecorder.setAudioSource(audioSource);
+			AGKHelper.mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+			AGKHelper.mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+			AGKHelper.mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+			if (audioSource > 0) {
+				AGKHelper.mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+				AGKHelper.mMediaRecorder.setAudioEncodingBitRate(96000);
+				AGKHelper.mMediaRecorder.setAudioSamplingRate(44100);
+			}
+			AGKHelper.mMediaRecorder.setVideoEncodingBitRate(2048 * 1000);
+			AGKHelper.mMediaRecorder.setVideoFrameRate(30);
+			AGKHelper.mMediaRecorder.setVideoSize(width, height);
+			AGKHelper.mMediaRecorder.setOutputFile(filename);
+			try {
+				AGKHelper.mMediaRecorder.prepare();
+			} catch (Exception e) {
+				e.printStackTrace();
+				AGKHelper.mMediaRecorder.release();
+				AGKHelper.mMediaRecorder = null;
+				Log.w("Screen Recording", "Failed to prepare media recorder");
+				return 0;
+			}
+
+			mMediaRecorder.start();
 		}
 		else
 		{
 			Log.w("Screen Recording", "Screen recording requires Android 5.0 or above");
+			return 0;
 		}
+
+		return 1; // success
 	}
+
 	public static void StopScreenRecording()
 	{
 		if ( Build.VERSION.SDK_INT >= 21 ) {
@@ -2086,15 +2042,21 @@ public class AGKHelper {
 				}
 				mMediaRecorder.release();
 				mMediaRecorder = null;
-
-				mMediaProjection.stop();
-				mVirtualDisplay.release();
 			}
 		}
 	}
+
 	public static int IsScreenRecording()
 	{
 		return mMediaRecorder == null ? 0 : 1;
+	}
+
+	public static Surface GetScreenRecordSurface()
+	{
+		if ( Build.VERSION.SDK_INT < 21 )  return null;
+		if ( mMediaRecorder == null ) return null;
+
+		return mMediaRecorder.getSurface();
 	}
 
 	public static void SetClipboardText( Activity act, String text )
@@ -2262,6 +2224,27 @@ public class AGKHelper {
 	}
 
 	public static int HasFirebase() { return 1; }
+
+	static FirebaseAnalytics mFirebaseAnalytics = null;
+	public static void FirebaseInit( Activity act )
+	{
+		FirebaseApp.initializeApp(act);
+		mFirebaseAnalytics = FirebaseAnalytics.getInstance(act);
+	}
+
+	public static void FirebaseLogEvent( String event_name )
+	{
+		if ( mFirebaseAnalytics == null ) return;
+		mFirebaseAnalytics.logEvent( event_name, null );
+	}
+
+	public static void FirebaseLogEventInt( String event_name, String param_name, int paramValue )
+	{
+		if ( mFirebaseAnalytics == null ) return;
+		Bundle bundle = new Bundle();
+		bundle.putInt( param_name, paramValue );
+		mFirebaseAnalytics.logEvent( event_name, bundle );
+	}
 
 	public static void SetImmersiveMode( Activity act, int mode ) {
 		immersiveMode = mode;
@@ -2813,6 +2796,8 @@ public class AGKHelper {
 	
 	public static void LoadVideo( Activity act, String filename, int type )
 	{
+		if ( RunnableVideo.video != null ) RunnableVideo.video.videoDuration = 0;
+
 		Log.i("Video","Load Video");
 		RunnableVideo video = new RunnableVideo();
 		video.act = act;
@@ -3096,7 +3081,8 @@ public class AGKHelper {
 			if ( g_iSpeechIDLast > 1000000000 ) g_iSpeechIDLast = 0;
 			HashMap<String,String> hashMap = new HashMap();
 			hashMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(g_iSpeechIDLast) );
-			g_pTextToSpeech.playSilence( delay, queueMode, hashMap );
+			try { g_pTextToSpeech.playSilence( delay, queueMode, hashMap ); }
+			catch( IllegalArgumentException e ) {}
 		}
 
 		g_iSpeechIDLast++;
@@ -3104,10 +3090,12 @@ public class AGKHelper {
 		HashMap<String,String> hashMap = new HashMap();
 		hashMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(g_iSpeechIDLast) );
 
-		if ( g_pTextToSpeech.speak( text, queueMode, hashMap ) < 0 )
-		{
+		try {
+			if (g_pTextToSpeech.speak(text, queueMode, hashMap) < 0) {
 			Log.e( "TextToSpeech", "Failed to queue speech" );
 		}
+	}
+		catch( IllegalArgumentException e ) {}
 	}
 
 	public static int GetSpeechNumVoices( Activity act )
@@ -3138,8 +3126,11 @@ public class AGKHelper {
 	{
 		if ( g_pTextToSpeech == null ) return;
 		String[] parts = lang.split("_");
+		try {
 		if ( parts.length <= 1 ) g_pTextToSpeech.setLanguage( new Locale(lang) );
 		else g_pTextToSpeech.setLanguage( new Locale(parts[0],parts[1]) );
+	}
+		catch( IllegalArgumentException e ) {}
 	}
 
 	public static void SetSpeechLanguageByID( Activity act, String sID )
@@ -3158,13 +3149,15 @@ public class AGKHelper {
 		if ( index < 0 || index >= g_SpeechLanguages.length ) return;
 
 		Locale locale = (Locale)g_SpeechLanguages[ index ];
-		g_pTextToSpeech.setLanguage( locale );
+		try { g_pTextToSpeech.setLanguage( locale ); }
+		catch( IllegalArgumentException e ) {}
 	}
 
 	public static void SetSpeechRate( Activity act, float rate )
 	{
 		if ( g_pTextToSpeech == null ) return;
-		g_pTextToSpeech.setSpeechRate( rate );
+		try { g_pTextToSpeech.setSpeechRate( rate ); }
+		catch( IllegalArgumentException e ) {}
 	}
 
 	public static int IsSpeaking()
@@ -3176,7 +3169,9 @@ public class AGKHelper {
 	public static void StopSpeaking()
 	{
 		if ( g_pTextToSpeech == null ) return;
-		g_pTextToSpeech.stop();
+		if ( g_iIsSpeaking == 0 ) return;
+		try { g_pTextToSpeech.stop(); }
+		catch( IllegalArgumentException e ) {}
 		g_iIsSpeaking = 0;
 	}
 
@@ -3310,7 +3305,8 @@ public class AGKHelper {
 		RunnableChartboost.consent = false;
 		if ( mode == 2 ) RunnableChartboost.consent = true;
 
-		Chartboost.restrictDataCollection(act, !RunnableChartboost.consent);
+		DataUseConsent dataUseConsent = new GDPR( RunnableChartboost.consent ? GDPR.GDPR_CONSENT.BEHAVIORAL : GDPR.GDPR_CONSENT.NON_BEHAVIORAL );
+		Chartboost.addDataUseConsent(act, dataUseConsent);
 	}
 
 	public static void CreateAd(Activity act, String publisherID, int horz, int vert, int offsetX, int offsetY, int type)
@@ -3495,31 +3491,12 @@ public class AGKHelper {
 
 	public static void SetAmazonAdDetails( Activity act, String publisherID )
 	{
-		RunnableAmazonAds.AppID = publisherID;
-
-		RunnableAmazonAds run = new RunnableAmazonAds();
-		run.action = 1;
-		run.act = act;
-		act.runOnUiThread( run );
+		Log.w( "Amazon Ads", "Amazon Ads not support on Google" );
 	}
 
-	public static void SetAmazonAdTesting( Activity act, int testing )
-	{
-		RunnableAmazonAds.testing = testing;
+	public static void SetAmazonAdTesting( Activity act, int testing ) {}
 
-		RunnableAmazonAds run = new RunnableAmazonAds();
-		run.action = 2;
-		run.act = act;
-		act.runOnUiThread(run);
-	}
-
-	public static void CreateFullscreenAdAmazon(Activity act)
-	{
-		RunnableAmazonAds run = new RunnableAmazonAds();
-		run.action = 3;
-		run.act = act;
-		act.runOnUiThread( run );
-	}
+	public static void CreateFullscreenAdAmazon(Activity act) { }
 
 	public static int GetFullscreenLoadedAdMob()
 	{
@@ -3533,7 +3510,7 @@ public class AGKHelper {
 
 	public static int GetFullscreenLoadedAmazon()
 	{
-		return RunnableAmazonAds.cached;
+		return 0;
 	}
 
 	// local notifications
@@ -3645,7 +3622,7 @@ public class AGKHelper {
         public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
             Log.d("IAB InventoryFinished", "Query inventory finished.");
             if (result.isFailure()) {
-                Log.e("IAB InventoryFinished","Failed to query inventory: " + result);
+                Log.e("IAB InventoryFinished","Failed to query inventory: " + result.getMessage());
 				g_iIAPStatus = -1;
                 return;
             }
@@ -3836,7 +3813,7 @@ public class AGKHelper {
 				Log.d("In App Billing", "Setup finished.");
 
 				if (!result.isSuccess()) {
-					Log.e("In App Billing", "Problem setting up in-app billing: " + result);
+					Log.e("In App Billing", "Problem setting up in-app billing: " + result.getMessage());
 					g_iIAPStatus = -1;
 					return;
 				}
@@ -4197,52 +4174,9 @@ public class AGKHelper {
 	
 	public static void GenerateCrashReport(Activity act)
 	{
-		Process mLogcatProc = null;
-	    try 
-	    {
-			mLogcatProc = Runtime.getRuntime().exec( new String[] {"logcat", "-d", "*:V" });
-			
-			InputStream is = mLogcatProc.getInputStream();
-			
-			SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
-			String format = s.format(new Date());
-	    
-		   // File f = new File("/sdcard/crashreport "+format+".txt");
-			File f = new File("/sdcard/crashreport.txt");
-		    OutputStream os;
-			os = new FileOutputStream(f);
-		
-			byte[] buffer = new byte[1024];
-			int bytesRead;
-        
-			while ((bytesRead = is.read(buffer)) != -1)
-			{
-			    os.write(buffer, 0, bytesRead);
+		// no longer used
 			}
 		
-        	//is.close();
-			os.close();
-			
-			Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-			emailIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"paul@thegamecreators.com"});
-			emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "AGK Bug Report");
-			emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Bug report attached. Any additional information: ");
-
-			String rawFolderPath = "file:///mnt/sdcard/crashreport.txt";
-
-			// Here my file name is shortcuts.pdf which i have stored in /res/raw folder
-			Uri emailUri = Uri.parse(rawFolderPath );
-			emailIntent.putExtra(Intent.EXTRA_STREAM, emailUri);
-			emailIntent.setType("text/plain");
-			act.startActivity(Intent.createChooser(emailIntent, "Send bug report..."));
-		} 
-	    catch (IOException e) 
-	    {
-			e.printStackTrace();
-		}
-	}
-	
 	// expansion files
 	static int g_iExpansionState = 1; // 1=not found, 2=downloading, 3=found
 	static int g_iExpansionPrevState = -2;
@@ -4483,12 +4417,14 @@ public class AGKHelper {
 	}
 
 	// permissions
-	static String[] g_sPermissions = { "WriteExternal", "Location", "Camera", "RecordAudio" };
-	static String[] g_sPermissionsReal = { Manifest.permission.WRITE_EXTERNAL_STORAGE,
+	static String[] g_sPermissions = { "WriteExternal", "ReadExternal", "Location", "Camera", "RecordAudio" };
+	static String[] g_sPermissionsReal = {
+			Manifest.permission.WRITE_EXTERNAL_STORAGE,
+			Manifest.permission.READ_EXTERNAL_STORAGE,
 			Manifest.permission.ACCESS_FINE_LOCATION,
 			Manifest.permission.CAMERA,
 			Manifest.permission.RECORD_AUDIO };
-	static int[] g_iPermissionStatus = {0,0,0,0}; // -1=denied, 0=not granted, but not asked, 1=in progress, 2=granted
+	static int[] g_iPermissionStatus = {0,0,0,0,0}; // -1=denied, 0=not granted, but not asked, 1=in progress, 2=granted
 
 	public static int GetAPIVersion() { return Build.VERSION.SDK_INT; }
 
@@ -5007,6 +4943,9 @@ public class AGKHelper {
 	// Shared variables
 	public static void SaveSharedVariableWithPermission( Activity act, String varName, String varValue )
 	{
+		// Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return;
+
 		String packageName = act.getPackageName();
 		String folderName = packageName;
 
@@ -5059,6 +4998,9 @@ public class AGKHelper {
 
 	public static void SaveSharedVariable( Activity act, String varName, String varValue )
 	{
+		// Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return;
+
 		// write local value to the shared preferences, then try and write globally
 		SharedPreferences sharedPref = act.getSharedPreferences("agksharedvariables", Context.MODE_PRIVATE);
 		SharedPreferences.Editor edit = sharedPref.edit();
@@ -5081,6 +5023,9 @@ public class AGKHelper {
 
 	public static String LoadSharedVariable( Activity act, String varName, String defaultValue )
 	{
+		// Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return defaultValue;
+
 		// must request permissions on API 23 (Android 6.0) and above
 		if (Build.VERSION.SDK_INT >= 23)
 		{
@@ -5146,6 +5091,9 @@ public class AGKHelper {
 
 	public static void DeleteSharedVariable( Activity act, String varName )
 	{
+		// Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return;
+
 		// delete any local value
 		SharedPreferences sharedPref = act.getSharedPreferences( "agksharedvariables", Context.MODE_PRIVATE );
 		SharedPreferences.Editor edit = sharedPref.edit();
@@ -5254,7 +5202,15 @@ public class AGKHelper {
 		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
-			act.startActivity(Intent.createChooser(target,"Share Image"));
+			Intent chooser = Intent.createChooser(target,"Share Image");
+			chooser.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+
+			List<ResolveInfo> resInfoList = act.getPackageManager().queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY);
+			for (ResolveInfo resolveInfo : resInfoList) {
+				String packageName = resolveInfo.activityInfo.packageName;
+				act.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+			act.startActivity( chooser );
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share images");
 		}
@@ -5278,7 +5234,15 @@ public class AGKHelper {
 		target.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
 		try {
-			act.startActivity(Intent.createChooser(target,"Share"));
+			Intent chooser = Intent.createChooser(target,"Share...");
+			chooser.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+
+			List<ResolveInfo> resInfoList = act.getPackageManager().queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY);
+			for (ResolveInfo resolveInfo : resInfoList) {
+				String packageName = resolveInfo.activityInfo.packageName;
+				act.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+			act.startActivity( chooser );
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share images");
 		}
@@ -5307,7 +5271,15 @@ public class AGKHelper {
 		target.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_GRANT_READ_URI_PERMISSION );
 
 		try {
-			act.startActivity(Intent.createChooser(target,"Share File"));
+			Intent chooser = Intent.createChooser(target,"Share File");
+			chooser.setFlags( Intent.FLAG_ACTIVITY_NO_HISTORY );
+
+			List<ResolveInfo> resInfoList = act.getPackageManager().queryIntentActivities(chooser, PackageManager.MATCH_DEFAULT_ONLY);
+			for (ResolveInfo resolveInfo : resInfoList) {
+				String packageName = resolveInfo.activityInfo.packageName;
+				act.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+			act.startActivity( chooser );
 		} catch (ActivityNotFoundException e) {
 			ShowMessage(act,"No application found to share file type \"" + sExt + "\"");
 		}
@@ -5315,7 +5287,14 @@ public class AGKHelper {
 
 	public static String GetExternalDir()
 	{
+		if ( Build.VERSION.SDK_INT >= 30 )
+		{
+			return g_pAct.getFilesDir().getAbsolutePath();
+		}
+		else
+		{
 		return Environment.getExternalStorageDirectory().getAbsolutePath();
+	}
 	}
 
 	public static int GetPackageInstalled( Activity act, String packageName )

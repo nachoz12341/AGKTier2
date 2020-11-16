@@ -337,6 +337,8 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 	public void LoadVideo( String filename, int type )
 	{
+		if ( RunnableVideo.video != null ) RunnableVideo.video.videoDuration = 0;
+
 		Log.i("Video", "Load Video");
 
 		m_filename = filename;
@@ -1089,27 +1091,79 @@ public class AGKHelper {
 	public static String g_sLastURI = null;
 
 	// screen recording
-	static MediaProjectionManager mMediaProjectionManager = null;
 	static MediaRecorder mMediaRecorder = null;
-	static MediaProjection mMediaProjection = null;
-	static VirtualDisplay mVirtualDisplay = null;
-	static int g_iScreenRecordMic = 0;
-	static String g_sScreenRecordFile = "";
-	public static void StartScreenRecording( Activity act, String filename, int microphone )
+	public static int StartScreenRecording( Activity act, String filename, int microphone )
 	{
 		if ( g_pAct == null ) g_pAct = act;
 		if ( Build.VERSION.SDK_INT >= 21 ) {
-			if ( mMediaRecorder != null ) return;
-			g_iScreenRecordMic = microphone;
-			g_sScreenRecordFile = filename;
-			mMediaProjectionManager = (MediaProjectionManager) act.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-			act.startActivityForResult(mMediaProjectionManager.createScreenCaptureIntent(), 10002);
+			if ( mMediaRecorder != null ) return 0;
+
+			int width = AGKHelper.g_pAct.getWindow().getDecorView().getWidth();
+			int height = AGKHelper.g_pAct.getWindow().getDecorView().getHeight();
+			if (width > height) {
+				if (width > 1280 || height > 720 )
+				{
+					float scaleW = 1280.0f / width;
+					float scaleH = 720.0f / height;
+					if ( scaleH < scaleW ) scaleW = scaleH;
+					width = (int) (width * scaleW);
+					height = (int) (height * scaleW);
+		}
+			} else {
+				if (width > 720 || height > 1280 )
+				{
+					float scaleW = 720.0f / width;
+					float scaleH = 1280.0f / height;
+					if (scaleH < scaleW) scaleW = scaleH;
+					width = (int) (width * scaleW);
+					height = (int) (height * scaleW);
+				}
+			}
+
+			int audioSource = 0;
+			if (microphone == 1) {
+				//if (ContextCompat.checkSelfPermission(act, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+					audioSource = MediaRecorder.AudioSource.MIC;
+				//} else {
+				//	Log.w("Screen Recording", "The app does not have the RECORD_AUDIO permission, video will have no audio");
+				//}
+			}
+
+			AGKHelper.mMediaRecorder = new MediaRecorder();
+			if (audioSource > 0) AGKHelper.mMediaRecorder.setAudioSource(audioSource);
+			AGKHelper.mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+			AGKHelper.mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+			AGKHelper.mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+			if (audioSource > 0) {
+				AGKHelper.mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+				AGKHelper.mMediaRecorder.setAudioEncodingBitRate(96000);
+				AGKHelper.mMediaRecorder.setAudioSamplingRate(44100);
+			}
+			AGKHelper.mMediaRecorder.setVideoEncodingBitRate(2048 * 1000);
+			AGKHelper.mMediaRecorder.setVideoFrameRate(30);
+			AGKHelper.mMediaRecorder.setVideoSize(width, height);
+			AGKHelper.mMediaRecorder.setOutputFile(filename);
+			try {
+				AGKHelper.mMediaRecorder.prepare();
+			} catch (Exception e) {
+				e.printStackTrace();
+				AGKHelper.mMediaRecorder.release();
+				AGKHelper.mMediaRecorder = null;
+				Log.w("Screen Recording", "Failed to prepare media recorder");
+				return 0;
+			}
+
+			mMediaRecorder.start();
 		}
 		else
 		{
 			Log.w("Screen Recording", "Screen recording requires Android 5.0 or above");
+			return 0;
 		}
+
+		return 1; // success
 	}
+
 	public static void StopScreenRecording()
 	{
 		if ( Build.VERSION.SDK_INT >= 21 ) {
@@ -1124,15 +1178,21 @@ public class AGKHelper {
 				}
 				mMediaRecorder.release();
 				mMediaRecorder = null;
-
-				mMediaProjection.stop();
-				mVirtualDisplay.release();
 			}
 		}
 	}
+
 	public static int IsScreenRecording()
 	{
 		return mMediaRecorder == null ? 0 : 1;
+	}
+
+	public static Surface GetScreenRecordSurface()
+	{
+		if ( Build.VERSION.SDK_INT < 21 )  return null;
+		if ( mMediaRecorder == null ) return null;
+
+		return mMediaRecorder.getSurface();
 	}
 
 	public static void SetClipboardText( Activity act, String text )
@@ -1217,10 +1277,20 @@ public class AGKHelper {
 
 	public static int HasFirebase() { return 0; }
 
+    public static void FirebaseInit( Activity act )	{}
+
+    public static void FirebaseLogEvent( String event_name ) {}
+
+    public static void FirebaseLogEventInt( String event_name, String param_name, int paramValue ) {}
+
 	public static void SetImmersiveMode( Activity act, int mode )
 	{
 		// Ouya doesn't have immersive mode
 	}
+	
+	private static boolean servicesConnected(Activity act) {
+        return false;
+    }
 	
 	public static int GetGPSExists( Activity act )
 	{
@@ -1912,6 +1982,7 @@ public class AGKHelper {
 	public static void StopSpeaking()
 	{
 		if ( g_pTextToSpeech == null ) return;
+		if ( g_iIsSpeaking == 0 ) return;
 		g_pTextToSpeech.stop();
 		g_iIsSpeaking = 0;
 	}
@@ -2610,13 +2681,14 @@ public class AGKHelper {
 
 	public static int ExtractExpansionFileImage(Activity act, String filename, String newPath ) { return 0; }
 
-	// permissions
-	static String[] g_sPermissions = { "WriteExternal", "Location", "Camera", "RecordAudio" };
-	static String[] g_sPermissionsReal = { Manifest.permission.WRITE_EXTERNAL_STORAGE,
+	static String[] g_sPermissions = { "WriteExternal", "ReadExternal", "Location", "Camera", "RecordAudio" };
+	static String[] g_sPermissionsReal = {
+			Manifest.permission.WRITE_EXTERNAL_STORAGE,
+			Manifest.permission.READ_EXTERNAL_STORAGE,
 			Manifest.permission.ACCESS_FINE_LOCATION,
 			Manifest.permission.CAMERA,
 			Manifest.permission.RECORD_AUDIO };
-	static int[] g_iPermissionStatus = {0,0,0,0}; // -1=denied, 0=not granted, but not asked, 1=in progress, 2=granted
+	static int[] g_iPermissionStatus = {0,0,0,0,0}; // -1=denied, 0=not granted, but not asked, 1=in progress, 2=granted
 
 	public static int GetAPIVersion() { return Build.VERSION.SDK_INT; }
 
@@ -2699,6 +2771,9 @@ public class AGKHelper {
 	// Shared variables
 	public static void SaveSharedVariableWithPermission( Activity act, String varName, String varValue )
 	{
+           // Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return;
+
 		String packageName = act.getPackageName();
 		String folderName = packageName;
 
@@ -2751,6 +2826,9 @@ public class AGKHelper {
 
 	public static void SaveSharedVariable( Activity act, String varName, String varValue )
 	{
+           // Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return;
+
 		// write local value to the shared preferences, then try and write globally
 		SharedPreferences sharedPref = act.getSharedPreferences("agksharedvariables", Context.MODE_PRIVATE);
 		SharedPreferences.Editor edit = sharedPref.edit();
@@ -2773,6 +2851,9 @@ public class AGKHelper {
 
 	public static String LoadSharedVariable( Activity act, String varName, String defaultValue )
 	{
+           // Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return defaultValue;
+
 		// must request permissions on API 23 (Android 6.0) and above
 		if (Build.VERSION.SDK_INT >= 23)
 		{
@@ -2838,6 +2919,9 @@ public class AGKHelper {
 
 	public static void DeleteSharedVariable( Activity act, String varName )
 	{
+           // Android 11 blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 30 ) return;
+
 		// delete any local value
 		SharedPreferences sharedPref = act.getSharedPreferences( "agksharedvariables", Context.MODE_PRIVATE );
 		SharedPreferences.Editor edit = sharedPref.edit();
@@ -3082,7 +3166,14 @@ public class AGKHelper {
 
 	public static String GetExternalDir()
 	{
+		if ( Build.VERSION.SDK_INT >= 30 )
+		{
+			return g_pAct.getFilesDir().getAbsolutePath();
+		}
+		else
+		{
 		return Environment.getExternalStorageDirectory().getAbsolutePath();
+	}
 	}
 
 	public static int GetPackageInstalled( Activity act, String packageName )

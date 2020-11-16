@@ -64,68 +64,6 @@ public class AGKActivity extends NativeActivity
                 }
                 break;
             }
-            case 10002: {
-                if (resultCode != Activity.RESULT_OK) {
-                    Log.i("MediaProjection", "User cancelled");
-                    return;
-                }
-                if (Build.VERSION.SDK_INT >= 21) {
-                    Log.i("MediaProjection", "Starting screen capture");
-
-                    int width = AGKHelper.g_pAct.getWindow().getDecorView().getWidth();
-                    int height = AGKHelper.g_pAct.getWindow().getDecorView().getHeight();
-                    if (width > height) {
-                        if (width > 1280) width = 1280;
-                        if (height > 720) height = 720;
-                    } else {
-                        if (width > 720) width = 720;
-                        if (height > 1280) height = 1280;
-                    }
-                    int audioSource = 0;
-                    if (AGKHelper.g_iScreenRecordMic == 1) {
-                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                            audioSource = MediaRecorder.AudioSource.MIC;
-                        } else {
-                            Log.w("Screen Recording", "The app does not have the RECORD_AUDIO permission, video will have no audio");
-                        }
-                    }
-
-                    AGKHelper.mMediaRecorder = new MediaRecorder();
-                    if (audioSource > 0) AGKHelper.mMediaRecorder.setAudioSource(audioSource);
-                    AGKHelper.mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-                    AGKHelper.mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                    AGKHelper.mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-                    if (audioSource > 0) {
-                        AGKHelper.mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-                        AGKHelper.mMediaRecorder.setAudioEncodingBitRate(96000);
-                        AGKHelper.mMediaRecorder.setAudioSamplingRate(44100);
-                    }
-                    AGKHelper.mMediaRecorder.setVideoEncodingBitRate(2048 * 1000);
-                    AGKHelper.mMediaRecorder.setVideoFrameRate(30);
-                    AGKHelper.mMediaRecorder.setVideoSize(width, height);
-                    AGKHelper.mMediaRecorder.setOutputFile(AGKHelper.g_sScreenRecordFile);
-                    try {
-                        AGKHelper.mMediaRecorder.prepare();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        AGKHelper.mMediaRecorder.release();
-                        AGKHelper.mMediaRecorder = null;
-                        return;
-                    }
-
-                    Log.i("Screen Recording", "Recording to: " + AGKHelper.g_sScreenRecordFile);
-
-                    DisplayMetrics metrics = AGKHelper.g_pAct.getResources().getDisplayMetrics();
-                    AGKHelper.mMediaProjection = AGKHelper.mMediaProjectionManager.getMediaProjection(resultCode, data);
-                    Log.i("MediaProjection", "Setting up a VirtualDisplay: " + width + "x" + height + " (" + metrics.densityDpi + ")");
-                    AGKHelper.mVirtualDisplay = AGKHelper.mMediaProjection.createVirtualDisplay("ScreenCapture",
-                            width, height, metrics.densityDpi,
-                            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                            AGKHelper.mMediaRecorder.getSurface(), null, null);
-                    AGKHelper.mMediaRecorder.start();
-                }
-                break;
-            }
             case 10003: // Google Drive sign in
             {
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);

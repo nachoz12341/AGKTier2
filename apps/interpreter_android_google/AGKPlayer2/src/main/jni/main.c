@@ -86,16 +86,6 @@ int windowWidth = 0;
 #define g_iColorMode 1
 
 /**
- * Our saved state data.
- */
-struct saved_state {
-    float angle;
-    int32_t x;
-    int32_t y;
-};
-
-
-/**
  * Shared state for our app.
  */
 struct engine {
@@ -111,7 +101,6 @@ struct engine {
     ASensorEventQueue* sensorEventQueue;
 
     int animating;
-    struct saved_state state;
 };
 
 EGLDisplay engine_display;
@@ -126,7 +115,7 @@ struct egldata {
     EGLSurface surface;
     EGLContext context;
     struct ANativeActivity *activity;
-    EGLint format;
+    EGLConfig config;
     ANativeWindow* window;
 };
 
@@ -179,7 +168,7 @@ static int engine_init_display(struct engine* engine) {
 		data.surface = engine_surface;
 		data.context = engine_context;
 		data.activity = engine->app->activity;
-		data.format = engine_format;
+		data.config = config;
 		data.window = engine->app->window;
 
 		LOGI( "Updating" );
@@ -439,7 +428,6 @@ static int engine_init_display(struct engine* engine) {
 		engine_surface = surface;
 		engine_width = w;
 		engine_height = h;
-		engine->state.angle = 0;
 		engine_format = format;
 
 		struct egldata data;
@@ -447,7 +435,7 @@ static int engine_init_display(struct engine* engine) {
 		data.surface = surface;
 		data.context = context;
 		data.activity = engine->app->activity;
-		data.format = format;
+		data.config = config;
 		data.window = engine->app->window;
 
 		LOGI( "Initialising" );
@@ -521,14 +509,13 @@ static void engine_draw_frame(struct engine* engine) {
 
 		engine_width = w;
 		engine_height = h;
-		engine->state.angle = 0;
 
 		struct egldata data;
 		data.display = engine_display;
 		data.surface = engine_surface;
 		data.context = engine_context;
 		data.activity = engine->app->activity;
-		data.format = engine_format;
+		data.config = config;
 		data.window = engine->app->window;
 
 		updateptr2( &data );
@@ -573,14 +560,13 @@ static void engine_draw_frame(struct engine* engine) {
 
 		engine_width = w;
 		engine_height = h;
-		engine->state.angle = 0;
 
 		struct egldata data;
 		data.display = engine_display;
 		data.surface = engine_surface;
 		data.context = engine_context;
 		data.activity = engine->app->activity;
-		data.format = engine_format;
+		data.config = config;
 		data.window = engine->app->window;
 
 		updateptr2( &data );
@@ -692,7 +678,6 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event)
 {
 	if ( initialised == 0 ) return 0;
 
-	struct engine* engine = (struct engine*)app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION)
 	{
 		// touch event
@@ -922,10 +907,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
     switch (cmd) {
         case APP_CMD_SAVE_STATE:
         	LOGI("Save State");
-            // The system has asked us to save our current state.  Do so.
-            engine->app->savedState = malloc(sizeof(struct saved_state));
-            *((struct saved_state*)engine->app->savedState) = engine->state;
-            engine->app->savedStateSize = sizeof(struct saved_state);
             break;
         case APP_CMD_PAUSE:
 			LOGI("App Paused");
@@ -1003,10 +984,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
         case APP_CMD_INIT_WINDOW:
         	LOGI("Window Init");
             // The window is being shown, get it ready.
-            if (engine->app->window != NULL) {
                 engine_init_display(engine);
                 initialised = 1;
-            }
             resumeapp2();
             engine->animating = 1;
             break;
@@ -1091,10 +1070,6 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 
        case APP_CMD_CONFIG_CHANGED:
        {
-    	   //usleep( 500000 );
-
-		   if ( engine_surface == EGL_NO_SURFACE ) break;
-
     	   AConfiguration *config2 = AConfiguration_new();
 		   AConfiguration_fromAssetManager( config2, engine->app->activity->assetManager);
 		   int orien = AConfiguration_getOrientation( config2 );
@@ -1106,72 +1081,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd)
 		   if ( keyboard == ACONFIGURATION_KEYBOARD_QWERTY ) keyboardmode( 1 ); // physical
     	   else keyboardmode( 2 ); // virtual
 
-		   /*
-		   LOGI("Old Width: %d, Old Height: %d", windowWidth, windowHeight);
-
-		   float timeout = getagktimer() + 0.5f;
-		   int width, height;
-		   do
-		   {
-    		   width = ANativeWindow_getWidth( engine->app->window );
-			   height = ANativeWindow_getHeight( engine->app->window );
-		   } while( (width == windowWidth || height == windowHeight) && getagktimer() < timeout );
-		   windowWidth = width;
-		   windowHeight = height;
-
-		   LOGI("New Width: %d, New Height: %d", windowWidth, windowHeight);
-    	   
-    	   {
-			   if (engine_surface == EGL_NO_SURFACE) break;
-
-			   int oldmode = engine->animating;
-			   engine->animating = 0;
-			   eglMakeCurrent(engine_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			   eglDestroySurface(engine_display, engine_surface);
-
-			   int result = ANativeWindow_setBuffersGeometry(engine->app->window, g_userWidth, g_userHeight, engine_format);
-			   LOGI( "Result: %d", result );
-
-			   engine_surface = eglCreateWindowSurface(engine_display, config, engine->app->window, NULL);
-			   if ( engine_surface == EGL_NO_SURFACE )
-			   {
-				   LOGE( "Failed to create EGL surface: %d", eglGetError() );
 				   break;
 			   }
-
-			   if (eglMakeCurrent(engine_display, engine_surface, engine_surface, engine_context) == EGL_FALSE)
-			   {
-				   int error = eglGetError();
-				   LOGE("Unable to eglMakeCurrent: %d", eglGetError());
-				   break;
-			   }
-
-			   EGLint w, h;
-			   eglQuerySurface(engine_display, engine_surface, EGL_WIDTH, &w);
-			   eglQuerySurface(engine_display, engine_surface, EGL_HEIGHT, &h);
-
-			   LOGI("Width: %d Height: %d",w,h);
-
-			   engine_width = w;
-			   engine_height = h;
-			   engine->state.angle = 0;
-
-			   struct egldata data;
-			   data.display = engine_display;
-			   data.surface = engine_surface;
-			   data.context = engine_context;
-			   data.activity = engine->app->activity;
-			   data.format = engine_format;
-			   data.window = engine->app->window;
-
-			   updateptr2( &data );
-//			   devicerotate();
-			   engine->animating = oldmode;
-    	   }
-		   */
-
-    	   break;
-       }
        default:
        {
     	   //LOGW( "Unknown engine command: %d", cmd );
@@ -1253,11 +1164,6 @@ void android_main(struct android_app* state) {
     engine.rotVectorSensor = 0;
 
     engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
-
-    if (state->savedState != NULL) {
-        // We are starting with a previous saved state; restore from it.
-        engine.state = *(struct saved_state*)state->savedState;
-    }
 
     // loop waiting for stuff to do.
 

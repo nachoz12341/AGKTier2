@@ -993,7 +993,8 @@ public class IabHelper {
             logDebug("Continuation token: " + continueToken);
         } while (!TextUtils.isEmpty(continueToken));
 
-        return verificationFailed ? IABHELPER_VERIFICATION_FAILED : BILLING_RESPONSE_RESULT_OK;
+        //return verificationFailed ? IABHELPER_VERIFICATION_FAILED : BILLING_RESPONSE_RESULT_OK;
+        return BILLING_RESPONSE_RESULT_OK; // a verification failure does not invalidate the entire process
     }
 
     int querySkuDetails(String itemType, Inventory inv, List<String> moreSkus)

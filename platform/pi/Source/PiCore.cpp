@@ -1930,12 +1930,14 @@ float agk::Abs( float a )
 int agk::Mod( int a, int b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return a % b;
 }
 
 float agk::FMod( float a, float b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return fmod( a, b );
 }
 

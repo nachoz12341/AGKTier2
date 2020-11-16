@@ -993,6 +993,7 @@ bool BroadcastListener::GetPacket( AGKPacket &packet, UINT &fromPort, char *from
 	}
 	
 	packet.SetPos( 0 );
+	packet.SetSize( result );
 	
 	if ( result > 0 ) 
 	{

@@ -2068,20 +2068,10 @@ void agk::ResetAllStates ( void )
 void agk::SetSyncRate( float fps, int mode )
 //****
 {
+	SetVSync(0);
+
 	if ( mode ) m_iSyncMode = 1;
 	else m_iSyncMode = 0;
-
-	/*
-	if ( fps < 0 )
-	{
-		// special case, use vsync instead.
-		SetVSync( 1 );
-		return;
-	}
-	else*/
-	{
-		SetVSync(0);
-	}
 
 	if ( fps <= 0.5f ) m_fSyncTime = 0;
 	else m_fSyncTime = 1.0f / fps;
@@ -2240,6 +2230,8 @@ void agk::AppPausing()
 	StopSpeaking();
 
 	agk::ARPause();
+
+	agk::PlatformRendererFinish();
 }
 
 void agk::AppResuming()
@@ -3782,7 +3774,7 @@ void agk::DrawAllLines()
 	if ( locPos >= 0 ) pShader->SetAttribFloat( locPos, 2, 4*3, (float*)m_pLines );
 	if ( locColor >= 0 ) pShader->SetAttribUByte( locColor, 4, 4*3, true, (unsigned char*)(m_pLines+2) );
 
-	agk::PlatformSetBlendMode( 0 );
+	agk::PlatformSetBlendMode( 1 );
 	agk::PlatformSetDepthTest( 0 );
 	agk::PlatformSetDepthRange( 0, 1 );
 
@@ -16249,7 +16241,7 @@ void agk::DeleteText( UINT iTextIndex )
 	}
 }
 
-//****f* Sprite/Creation/DeleteAllText
+//****f* Text/Creation/DeleteAllText
 // FUNCTION
 //   Deletes all text objects create by CreateText. This also resets the auto text ID to 10000.
 // SOURCE
@@ -16262,7 +16254,7 @@ void agk::DeleteAllText()
 		delete pText;		
 		pText = m_cTextList.GetNext();
 	}
-	m_cTextList.ClearAll();;
+	m_cTextList.ClearAll();
 }
 
 //****f* Text/Properties/SetTextString
@@ -25828,6 +25820,8 @@ char* agk::GetRawFolderFolderName( UINT ID, int index )
 //   platform, for example "raw:C:\MyFolder\MyFile.txt" on Windows or "raw:/sdcard/Documents/MyFile.txt" on Android. 
 //   If any folders in your chosen path do not exist they will be created.<br/><br/>
 //   
+//   Note that on Android 11 and higher write access to the sdcard folder is restricted so raw paths pointing there will not work.<br/><br/>
+//  
 //   On Raspberry Pi you can use this command to open a GPIO pin for writing by using the filename "gpio:" followed by the 
 //   GPIO pin number, for example OpenToWrite(1, "gpio:4"), this is case sensitive. You can then use <i>WriteByte</i> to 
 //   write 0 or 1 to the pin and <i>CloseFile</i> to close the pin.
@@ -37748,7 +37742,7 @@ void agk::DrawLineInternal( float x, float y, float x2, float y2, UINT color1, U
 	if ( lineLength < onePixel )
 	{
 		x2 = x + diffX;
-		y2 = y + diffY;
+		y2 = y;// + diffY;
 	}
 
 	m_pLines[ m_iNumLines*lineStride ] = *((UINT*)&x);
@@ -37849,7 +37843,7 @@ void agk::DrawLine( float x, float y, float x2, float y2, UINT color1, UINT colo
 // FUNCTION
 //   Draws a 2D box from one point on the screen to another with a chosen color using lines.
 //   Lines appear above all other drawing except the Print command and can be used
-//   with the GetImage function or SetRenderToImage to create new images.
+//   with the GetImage function or <i>SetRenderToImage</i> to create new images.
 //   The XY coordinates are in screen coordinates so are not affected by the 
 //   SetViewOffset command.
 //   Colors can be created using the MakeColor command or by using the bitwise
@@ -37914,18 +37908,22 @@ void agk::DrawBox( float x, float y, float x2, float y2, UINT color1, UINT color
 		int red1 = GetColorRed( color1 );
 		int green1 = GetColorGreen( color1 );
 		int blue1 = GetColorBlue( color1 );
+		int alpha1 = GetColorAlpha( color1 );
 		
 		int red2 = GetColorRed( color2 );
 		int green2 = GetColorGreen( color2 );
 		int blue2 = GetColorBlue( color2 );
+		int alpha2 = GetColorAlpha( color2 );
 
 		int red3 = GetColorRed( color3 );
 		int green3 = GetColorGreen( color3 );
 		int blue3 = GetColorBlue( color3 );
+		int alpha3 = GetColorAlpha( color3 );
 
 		int red4 = GetColorRed( color4 );
 		int green4 = GetColorGreen( color4 );
 		int blue4 = GetColorBlue( color4 );
+		int alpha4 = GetColorAlpha( color4 );
 		
 		float diffY = agk::m_iDisplayHeight / (float) agk::Round(agk::m_fTargetViewportHeight);
 		if ( m_bUsingFBO )
@@ -37942,12 +37940,14 @@ void agk::DrawBox( float x, float y, float x2, float y2, UINT color1, UINT color
 			UINT redA = agk::Floor( red1 + interp*(red3 - red1) );
 			UINT greenA = agk::Floor( green1 + interp*(green3 - green1) );
 			UINT blueA = agk::Floor( blue1 + interp*(blue3 - blue1) );
+			UINT alphaA = agk::Floor( alpha1 + interp*(alpha3 - alpha1) );
 
 			UINT redB = agk::Floor( red2 + interp*(red4 - red2) );
 			UINT greenB = agk::Floor( green2 + interp*(green4 - green2) );
 			UINT blueB = agk::Floor( blue2 + interp*(blue4 - blue2) );
+			UINT alphaB = agk::Floor( alpha2 + interp*(alpha4 - alpha2) );
 
-			DrawLineInternal( x-pixX, i, x2+pixX, i, MakeColor(redA,greenA,blueA), MakeColor(redB,greenB,blueB) );
+			DrawLineInternal( x-pixX, i, x2+pixX, i, MakeColor(redA,greenA,blueA,alphaA), MakeColor(redB,greenB,blueB,alphaB) );
 
 			count++;
 			i = y + count*diffY;
@@ -37991,12 +37991,18 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 		diffY = (agk::m_iDisplayExtraY*2 + agk::m_iDisplayHeight) / agk::m_iFBOHeight;
 	}
 
+	// shift the center onto a whole pixel
+	int xi = agk::Round( x/diffX );
+	int yi = agk::Round( y/diffY );
+	x = (xi+0.5f) * diffX;
+	y = (yi+0.5f) * diffY;
+
 	radiusx /= diffX;
 	radiusy /= diffY;
 
 	float fTwoASqr = 2 * radiusx*radiusx;
 	float fTwoBSqr = 2 * radiusy*radiusy;
-	float fX = radiusx;
+	float fX = (float) agk::Floor( radiusx );
 	float fY = 0;
 	float fChangeX = radiusy*radiusy*(1 - 2*radiusx);
 	float fChangeY = radiusx*radiusx;
@@ -38009,25 +38015,35 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 		int red1 = GetColorRed( color1 );
 		int green1 = GetColorGreen( color1 );
 		int blue1 = GetColorBlue( color1 );
+		int alpha1 = GetColorAlpha( color1 );
 		
 		int red2 = GetColorRed( color2 );
 		int green2 = GetColorGreen( color2 );
 		int blue2 = GetColorBlue( color2 );
+		int alpha2 = GetColorAlpha( color2 );
 
 		while ( fStoppingX >= fStoppingY )
 		{
-			float interpA = 0.5f - (fY*0.5f/radiusy);
-			float interpB = fY*0.5f/radiusy + 0.5f;
-			
-			UINT redA = agk::Floor( red1 + interpA*(red2 - red1) );
-			UINT greenA = agk::Floor( green1 + interpA*(green2 - green1) );
-			UINT blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
-			UINT colorA = agk::MakeColor(redA,greenA,blueA);
+			uint32_t colorA = color1;
+			uint32_t colorB = color2;
 
-			UINT redB = agk::Floor( red1 + interpB*(red2 - red1) );
-			UINT greenB = agk::Floor( green1 + interpB*(green2 - green1) );
-			UINT blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
-			UINT colorB = agk::MakeColor(redB,greenB,blueB);
+			if ( color1 != color2 )
+			{
+				float interpA = 0.5f - (fY*0.5f/radiusy);
+				float interpB = fY*0.5f/radiusy + 0.5f;
+			
+				uint32_t redA = agk::Floor( red1 + interpA*(red2 - red1) );
+				uint32_t greenA = agk::Floor( green1 + interpA*(green2 - green1) );
+				uint32_t blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
+				uint32_t alphaA = agk::Floor( alpha1 + interpA*(alpha2 - alpha1) );
+				colorA = agk::MakeColor(redA,greenA,blueA,alphaA);
+
+				uint32_t redB = agk::Floor( red1 + interpB*(red2 - red1) );
+				uint32_t greenB = agk::Floor( green1 + interpB*(green2 - green1) );
+				uint32_t blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
+				uint32_t alphaB = agk::Floor( alpha1 + interpB*(alpha2 - alpha1) );
+				colorB = agk::MakeColor(redB,greenB,blueB,alphaB);
+			}
 
 			float fX2 = fX*diffX;
 			float fY2 = fY*diffY;
@@ -38049,7 +38065,7 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 		}
 
 		fX = 0;
-		fY = radiusy;
+		fY = (float) agk::Floor( radiusy );
 		fChangeX = radiusy*radiusy;
 		fChangeY = radiusx*radiusx*(1 - 2*radiusy);
 		fEllipseError = 0;
@@ -38058,18 +38074,26 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 
 		while ( fStoppingX <= fStoppingY )
 		{
-			float interpA = 0.5f - (fY*0.5f/radiusy);
-			float interpB = fY*0.5f/radiusy + 0.5f;
-			
-			UINT redA = agk::Floor( red1 + interpA*(red2 - red1) );
-			UINT greenA = agk::Floor( green1 + interpA*(green2 - green1) );
-			UINT blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
-			UINT colorA = agk::MakeColor(redA,greenA,blueA);
+			uint32_t colorA = color1;
+			uint32_t colorB = color2;
 
-			UINT redB = agk::Floor( red1 + interpB*(red2 - red1) );
-			UINT greenB = agk::Floor( green1 + interpB*(green2 - green1) );
-			UINT blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
-			UINT colorB = agk::MakeColor(redB,greenB,blueB);
+			if ( color1 != color2 )
+			{
+				float interpA = 0.5f - (fY*0.5f/radiusy);
+				float interpB = fY*0.5f/radiusy + 0.5f;
+			
+				uint32_t redA = agk::Floor( red1 + interpA*(red2 - red1) );
+				uint32_t greenA = agk::Floor( green1 + interpA*(green2 - green1) );
+				uint32_t blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
+				uint32_t alphaA = agk::Floor( alpha1 + interpA*(alpha2 - alpha1) );
+				colorA = agk::MakeColor(redA,greenA,blueA,alphaA);
+
+				uint32_t redB = agk::Floor( red1 + interpB*(red2 - red1) );
+				uint32_t greenB = agk::Floor( green1 + interpB*(green2 - green1) );
+				uint32_t blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
+				uint32_t alphaB = agk::Floor( alpha1 + interpB*(alpha2 - alpha1) );
+				colorB = agk::MakeColor(redB,greenB,blueB,alphaB);
+			}
 
 			float fX2 = fX*diffX;
 			float fY2 = fY*diffY;
@@ -38089,59 +38113,46 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 				fChangeY += fTwoASqr;
 			}
 		}
-
-		float interpA = 0.5f - (fY*0.5f/radiusy);
-		float interpB = fY*0.5f/radiusy + 0.5f;
-		
-		UINT redA = agk::Floor( red1 + interpA*(red2 - red1) );
-		UINT greenA = agk::Floor( green1 + interpA*(green2 - green1) );
-		UINT blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
-		UINT colorA = agk::MakeColor(redA,greenA,blueA);
-
-		UINT redB = agk::Floor( red1 + interpB*(red2 - red1) );
-		UINT greenB = agk::Floor( green1 + interpB*(green2 - green1) );
-		UINT blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
-		UINT colorB = agk::MakeColor(redB,greenB,blueB);
-
-		float fX2 = fX*diffX;
-		float fY2 = fY*diffY;
-		DrawLineInternal( x+fX2, y+fY2, x+fX2, y+fY2, colorB, colorB );
-		DrawLineInternal( x-fX2, y+fY2, x-fX2, y+fY2, colorB, colorB );
-		DrawLineInternal( x+fX2, y-fY2, x+fX2, y-fY2, colorA, colorA );
-		DrawLineInternal( x-fX2, y-fY2, x-fX2, y-fY2, colorA, colorA );
 	}
 	else
 	{
 		int red1 = GetColorRed( color1 );
 		int green1 = GetColorGreen( color1 );
 		int blue1 = GetColorBlue( color1 );
+		int alpha1 = GetColorAlpha( color1 );
 		
 		int red2 = GetColorRed( color2 );
 		int green2 = GetColorGreen( color2 );
 		int blue2 = GetColorBlue( color2 );
+		int alpha2 = GetColorAlpha( color2 );
 
-		// filled 
 		while ( fStoppingX >= fStoppingY )
 		{
-			float interpA = 0.5f - (fY*0.5f/radiusy);
-			float interpB = fY*0.5f/radiusy + 0.5f;
-			
-			UINT redA = agk::Floor( red1 + interpA*(red2 - red1) );
-			UINT greenA = agk::Floor( green1 + interpA*(green2 - green1) );
-			UINT blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
-			UINT colorA = agk::MakeColor(redA,greenA,blueA);
+			uint32_t colorA = color1;
+			uint32_t colorB = color2;
 
-			UINT redB = agk::Floor( red1 + interpB*(red2 - red1) );
-			UINT greenB = agk::Floor( green1 + interpB*(green2 - green1) );
-			UINT blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
-			UINT colorB = agk::MakeColor(redB,greenB,blueB);
+			if ( color1 != color2 )
+			{
+				float interpA = 0.5f - (fY*0.5f/radiusy);
+				float interpB = fY*0.5f/radiusy + 0.5f;
+			
+				uint32_t redA = agk::Floor( red1 + interpA*(red2 - red1) );
+				uint32_t greenA = agk::Floor( green1 + interpA*(green2 - green1) );
+				uint32_t blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
+				uint32_t alphaA = agk::Floor( alpha1 + interpA*(alpha2 - alpha1) );
+				colorA = agk::MakeColor(redA,greenA,blueA,alphaA);
+
+				uint32_t redB = agk::Floor( red1 + interpB*(red2 - red1) );
+				uint32_t greenB = agk::Floor( green1 + interpB*(green2 - green1) );
+				uint32_t blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
+				uint32_t alphaB = agk::Floor( alpha1 + interpB*(alpha2 - alpha1) );
+				colorB = agk::MakeColor(redB,greenB,blueB,alphaB);
+			}
 
 			float fX2 = fX*diffX;
 			float fY2 = fY*diffY;
-			DrawLineInternal( x, y+fY2, x+fX2, y+fY2, colorB, colorB );
-			DrawLineInternal( x, y-fY2, x+fX2, y-fY2, colorA, colorA );
-			DrawLineInternal( x, y+fY2, x-fX2, y+fY2, colorB, colorB );
-			DrawLineInternal( x, y-fY2, x-fX2, y-fY2, colorA, colorA );
+			DrawLineInternal( x-fX2, y+fY2, x+fX2+diffX, y+fY2, colorB, colorB );
+			DrawLineInternal( x-fX2, y-fY2, x+fX2+diffX, y-fY2, colorA, colorA );
 			fY += 1;
 			fStoppingY += fTwoASqr;
 			fEllipseError += fChangeY;
@@ -38156,7 +38167,7 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 		}
 
 		fX = 0;
-		fY = radiusy;
+		fY = (float) agk::Floor( radiusy );	
 		fChangeX = radiusy*radiusy;
 		fChangeY = radiusx*radiusx*(1 - 2*radiusy);
 		fEllipseError = 0;
@@ -38165,31 +38176,37 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 
 		while ( fStoppingX <= fStoppingY )
 		{
+			uint32_t colorA = color1;
+			uint32_t colorB = color2;
+
+			if ( color1 != color2 )
+			{
+				float interpA = 0.5f - (fY*0.5f/radiusy);
+				float interpB = fY*0.5f/radiusy + 0.5f;
+			
+				uint32_t redA = agk::Floor( red1 + interpA*(red2 - red1) );
+				uint32_t greenA = agk::Floor( green1 + interpA*(green2 - green1) );
+				uint32_t blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
+				uint32_t alphaA = agk::Floor( alpha1 + interpA*(alpha2 - alpha1) );
+				colorA = agk::MakeColor(redA,greenA,blueA,alphaA);
+
+				uint32_t redB = agk::Floor( red1 + interpB*(red2 - red1) );
+				uint32_t greenB = agk::Floor( green1 + interpB*(green2 - green1) );
+				uint32_t blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
+				uint32_t alphaB = agk::Floor( alpha1 + interpB*(alpha2 - alpha1) );
+				colorB = agk::MakeColor(redB,greenB,blueB,alphaB);
+			}
+
+			float fX2 = fX*diffX;
+			float fY2 = fY*diffY;
+			DrawLineInternal( x+fX2, y-fY2, x+fX2, y+fY2+diffY, colorA, colorB );
+			DrawLineInternal( x-fX2, y-fY2, x-fX2, y+fY2+diffY, colorA, colorB );
 			fX += 1;
 			fStoppingX += fTwoBSqr;
 			fEllipseError += fChangeX;
 			fChangeX += fTwoBSqr;
 			if ( 2*fEllipseError + fChangeY > 0 )
 			{
-				float interpA = 0.5f - (fY*0.5f/radiusy);
-				float interpB = fY*0.5f/radiusy + 0.5f;
-				
-				UINT redA = agk::Floor( red1 + interpA*(red2 - red1) );
-				UINT greenA = agk::Floor( green1 + interpA*(green2 - green1) );
-				UINT blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
-				UINT colorA = agk::MakeColor(redA,greenA,blueA);
-
-				UINT redB = agk::Floor( red1 + interpB*(red2 - red1) );
-				UINT greenB = agk::Floor( green1 + interpB*(green2 - green1) );
-				UINT blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
-				UINT colorB = agk::MakeColor(redB,greenB,blueB);
-
-				float fX2 = (fX-1)*diffX;
-				float fY2 = fY*diffY;
-				DrawLineInternal( x, y+fY2, x+fX2, y+fY2, colorB, colorB );
-				DrawLineInternal( x, y-fY2, x+fX2, y-fY2, colorA, colorA );
-				DrawLineInternal( x, y+fY2, x-fX2, y+fY2, colorB, colorB );
-				DrawLineInternal( x, y-fY2, x-fX2, y-fY2, colorA, colorA );
 				fY -= 1;
 				fStoppingY -= fTwoASqr;
 				fEllipseError += fChangeY;
@@ -38197,25 +38214,58 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 			}
 		}
 
-		float interpA = 0.5f - (fY*0.5f/radiusy);
-		float interpB = fY*0.5f/radiusy + 0.5f;
-		
-		UINT redA = agk::Floor( red1 + interpA*(red2 - red1) );
-		UINT greenA = agk::Floor( green1 + interpA*(green2 - green1) );
-		UINT blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
-		UINT colorA = agk::MakeColor(redA,greenA,blueA);
+		/*
+		float offset = 0.4f;
+		float fRXSqr = (radiusx + offset) * (radiusx + offset);
+		float fRYSqr = (radiusy + offset) * (radiusy + offset);
 
-		UINT redB = agk::Floor( red1 + interpB*(red2 - red1) );
-		UINT greenB = agk::Floor( green1 + interpB*(green2 - green1) );
-		UINT blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
-		UINT colorB = agk::MakeColor(redB,greenB,blueB);
+		// fxy = ((ry+offset)^2 * x^2) + ((rx+offset)^2 * y^2) - ((rx+offset)^2 * (ry+offset)^2)
+		// fxy > 0 = outside
+		// fxy < 0 = inside
+		// start with x = fX, y = 0
+		float fxy = fRXSqr * (fX*fX - fRYSqr); // simplified
 
-		float fX2 = fX*diffX;
-		float fY2 = fY*diffY;
-		DrawLineInternal( x, y+fY2, x+fX2, y+fY2, colorB, colorB );
-		DrawLineInternal( x, y-fY2, x+fX2, y-fY2, colorA, colorA );
-		DrawLineInternal( x, y+fY2, x-fX2, y+fY2, colorB, colorB );
-		DrawLineInternal( x, y-fY2, x-fX2, y-fY2, colorA, colorA );
+		// filled 
+		while ( fY <= radiusy )
+		{
+			uint32_t colorA = color1;
+			uint32_t colorB = color2;
+
+			if ( color1 != color2 )
+			{
+				float interpA = 0.5f - (fY*0.5f/radiusy);
+				float interpB = fY*0.5f/radiusy + 0.5f;
+			
+				uint32_t redA = agk::Floor( red1 + interpA*(red2 - red1) );
+				uint32_t greenA = agk::Floor( green1 + interpA*(green2 - green1) );
+				uint32_t blueA = agk::Floor( blue1 + interpA*(blue2 - blue1) );
+				uint32_t alphaA = agk::Floor( alpha1 + interpA*(alpha2 - alpha1) );
+				colorA = agk::MakeColor(redA,greenA,blueA,alphaA);
+
+				uint32_t redB = agk::Floor( red1 + interpB*(red2 - red1) );
+				uint32_t greenB = agk::Floor( green1 + interpB*(green2 - green1) );
+				uint32_t blueB = agk::Floor( blue1 + interpB*(blue2 - blue1) );
+				uint32_t alphaB = agk::Floor( alpha1 + interpB*(alpha2 - alpha1) );
+				colorB = agk::MakeColor(redB,greenB,blueB,alphaB);
+			}
+
+			float fX2 = fX*diffX;
+			float fY2 = fY*diffY;
+			DrawLineInternal( x-fX2, y+fY2, x+fX2+1, y+fY2, colorB, colorB );
+			DrawLineInternal( x-fX2, y-fY2, x+fX2+1, y-fY2, colorA, colorA );
+
+			// every y step subtract old ((rx+offset)^2 * y^2) term and add ((rx+offset)^2 * (y+1)^2)
+			fxy += fRXSqr * (2*fY + 1); // simplified
+			fY += 1;
+			
+			while( fxy > 0 && fX > 0 )
+			{
+				// subtract an x step ((ry+offset)^2 * fX^2) and add ((ry+offset)^2 * (fX-1)^2)
+				fxy -= fRYSqr * (2*fX - 1); // simplified
+				fX--;
+			}
+		}
+		*/
 	}
 }
 

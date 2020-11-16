@@ -14,6 +14,7 @@
 #include <android/log.h>
 #include <android/asset_manager.h>
 #include <android/native_activity.h>
+#include <android/native_window_jni.h>
 #include <android/window.h>
 #include <android/configuration.h>
 
@@ -31,8 +32,6 @@
 
 #include "curl/curl.h"
 #include "jansson.h"
-
-#include "firebase/analytics.h"
 
 #include <net/if.h>
 
@@ -67,7 +66,7 @@ namespace AGK
 		void* reserved2; // EGLSurface
 		void* reserved3; // EGLContext
 		struct ANativeActivity *activity;
-		int reserved4; // EGLint window format
+		void* reserved4; // EGLconfig
 		ANativeWindow* window;
 	};
 	
@@ -2560,12 +2559,14 @@ float agk::Abs( float a )
 int agk::Mod( int a, int b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return a % b;
 }
 
 float agk::FMod( float a, float b )
 //****
 {
+	if ( b == 0 ) return 0;
 	return fmod( a, b );
 }
 
@@ -3364,60 +3365,14 @@ void cImage::Print( float size )
 		return;
 	}
 
-	int imageCount = 0;
-	if ( agk::GetFileExists("/printedimagecount.txt") )
-	{
-		int fileID = agk::OpenToRead("/printedimagecount.txt");
-		imageCount = agk::ReadInteger( fileID );
-		agk::CloseFile( fileID );
-	}
-	imageCount++;
-	
-	int fileID = agk::OpenToWrite("/printedimagecount.txt",0);
-	agk::WriteInteger( fileID, imageCount );
-	agk::CloseFile( fileID );
-	
-	// get app name
-	JNIEnv* lJNIEnv = g_pActivity->env;
-	JavaVM* vm = g_pActivity->vm;
-	vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-	// get NativeActivity object (clazz)
-	jobject lNativeActivity = g_pActivity->clazz;
-	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-	
-	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-
-	// get the method from our java class
-	jmethodID getappname = lJNIEnv->GetStaticMethodID( AGKHelper, "GetAppName", "(Landroid/app/Activity;)Ljava/lang/String;" );
-
-	// call our java class method
-	jstring name = (jstring) lJNIEnv->CallStaticObjectMethod( AGKHelper, getappname, lNativeActivity );
-
-	jboolean bCopy;
-	const char* sName = lJNIEnv->GetStringUTFChars( name, &bCopy );
-
-	uString filePath;
-	filePath.Format( "/sdcard/Pictures/%s_SavedImage_%d.png", sName, imageCount );
-
-	lJNIEnv->ReleaseStringUTFChars( name, sName );
-	lJNIEnv->DeleteLocalRef( name );
+	uString filePath = "/PrintedImage.png";
+	agk::PlatformGetFullPathWrite( filePath );
 
 	// write the image data
 	write_png( filePath, m_iOrigWidth, m_iOrigHeight, bits );
 	delete [] bits;
 
-	// refresh the file listings
-	jmethodID refreshmedia = lJNIEnv->GetStaticMethodID( AGKHelper, "RefreshMediaPath", "(Landroid/app/Activity;Ljava/lang/String;)V" );
-	jstring jfilePath = lJNIEnv->NewStringUTF(filePath.GetStr());
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, refreshmedia, lNativeActivity, jfilePath );
-	lJNIEnv->DeleteLocalRef( jfilePath );
-
-	vm->DetachCurrentThread();
-
-	// notify the user where it was saved
-	//filePath.Prepend( "Image saved to " );
-	//agk::Message( filePath );
+	agk::ShareImage( "/PrintedImage.png" );
 }
 
 bool cImage::PlatformGetDataFromFile( const char* szFile, unsigned char **pData, unsigned int *out_width, unsigned int *out_height )
@@ -5305,6 +5260,8 @@ void agk::SetVideoPosition( float seconds )
 
 // Screen recording
 
+ANativeWindow* g_pRecordWindow = 0;
+
 void agk::StartScreenRecording( const char *szFilename, int microphone )
 //****
 {
@@ -5333,18 +5290,37 @@ void agk::StartScreenRecording( const char *szFilename, int microphone )
 	
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
 
-	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "StartScreenRecording","(Landroid/app/Activity;Ljava/lang/String;I)V" );
+	// setup screen recorder
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "StartScreenRecording","(Landroid/app/Activity;Ljava/lang/String;I)I" );
 
 	jstring sfilename = lJNIEnv->NewStringUTF(sPath.GetStr());
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity, sfilename, microphone );
+	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, method, lNativeActivity, sfilename, microphone );
 	lJNIEnv->DeleteLocalRef( sfilename );
 
+	if ( result != 1 ) return;
+
+	// get recording surface
+	method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetScreenRecordSurface","()Landroid/view/Surface;" );
+	jobject javaSurface = lJNIEnv->CallStaticObjectMethod( AGKHelper, method );
+	g_pRecordWindow = ANativeWindow_fromSurface( lJNIEnv, javaSurface );
+
 	vm->DetachCurrentThread();
+
+	PlatformSetScreenRecordingParams( g_pRecordWindow, 0 );
 }
 
 void agk::StopScreenRecording()
 //****
 {
+	// switch rendering to main surface
+	if ( g_pRecordWindow != 0 )
+	{
+		PlatformSetScreenRecordingParams( 0, 0 );
+
+		ANativeWindow_release( g_pRecordWindow );
+		g_pRecordWindow = 0;
+	}
+
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);
@@ -10586,16 +10562,8 @@ void agk::FirebaseSetup()
 	jobject lNativeActivity = g_pActivity->clazz;
 	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "HasFirebase", "()I" );
-	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, method );
-	
-	if ( result )
-	{
-		::firebase::AppOptions options = ::firebase::AppOptions();
-
-		firebase::App *app = ::firebase::App::Create(options, lJNIEnv, g_pActivity->clazz);
-		::firebase::analytics::Initialize(*app);
-	}
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "FirebaseInit", "(Landroid/app/Activity;)V" );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, lNativeActivity );
 
 	vm->DetachCurrentThread();
 }
@@ -10609,10 +10577,12 @@ void agk::FirebaseLogEvent( const char *event_name )
 	jobject lNativeActivity = g_pActivity->clazz;
 	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "HasFirebase", "()I" );
-	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, method );
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "FirebaseLogEvent", "(Ljava/lang/String;)V" );
 
-	if ( result ) ::firebase::analytics::LogEvent(event_name);
+	// call our java class method
+	jstring strName = lJNIEnv->NewStringUTF( event_name );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, strName );
+	lJNIEnv->DeleteLocalRef( strName );
 
 	vm->DetachCurrentThread();
 }
@@ -12001,7 +11971,7 @@ int agk::GetAppInstalled( const char *packageName )
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
 
 	// get the method from our java class
-	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetPackageInstalled", "(Landroid/app/Activity;Ljava/lang/String;)V" );
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "GetPackageInstalled", "(Landroid/app/Activity;Ljava/lang/String;)I" );
 
 	// call our java class method
 	jstring strPackageName = lJNIEnv->NewStringUTF( packageName );

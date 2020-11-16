@@ -48,18 +48,6 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../../../../../../common/include \
 LOCAL_STATIC_LIBRARIES := AGKBullet AGKAssimp
 include $(PREBUILT_STATIC_LIBRARY) 
 
-include $(CLEAR_VARS)
-LOCAL_MODULE    := analytics
-LOCAL_SRC_FILES := ../../../../../../FirebaseSDK/libs/android/$(TARGET_ARCH_ABI)/c++/libanalytics.a
-# LOCAL_STATIC_LIBRARIES := AGKBullet AGKAssimp
-include $(PREBUILT_STATIC_LIBRARY) 
-
-include $(CLEAR_VARS)
-LOCAL_MODULE    := app
-LOCAL_SRC_FILES := ../../../../../../FirebaseSDK/libs/android/$(TARGET_ARCH_ABI)/c++/libapp.a
-# LOCAL_STATIC_LIBRARIES := AGKBullet AGKAssimp
-include $(PREBUILT_STATIC_LIBRARY) 
-
 ### build the app ###
 include $(CLEAR_VARS)
 
@@ -78,10 +66,10 @@ LOCAL_SRC_FILES := main.c \
 LOCAL_LDLIBS    := -lm -llog -landroid -lEGL -lGLESv2 -lz -lOpenSLES
 
 # included user libraris
-LOCAL_STATIC_LIBRARIES := AGKAndroid AGKBullet AGKAssimp AGKCurl analytics app android_native_app_glue
+LOCAL_STATIC_LIBRARIES := AGKAndroid AGKBullet AGKAssimp AGKCurl android_native_app_glue
 
-# define IDE_ANDROID (for AGK) and use O3 optimizations
-LOCAL_CFLAGS += -DIDE_ANDROID -O3 -fsigned-char
+# define IDE_ANDROID (for AGK) and use O2 optimizations
+LOCAL_CFLAGS += -DIDE_ANDROID -O2 -fsigned-char
 LOCAL_CPPFLAGS += -fexceptions -std=c++11
 
 # use arm instead of thumb instructions

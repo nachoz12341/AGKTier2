@@ -70,7 +70,15 @@ void CheckRendererExtensions()
 	EGLSurface g_surface;
     EGLContext g_context;
     EGLDisplay g_display;
+	EGLConfig g_eglConfig;
 	static int firstcleardone = 0;
+
+	ANativeWindow* recordWindow = 0;
+	EGLSurface recordSurface = EGL_NO_SURFACE;
+	int recordWidth = 0;
+	int recordHeight = 0;
+	cObject3D* recordQuad = 0;
+	cImage* recordImage = 0;
 
 	struct egldata 
 	{
@@ -78,7 +86,7 @@ void CheckRendererExtensions()
 		EGLSurface surface;
 		EGLContext context;
 		void *reserved; // ANativeActivity*
-		EGLint windowFormat;
+		EGLConfig config;
 		void* reserved2; // ANativeWindow*
 	};
 
@@ -88,6 +96,7 @@ void CheckRendererExtensions()
 		g_surface = ePtr->surface;
 		g_context = ePtr->context;
 		g_display = ePtr->display;
+		g_eglConfig = ePtr->config;
 
 		firstcleardone = 0;
 	}
@@ -152,7 +161,31 @@ void CheckRendererExtensions()
 		}
 		
 		// display backbuffer
-		eglSwapBuffers(g_display, g_surface);
+		if ( recordSurface )
+		{
+			// copy back buffer to texture
+			recordImage->Bind( 0 );
+			glCopyTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, GetSurfaceWidth(), GetSurfaceHeight(), 0 );
+			eglSwapBuffers(g_display, g_surface);
+
+			// draw texture to recording surface
+			eglMakeCurrent(g_display, recordSurface, recordSurface, g_context);
+			glViewport( 0, 0, recordWidth, recordHeight );
+			m_bUsingFBO = true;
+			m_iFBOWidth = recordWidth;
+			m_iFBOHeight = recordHeight;
+			recordQuad->Draw();
+			eglSwapBuffers(g_display, recordSurface);
+			
+			// switch back to main surface
+			eglMakeCurrent(g_display, g_surface, g_surface, g_context);
+			glViewport( 0, 0, GetSurfaceWidth(), GetSurfaceHeight() );
+			m_bUsingFBO = 0;
+		}
+		else
+		{
+			eglSwapBuffers(g_display, g_surface);
+		}	
 	}
 #endif
 
@@ -763,6 +796,52 @@ void agk::SetAntialiasMode( int mode )
 //****
 {
 	// do nothing on mobile
+}
+
+void agk::PlatformRendererFinish()
+{
+	glFinish();
+}
+
+void agk::PlatformSetScreenRecordingParams( void* param1, void* param2 )
+{
+#ifdef AGK_ANDROID
+	recordWindow = (ANativeWindow*) param1;
+
+	if ( recordSurface ) eglDestroySurface( g_display, recordSurface );
+	recordSurface = 0;
+
+	if ( recordImage ) delete recordImage;
+	recordImage = 0;
+
+	if ( recordQuad ) delete recordQuad;
+	recordQuad = 0;
+		
+	if ( recordWindow )
+	{		
+		recordSurface = eglCreateWindowSurface(g_display, g_eglConfig, recordWindow, NULL);
+		if ( recordSurface == EGL_NO_SURFACE )
+		{
+			uString err; err.Format( "Failed to create record surface: %d", eglGetError() );
+			agk::Error( err );
+			return;
+		}
+		
+		eglQuerySurface(g_display, recordSurface, EGL_WIDTH, &recordWidth);
+		eglQuerySurface(g_display, recordSurface, EGL_HEIGHT, &recordHeight);
+			
+		recordImage = new cImage();
+		recordImage->CreateBlankImage( GetSurfaceWidth(), GetSurfaceHeight(), 0, 0 );
+		recordImage->SetWrapU( 0 );
+		recordImage->SetWrapV( 0 );
+		recordImage->SetMinFilter( 1 );
+		recordImage->SetMagFilter( 1 );
+
+		recordQuad = new cObject3D();
+		recordQuad->CreateQuad();
+		recordQuad->SetImage( recordImage );
+	}
+#endif
 }
 
 int agk::PlatformGetMaxVSUniforms()

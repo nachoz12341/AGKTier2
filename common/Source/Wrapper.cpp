@@ -6071,6 +6071,32 @@ void agk::DeleteAllImages()
 	m_cImageList.ClearAll();
 }
 
+//****f* Image/General/SetImageSubImages
+// FUNCTION
+//   Sets the sub image data for an atlas image, which is the layout of where each sub image is located
+//   within the atlas image. Normally this is loaded automatically from the subimages.txt file when the
+//   image is loaded, but if this is not possible then this command can be used to set that data.
+//   The file must be a valid subimages.txt file in the same format as that specified in <i>LoadSubImage</i>
+//   Unlike the normal load image command the file does not need to be named subimages.txt, it can have any 
+//   name and path
+// INPUTS
+//   iImageIndex -- The ID of the image to change
+//   sSubImageFile -- The path to the sub images file
+// SOURCE
+void agk::SetImageSubImages( uint32_t iImageIndex, const char* sSubImageFile )
+//****
+{
+	cImage *pImage = (cImage*) m_cImageList.GetItem( iImageIndex );
+	if ( !pImage ) 
+	{
+		uString err; err.Format( "Failed to set sub images, image ID %d does not exist", iImageIndex );
+		Error( err );
+		return;
+	}
+
+	pImage->SetSubImages( sSubImageFile );
+}
+
 //****f* Image/Properties/GetImageWidth
 // FUNCTION
 //   Returns the width of the image in pixels. Even though this command returns a float the value is 
@@ -10082,10 +10108,10 @@ void agk::SetSpriteShape( UINT iSpriteIndex, int shape )
 //   by using the AddSpriteShape commands.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to modify.
-//   x -- The x coordinate of the top left corner of the new box in sprite space.
-//   y -- The y coordinate of the top left corner of the new box in sprite space.
-//   x2 -- The x coordinate of the bottom right corner of the new box in sprite space.
-//   y2 -- The x coordinate of the bottom right corner of the new box in sprite space.
+//   x -- The X coordinate of the top left corner of the new box in sprite space.
+//   y -- The Y coordinate of the top left corner of the new box in sprite space.
+//   x2 -- The X coordinate of the bottom right corner of the new box in sprite space.
+//   y2 -- The Y coordinate of the bottom right corner of the new box in sprite space.
 //   angle -- The angle of the box in radians.
 // SOURCE
 void agk::SetSpriteShapeBox( UINT iSpriteIndex, float x, float y, float x2, float y2, float angle )
@@ -10108,8 +10134,8 @@ void agk::SetSpriteShapeBox( UINT iSpriteIndex, float x, float y, float x2, floa
 //   by using the AddSpriteShape commands.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to modify.
-//   x -- The x coordinate of the center of the circle in sprite space.
-//   y -- The y coordinate of the center of the circle in sprite space.
+//   x -- The X coordinate of the center of the circle in sprite space.
+//   y -- The Y coordinate of the center of the circle in sprite space.
 //   radius -- The radius of the circle.
 // SOURCE
 void agk::SetSpriteShapeCircle( UINT iSpriteIndex, float x, float y, float radius )
@@ -10214,10 +10240,10 @@ void agk::SetSpriteShape( UINT iSpriteIndex, int shape, int shapeID )
 //   a base shape at ID 1. You can add additional shapes by using the AddSpriteShape commands.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to modify.
-//   x -- The x coordinate of the top left corner of the new box in sprite space.
-//   y -- The y coordinate of the top left corner of the new box in sprite space.
-//   x2 -- The x coordinate of the bottom right corner of the new box in sprite space.
-//   y2 -- The x coordinate of the bottom right corner of the new box in sprite space.
+//   x -- The X coordinate of the top left corner of the new box in sprite space.
+//   y -- The Y coordinate of the top left corner of the new box in sprite space.
+//   x2 -- The X coordinate of the bottom right corner of the new box in sprite space.
+//   y2 -- The Y coordinate of the bottom right corner of the new box in sprite space.
 //   angle -- The angle of the box in radians.
 //   shapeID -- The ID of the shape to change, first shape is ID 1, 0=delete existing shapes and replace them with this new one
 // SOURCE
@@ -10251,8 +10277,8 @@ void agk::SetSpriteShapeBox( UINT iSpriteIndex, float x, float y, float x2, floa
 //   a base shape at ID 1. You can add additional shapes by using the AddSpriteShape commands.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to modify.
-//   x -- The x coordinate of the center of the circle in sprite space.
-//   y -- The y coordinate of the center of the circle in sprite space.
+//   x -- The X coordinate of the center of the circle in sprite space.
+//   y -- The Y coordinate of the center of the circle in sprite space.
 //   radius -- The radius of the circle.
 //   shapeID -- The ID of the shape to change, first shape is ID 1, 0=delete existing shapes and replace them with this new one
 // SOURCE
@@ -10361,10 +10387,10 @@ void agk::SetSpriteShapeChain( UINT iSpriteIndex, UINT numPoints, UINT index, in
 //   This will recalculate the sprite's mass and center of mass values.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to modify.
-//   x -- The x coordinate of the top left corner of the new box in sprite space.
-//   y -- The y coordinate of the top left corner of the new box in sprite space.
-//   x2 -- The x coordinate of the bottom right corner of the new box in sprite space.
-//   y2 -- The x coordinate of the bottom right corner of the new box in sprite space.
+//   x -- The X coordinate of the top left corner of the new box in sprite space.
+//   y -- The Y coordinate of the top left corner of the new box in sprite space.
+//   x2 -- The X coordinate of the bottom right corner of the new box in sprite space.
+//   y2 -- The Y coordinate of the bottom right corner of the new box in sprite space.
 //   angle -- The angle of the box in radians.
 // SOURCE
 void agk::AddSpriteShapeBox( UINT iSpriteIndex, float x, float y, float x2, float y2, float angle )
@@ -10394,8 +10420,8 @@ void agk::AddSpriteShapeBox( UINT iSpriteIndex, float x, float y, float x2, floa
 //   This will recalculate the sprite's mass and center of mass values.
 // INPUTS
 //   iSpriteIndex -- The ID of the sprite to modify.
-//   x -- The x coordinate of the center of the circle in sprite space.
-//   y -- The y coordinate of the center of the circle in sprite space.
+//   x -- The X coordinate of the center of the circle in sprite space.
+//   y -- The Y coordinate of the center of the circle in sprite space.
 //   radius -- The radius of the circle.
 // SOURCE
 void agk::AddSpriteShapeCircle( UINT iSpriteIndex, float x, float y, float radius )
@@ -24826,8 +24852,15 @@ void agk::LoadMusicOGG( UINT musicID, const char* sFile )
 	}
 
 	AGKMusicOGG *pMusic = new AGKMusicOGG();
-	if ( !pMusic->Load( sFile ) ) return;
-	else m_cMusicOGGList.AddItem( pMusic, musicID );
+	if ( !pMusic->Load( sFile ) ) 
+	{
+		delete pMusic;
+		return;
+	}
+	else
+	{
+		m_cMusicOGGList.AddItem( pMusic, musicID );
+	}
 }
 
 //****f* Music/OGG/GetMusicExistsOGG
@@ -35838,8 +35871,7 @@ void agk::SetAmazonAdTesting ( int mode )
 //****f* Advert/AdMob/SetAdMobTesting
 // FUNCTION
 //   Sets whether the AdMob ads will be test ads or paying ads. This should be called before <i>SetAdMobDetails</i>
-//   to ensure all ads are test ads. By default paying ads will be shown. Note that at the current time test mode 
-//   does not appear to be working with AdMob reward videos, they will fail to load. This may be fixed by AdMob in the future.
+//   to ensure all ads are test ads. By default paying ads will be shown.
 //   Note that if you display paying ads when testing you must not click on them or your AdMob account may be suspended.
 // INPUTS
 //   mode -- 0 = show paying ads, 1 = show test ads
@@ -35848,6 +35880,19 @@ void agk::SetAdMobTesting ( int mode )
 //****
 {
     agk::PlatformAdMobSetTesting(mode);
+}
+
+//****f* Advert/AdMob/SetAdMobChildRating
+// FUNCTION
+//   Sets the content rating for AdMob ads if your app is targeted at children. This must be called 
+//   before <i>SetAdMobDetails</i>
+// INPUTS
+//   rating -- 0 = normal ads, 1 = child safe ads
+// SOURCE
+void agk::SetAdMobChildRating ( int rating )
+//****
+{
+    agk::PlatformAdMobSetChildRating( rating );
 }
 
 //****f* Advert/AdMob/ShowFullscreenAdvertAdMob
@@ -36003,6 +36048,21 @@ int agk::GetRewardAdRewardedAdMob()
 //****
 {
 	return agk::PlatformAdMobGetRewardAdRewarded();
+}
+
+//****f* Advert/AdMob/GetRewardAdValueAdMob
+// FUNCTION
+//   Returns the value of the currently loaded reward ad, this will return 0 if the reward value is unknown.
+//   If no reward ad is currently loaded then this value is undefined, it might be 0 or it might be the 
+//   value of a previous ad.
+//   You should ask the user if they want to view the reward ad before showing it, along with the reward they 
+//   will get for doing so. You can use this value function to determine an appropriate reward.
+//   This value will remain unchanged if <i>ResetRewardAdMob</i> is called
+// SOURCE
+int agk::GetRewardAdValueAdMob()
+//****
+{
+	return agk::PlatformAdMobGetRewardAdValue();
 }
 
 //****f* Advert/AdMob/ResetRewardAdMob
@@ -36978,7 +37038,9 @@ void agk::SocialPluginsDestroy ( void )
 void agk::RateApp ( const char* szID )
 //****
 {
+#ifdef AGK_IOS
 	PlatformRateApp(szID, 0, 0);
+#endif
 }
     
 //****f* Extras/Ratings/RateApp
@@ -36992,7 +37054,9 @@ void agk::RateApp ( const char* szID )
 void agk::RateApp ( const char* szID, const char* szTitle )
 //****
 {
+#ifdef AGK_IOS
     PlatformRateApp(szID, szTitle, 0);
+#endif
 }
 
 //****f* Extras/Ratings/RateApp
@@ -37007,7 +37071,9 @@ void agk::RateApp ( const char* szID, const char* szTitle )
 void agk::RateApp ( const char* szID, const char* szTitle, const char* szMessage )
 //****
 {
+#ifdef AGK_IOS
     PlatformRateApp(szID, szTitle, szMessage);
+#endif
 }
 
 //****f* Extras/Ratings/RequestAppReview
@@ -37028,11 +37094,15 @@ void agk::RequestAppReview()
         [SKStoreReviewController requestReview];
     }
 #endif
+
+#ifdef AGK_ANDROID
+	PlatformRateApp("","","");
+#endif
 }
 
 //****f* Extras/In App Purchase/InAppPurchaseSetKeys
 // FUNCTION
-//   Sets any necessary internal data when setting up IAP for this platform. Currently his only 
+//   Sets any necessary internal data when setting up IAP for this platform. Currently this only 
 //   applies to Google Play and Ouya where you need to provide your public key in base64.
 //   This must be called before InAppPurchaseSetup.<br/>
 //   To find the public key for Google Play apps, open your application's details in the Google 
@@ -38437,6 +38507,76 @@ void agk::CopyMemblock( UINT memSrcID, UINT memDstID, UINT srcOffset, UINT dstOf
 	memcpy( pMemDst->m_pData+dstOffset, pMemSrc->m_pData+srcOffset, size );
 }
 
+//****f* Memblock/General/GetMemblockSHA1
+// FUNCTION
+//   Hashes the memblock with SHA1 and returns the resulting hash
+// INPUTS
+//   memID -- The ID of the memblock to hash
+// SOURCE
+char* agk::GetMemblockSHA1( uint32_t memID )
+//****
+{
+	cMemblock *pMem = m_cMemblockList.GetItem( memID );
+	if ( !pMem )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get memblock hash, memblock " );
+		errStr.AppendUInt( memID ).Append( " does not exist" );
+		Error( errStr );
+#endif
+		char* str = new char[1]; *str = 0;
+		return str;
+	}
+
+	SHA1 sha;
+	sha.Input( pMem->m_pData, pMem->m_iSize );
+
+	uint32_t result[ 5 ];
+	sha.Result( &(result[0]) );
+
+	char *strout = new char[ 41 ];
+	sprintf( strout, "%08X%08X%08X%08X%08X", result[ 0 ], result[ 1 ], result[ 2 ], result[ 3 ], result[ 4 ] );
+
+	return strout;
+}
+
+//****f* Memblock/General/GetMemblockSHA256
+// FUNCTION
+//   Hashes the memblock with SHA256 and returns the resulting hash
+// INPUTS
+//   memID -- The ID of the memblock to hash
+// SOURCE
+char* agk::GetMemblockSHA256( uint32_t memID )
+//****
+{
+	cMemblock *pMem = m_cMemblockList.GetItem( memID );
+	if ( !pMem )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get memblock hash, memblock " );
+		errStr.AppendUInt( memID ).Append( " does not exist" );
+		Error( errStr );
+#endif
+		char* str = new char[1]; *str = 0;
+		return str;
+	}
+
+	unsigned char digest[SHA256::DIGEST_SIZE];
+    memset(digest,0,SHA256::DIGEST_SIZE);
+ 
+    SHA256 ctx = SHA256();
+    ctx.init();
+    ctx.update( pMem->m_pData, pMem->m_iSize );
+    ctx.final( digest );
+ 
+    char *buf = new char[2*SHA256::DIGEST_SIZE+1];
+    buf[2*SHA256::DIGEST_SIZE] = 0;
+    for (int i = 0; i < SHA256::DIGEST_SIZE; i++)
+        sprintf(buf+i*2, "%02x", digest[i]);
+	
+	return buf;
+}
+
 //****f* Memblock/General/GetMemblockSize
 // FUNCTION
 //   Returns the size of the given memblock in bytes.
@@ -39181,6 +39321,78 @@ UINT agk::CreateImageFromMemblock( UINT memID )
 	return imageID;
 }
 
+//****f* Memblock/Image/CreateImageFromPNGMemblock
+// FUNCTION
+//   Creates an image from a memblock. The memblock must exist, if the image exists it will be overwritten, if not it will
+//   be created. 
+//   The memblock must contain a valid PNG file such as one loaded with <i>CreateMemblockFromFile</i>(memID, "image.png")
+// INPUTS
+//   imageID -- The ID of the image to create.
+//   memID -- The ID of the memblock to read, the memblock is unaffected by this command.
+// SOURCE
+void agk::CreateImageFromPNGMemblock( uint32_t imageID, uint32_t memID )
+//****
+{
+	cMemblock *pMem = m_cMemblockList.GetItem( memID );
+	if ( !pMem )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr;
+		errStr.Format( "Failed to create image %d from PNG memblock %d, memblock does not exist", imageID, memID );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	cImage *pImage = m_cImageList.GetItem( imageID );
+	if ( !pImage )
+	{
+		pImage = new cImage( );
+		pImage->m_iID = imageID;
+		m_cImageList.AddItem( pImage, imageID );
+	}
+	else
+	{
+		if ( pImage->HasParent() )
+		{
+			agk::Error( "Failed to create image from PNG memblock, image ID is being used as a sub image" );
+			return;
+		}
+
+		while ( pImage->m_pBoundingPoints ) 
+		{
+			Point2D *pPoint = pImage->m_pBoundingPoints;
+			pImage->m_pBoundingPoints = pImage->m_pBoundingPoints->pNext;
+			delete pPoint;
+		}
+	}
+	
+	pImage->LoadPNGFromMemory( (uint32_t*) (pMem->m_pData), 0, 0, false );
+}
+
+//****f* Memblock/Image/CreateImageFromPNGMemblock
+// FUNCTION
+//   Creates an image from a memblock. The memblock must exist, the image is created in a free ID which is returned.
+//   The memblock must contain a valid PNG file such as one loaded with <i>CreateMemblockFromFile</i>(memID, "image.png")
+// INPUTS
+//   memID -- The ID of the memblock to read, the memblock is unaffected by this command.
+// SOURCE
+uint32_t agk::CreateImageFromPNGMemblock( uint32_t memID )
+//****
+{
+	uint32_t imageID = m_cImageList.GetFreeID();
+	if ( imageID == 0 )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to create image from PNG memblock - No free IDs found" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	CreateImageFromPNGMemblock( imageID, memID );
+	return imageID;
+}
 
 //****f* Memblock/Sound/CreateMemblockFromSound
 // FUNCTION
@@ -39415,6 +39627,155 @@ UINT agk::CreateSoundFromMemblock( UINT memID )
 
 	CreateSoundFromMemblock( soundID, memID );
 	return soundID;
+}
+
+//****f* Memblock/Sound/CreateSoundFromOGGMemblock
+// FUNCTION
+//   Creates an sound from a memblock. The memblock must exist, if the sound file exists it will be overwritten, 
+//   if not it will be created. This will not affect any sound instances already playing, only future ones.
+//   The memblock must contain a valid OGG file such as one loaded with <i>CreateMemblockFromFile</i>(memID, "sound.ogg")
+// INPUTS
+//   soundID -- The ID of the sound to create or modify.
+//   memID -- The ID of the memblock to read, the memblock is unaffected by this command.
+// SOURCE
+void agk::CreateSoundFromOGGMemblock( uint32_t soundID, uint32_t memID )
+//****
+{
+	cMemblock *pMem = m_cMemblockList.GetItem( memID );
+	if ( !pMem )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr;
+		errStr.Format( "Failed to create sound %d from OGG memblock %d, memblock does not exist", soundID, memID );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	cSoundMgr::AddOGGMem( soundID, pMem->m_pData, pMem->m_iSize, -1 );
+}
+
+//****f* Memblock/Sound/CreateSoundFromOGGMemblock
+// FUNCTION
+//   Creates an sound from a memblock. The memblock must exist, this creates a new sound and returns the ID. 
+//   This will not affect any sound instances already playing, only future ones.
+//   The memblock must contain a valid OGG file such as one loaded with <i>CreateMemblockFromFile</i>(memID, "sound.ogg")
+// INPUTS
+//   memID -- The ID of the memblock to read, the memblock is unaffected by this command.
+// SOURCE
+uint32_t agk::CreateSoundFromOGGMemblock( uint32_t memID )
+//****
+{
+	cMemblock *pMem = m_cMemblockList.GetItem( memID );
+	if ( !pMem )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr;
+		errStr.Format( "Failed to create sound from OGG memblock %d, memblock does not exist", memID );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return cSoundMgr::AddOGGMem( pMem->m_pData, pMem->m_iSize, -1 );
+}
+
+//****f* Memblock/Sound/CreateMusicFromOGGMemblock
+// FUNCTION
+//   Creates a music entity from a memblock. The memblock must exist, the music ID must not already exist.
+//   The memblock must contain a valid OGG file such as one loaded with <i>CreateMemblockFromFile</i>(memID, "music.ogg")
+// INPUTS
+//   musicID -- The ID of the music to create.
+//   memID -- The ID of the memblock to read, the memblock is unaffected by this command.
+// SOURCE
+void agk::CreateMusicFromOGGMemblock( uint32_t musicID, uint32_t memID )
+//****
+{
+	cMemblock *pMem = m_cMemblockList.GetItem( memID );
+	if ( !pMem )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr;
+		errStr.Format( "Failed to create music %d from OGG memblock %d, memblock does not exist", musicID, memID );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	if ( musicID == 0 )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "", 100 );
+		errStr.Format( "Failed to load music %d, ID must be greater than 0", musicID );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	if ( m_cMusicOGGList.GetItem( musicID ) )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to load music " );
+		errStr.AppendUInt( musicID ).Append( " - ID already exists" );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	AGKMusicOGG *pMusic = new AGKMusicOGG();
+	if ( !pMusic->LoadMem( pMem->m_pData, pMem->m_iSize ) ) 
+	{
+		delete pMusic;
+		return;
+	}
+	else 
+	{
+		m_cMusicOGGList.AddItem( pMusic, musicID );
+	}
+}
+
+//****f* Memblock/Sound/CreateMusicFromOGGMemblock
+// FUNCTION
+//   Creates a music entity from a memblock. The memblock must exist. This will create a new music ID and return it
+//   The memblock must contain a valid OGG file such as one loaded with <i>CreateMemblockFromFile</i>(memID, "music.ogg")
+// INPUTS
+//   memID -- The ID of the memblock to read, the memblock is unaffected by this command.
+// SOURCE
+uint32_t agk::CreateMusicFromOGGMemblock( uint32_t memID )
+//****
+{
+	cMemblock *pMem = m_cMemblockList.GetItem( memID );
+	if ( !pMem )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr;
+		errStr.Format( "Failed to create music from OGG memblock %d, memblock does not exist", memID );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	uint32_t musicID = m_cMusicOGGList.GetFreeID();
+	if ( musicID == 0 )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to create OGG music from memblock - No free music IDs found" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	AGKMusicOGG *pMusic = new AGKMusicOGG();
+	if ( !pMusic->LoadMem( pMem->m_pData, pMem->m_iSize ) ) 
+	{
+		delete pMusic;
+		return 0;
+	}
+	else 
+	{
+		m_cMusicOGGList.AddItem( pMusic, musicID );
+		return musicID;
+	}
 }
 
 //****f* Memblock/File/CreateMemblockFromFile

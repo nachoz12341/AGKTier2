@@ -8845,6 +8845,31 @@ int agk::PlatformAdMobGetRewardAdRewarded()
 	return rewarded;
 }
 
+int agk::PlatformAdMobGetRewardAdValue()
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID adFunc = lJNIEnv->GetStaticMethodID( AGKHelper, "GetRewardAdValue","()I" );
+	if ( !adFunc ) return 0;
+
+	// call our java class method
+	int value = lJNIEnv->CallStaticIntMethod( AGKHelper, adFunc );
+	
+	// detatch thread from Java VM before we leave
+	vm->DetachCurrentThread();
+
+	return value;
+}
+
 void agk::PlatformAdMobResetRewardAd()
 {
 	JNIEnv* lJNIEnv = g_pActivity->env;
@@ -8884,6 +8909,28 @@ void agk::PlatformAdMobSetTesting (int testing)
 
 	// call our java class method
 	lJNIEnv->CallStaticVoidMethod( AGKHelper, adFunc, testing );
+	
+	// detatch thread from Java VM before we leave
+	vm->DetachCurrentThread();
+}
+
+void agk::PlatformAdMobSetChildRating( int rating )
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID adFunc = lJNIEnv->GetStaticMethodID( AGKHelper, "SetAdMobChildRating","(I)V" );
+
+	// call our java class method
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, adFunc, rating );
 	
 	// detatch thread from Java VM before we leave
 	vm->DetachCurrentThread();

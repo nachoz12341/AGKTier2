@@ -289,6 +289,7 @@ namespace AGK
 			bool LoadSubImage( cImage *pParent, const uString &sSubFile, bool bSilent=false );
 			void ManualSubImage( cImage *pParent, int x, int y, int width, int height );
 			void OverrideSubImage( cImage *pParent, int width, int height, float u1, float v1, float u2, float v2 );
+			void SetSubImages( const char* szSubImageFile );
 
 			static void PreCache( const char* szFile, float scaleX, float scaleY );
 			static int GetCachingFinished();

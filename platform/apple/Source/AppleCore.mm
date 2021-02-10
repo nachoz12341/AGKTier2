@@ -1941,6 +1941,16 @@ void agk::PlatformInitExternal( void* ptr, int width, int height, void(*swap)(vo
 
 void agk::PlatformInitGL( void* ptr )
 {
+	// stop SIGPIPE causing a crash when a network socket disconnects
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGPIPE, &sa, 0) == -1) {
+        perror(0);
+        agk::Warning( "Failed to disable SIGPIPE" );
+    }
+
 	// iPhone setup
 	[UIApplication sharedApplication].idleTimerDisabled = YES;
 	g_pViewController = (UIViewController*) ptr;
@@ -2118,6 +2128,16 @@ void agk::PlatformInitGL( void* ptr )
 
 void agk::PlatformInitConsole()
 {
+	// stop SIGPIPE causing a crash when a network socket disconnects
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+    if (sigaction(SIGPIPE, &sa, 0) == -1) {
+        perror(0);
+        agk::Warning( "Failed to disable SIGPIPE" );
+    }
+
 	dStartTime = CACurrentMediaTime();
 	SetRandomSeed(agk::Round(dStartTime));
 	

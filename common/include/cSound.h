@@ -21,6 +21,13 @@
 
 #define AGK_OGG_BUFFER_SIZE 65536
 
+struct oggMemData
+{
+	UINT pos = 0;
+	UINT size = 0;
+	unsigned char* pData = 0;
+};
+
 struct OggVorbis_File;
 
 // Namespace
@@ -110,6 +117,7 @@ namespace AGK
 			OggVorbis_File *m_pOggFile;
 			cFile m_cFile;
 			uString m_sFile;
+			oggMemData m_memData;
 			
 			// sound data
 			AGKWAVEFORMATEX m_fmt;
@@ -154,6 +162,7 @@ namespace AGK
 			void Reset();
 
 			int Load( const uString &szFilename );
+			int LoadMem( const unsigned char* data, UINT size );
 			void SetVolume( int volume ); 
 			void Play( int iLoop );
 			void Pause();
@@ -226,6 +235,8 @@ namespace AGK
 			//static void PlatformPauseInstances( UINT iID=0 );
 			//static void PlatformResumeInstances( UINT iID=0 );
 
+			static void ProcessOGG( cSoundFile* pSound, OggVorbis_File* oggFile );
+
 			cSoundMgr() {}
 
 		public:
@@ -252,6 +263,9 @@ namespace AGK
 
 			static UINT AddOGGFile( const uString &szFile, int iMaxInstances=-1 );
 			static void AddOGGFile( UINT iID, const uString &szFile, int iMaxInstances=-1 );
+
+			static UINT AddOGGMem( const unsigned char* data, UINT size, int iMaxInstances=-1 );
+			static void AddOGGMem( UINT iID, const unsigned char* data, UINT size, int iMaxInstances=-1 );
 
 			static UINT PlayInstance( UINT iID, int iVol=100, int iLoop=0, int iPriority=0 );
 			//static void PauseAll( UINT iID=0 );

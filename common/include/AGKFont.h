@@ -111,6 +111,7 @@ namespace AGK
 
 		public:
 			AGKFont();
+			AGKFont( unsigned char* data, UINT compressedSize, UINT size );
 			AGKFont( const uString &sFilename );
 			~AGKFont();
 			int GetLoaded() { return m_pMemFont ? 1 : 0; }

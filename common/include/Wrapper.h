@@ -556,8 +556,10 @@ namespace AGK
 			static void  PlatformAdMobCacheRewardAd			  ();
 			static int   PlatformAdMobGetRewardAdLoaded		  ( void );
 			static int   PlatformAdMobGetRewardAdRewarded	  ( void );
+			static int   PlatformAdMobGetRewardAdValue        ( void );
 			static void  PlatformAdMobResetRewardAd			  ( void );
 			static void  PlatformAdMobSetTesting			  ( int testing );
+			static void  PlatformAdMobSetChildRating		  ( int rating );
 
 			// CHARTBOOST COMMANDS
 			static void  PlatformChartboostSetup			  ( void );
@@ -1101,6 +1103,7 @@ namespace AGK
 			static UINT GetImageExists ( UINT iImageIndex );
 			static void DeleteImage ( UINT iImageIndex );
 			static void DeleteAllImages();
+			static void SetImageSubImages( uint32_t iImageIndex, const char* sSubImageFilename );
 			static float GetImageWidth ( UINT iImageIndex );
 			static float GetImageHeight ( UINT iImageIndex );
 			static void SetImageMinFilter( UINT iImageIndex, UINT mode );
@@ -2490,6 +2493,7 @@ namespace AGK
         
             static void SetAmazonAdTesting( int mode );
 			static void SetAdMobTesting( int mode );
+			static void SetAdMobChildRating( int rating );
 
 			static void ShowFullscreenAdvertAdMob();
 			static void ShowFullscreenAdvertChartboost();
@@ -2502,6 +2506,7 @@ namespace AGK
 			static void ShowRewardAdAdMob();
 			static int GetRewardAdLoadedAdMob();
 			static int GetRewardAdRewardedAdMob();
+			static int GetRewardAdValueAdMob();
 			static void ResetRewardAdMob();
 
 			static void ShowRewardAdChartboost();
@@ -2690,6 +2695,8 @@ namespace AGK
 			static void DeleteMemblock( UINT memID );
 			static unsigned char* GetMemblockPtr( UINT memID );
 			static void CopyMemblock( UINT memSrcID, UINT memDstID, UINT srcOffset, UINT dstOffset, UINT size );
+			static char* GetMemblockSHA1( uint32_t memID );
+			static char* GetMemblockSHA256( uint32_t memID );
 			
 			static int GetMemblockSize( UINT memID );
 			static int GetMemblockByte( UINT memID, UINT offset );
@@ -2710,11 +2717,18 @@ namespace AGK
 			static UINT CreateMemblockFromImage( UINT imageID );
 			static void CreateImageFromMemblock( UINT imageID, UINT memID );
 			static UINT CreateImageFromMemblock( UINT memID );
+			static void CreateImageFromPNGMemblock( uint32_t imageID, uint32_t memID );
+			static uint32_t CreateImageFromPNGMemblock( uint32_t memID );
 
 			static void CreateMemblockFromSound( UINT memID, UINT soundID );
 			static UINT CreateMemblockFromSound( UINT soundID );
 			static void CreateSoundFromMemblock( UINT soundID, UINT memID );
 			static UINT CreateSoundFromMemblock( UINT memID );
+			static void CreateSoundFromOGGMemblock( uint32_t soundID, uint32_t memID );
+			static uint32_t CreateSoundFromOGGMemblock( uint32_t memID );
+
+			static void CreateMusicFromOGGMemblock( uint32_t musicID, uint32_t memID );
+			static uint32_t CreateMusicFromOGGMemblock( uint32_t memID );
 
 			static void CreateMemblockFromFile( UINT memID, const char* filename );
 			static UINT CreateMemblockFromFile( const char* filename );

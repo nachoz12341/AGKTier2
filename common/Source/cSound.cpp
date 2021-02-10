@@ -47,6 +47,46 @@ long AGKSoundFileTell(void *pUser)
 	return (long)pFile->GetPos();
 }
 
+// OGG memory access callbacks
+
+size_t AGKSoundMemRead(void *pData, size_t size, size_t count, void *pUser)
+{
+	oggMemData *pMem = (oggMemData*) pUser;
+	if ( !pMem ) return 0;
+
+	UINT totalSize = size * count;
+	if ( pMem->pos + totalSize > pMem->size ) totalSize = pMem->size - pMem->pos;
+
+	memcpy( pData, pMem->pData + pMem->pos, totalSize );
+	pMem->pos += totalSize;
+	return totalSize;
+}
+
+int AGKSoundMemSeek(void *pUser, ogg_int64_t offset, int whence)
+{
+	oggMemData *pMem = (oggMemData*) pUser;
+	if ( !pMem ) return 1;
+
+	if ( whence == SEEK_SET ) pMem->pos = (UINT) offset;
+	else if ( whence == SEEK_CUR ) pMem->pos += (UINT) offset;
+	else if ( whence == SEEK_END ) pMem->pos = pMem->size + (UINT)offset;
+
+	return 0;
+}
+
+int AGKSoundMemClose(void *pUser)
+{
+	return 0;
+}
+
+long AGKSoundMemTell(void *pUser)
+{
+	oggMemData *pMem = (oggMemData*) pUser;
+	if ( !pMem ) return 0;
+
+	return (long)pMem->pos;
+}
+
 //
 // Music
 //
@@ -319,6 +359,10 @@ AGKMusicOGG::~AGKMusicOGG()
 		m_pOggFile = 0;
 	}
 
+	if ( m_memData.pData ) delete [] m_memData.pData;
+	m_memData.pData = 0;
+	m_memData.size = 0;
+
 	PlatformCleanUp();
 }
 
@@ -327,6 +371,10 @@ void AGKMusicOGG::Reset()
 	Stop();
 
 	cAutoSLock autolock( &m_filelock );
+
+	if ( m_memData.pData ) delete [] m_memData.pData;
+	m_memData.pData = 0;
+	m_memData.size = 0;
 
 	m_iVolume = 100;
 	m_iFlags = 0;
@@ -405,6 +453,71 @@ int AGKMusicOGG::Load( const uString &szFilename )
 	if ( m_fDuration < 0.5 )
 	{
 		m_cFile.Close();
+		delete m_pOggFile;
+		m_pOggFile = 0;
+
+		agk::Error( "Failed to load music file, duration must be greater than 0.5 seconds, use LoadSoundOGG instead" );
+		return 0;
+	}
+
+	PlatformInit();
+
+	return 1;
+}
+
+int AGKMusicOGG::LoadMem( const unsigned char* data, UINT size )
+{
+	if ( m_pOggFile ) Reset();
+
+	cAutoSLock autolock( &m_filelock );
+	
+	m_sFile.SetStr( "" );
+
+	ov_callbacks callbacks = {
+		AGKSoundMemRead,
+		AGKSoundMemSeek,
+		AGKSoundMemClose,
+		AGKSoundMemTell
+	};
+
+	m_memData.pData = new unsigned char[ size ];
+	memcpy( m_memData.pData, data, size );
+	m_memData.pos = 0;
+	m_memData.size = size;
+
+	m_pOggFile = new OggVorbis_File();
+	if ( ov_open_callbacks( &m_memData, m_pOggFile, NULL, 0, callbacks ) != 0 )
+	{
+		delete [] m_memData.pData;
+		m_memData.pData = 0;
+		m_memData.size = 0;
+		delete m_pOggFile;
+		m_pOggFile = 0;
+
+		agk::Error( "Failed to read OGG data" );
+		return 0;
+	}
+
+	vorbis_info *pInfo = ov_info( m_pOggFile, -1 );
+
+	// wave header
+	m_fmt.wFormatTag = 1;
+	m_fmt.nChannels = pInfo->channels;
+	m_fmt.nSamplesPerSec = pInfo->rate;
+	m_fmt.wBitsPerSample = 16;
+	m_fmt.nBlockAlign = m_fmt.nChannels * (m_fmt.wBitsPerSample / 8);
+	m_fmt.nAvgBytesPerSec = m_fmt.nSamplesPerSec * m_fmt.nBlockAlign;
+	m_fmt.cbSize = 0;
+
+	m_iTotalSamples = (int) ov_pcm_total( m_pOggFile, -1 );
+	m_fDuration = m_iTotalSamples / (float)m_fmt.nSamplesPerSec;
+	m_fCurrTime = 0;
+
+	if ( m_fDuration < 0.5 )
+	{
+		delete [] m_memData.pData;
+		m_memData.pData = 0;
+		m_memData.size = 0;
 		delete m_pOggFile;
 		m_pOggFile = 0;
 
@@ -1162,6 +1275,38 @@ void cSoundMgr::AddFile( UINT iID, const unsigned char *pData, UINT size, int iM
 	PlatformAddFile( pSound );
 }
 
+void cSoundMgr::ProcessOGG( cSoundFile* pSound, OggVorbis_File* oggFile )
+{
+	vorbis_info* pInfo = ov_info( oggFile, -1 );
+
+	// wave header
+	pSound->m_fmt.wFormatTag = 1;
+	pSound->m_fmt.nChannels = pInfo->channels;
+	pSound->m_fmt.nSamplesPerSec = pInfo->rate;
+	pSound->m_fmt.wBitsPerSample = 16;
+	pSound->m_fmt.nBlockAlign = pSound->m_fmt.nChannels*(pSound->m_fmt.wBitsPerSample/8);
+	pSound->m_fmt.nAvgBytesPerSec = pSound->m_fmt.nSamplesPerSec*pSound->m_fmt.nBlockAlign;
+	pSound->m_fmt.cbSize = 0;
+
+	// raw sound data
+	int samples = (int) ov_pcm_total( oggFile, -1 );
+	pSound->m_uDataSize = samples * (pSound->m_fmt.wBitsPerSample/8) * pSound->m_fmt.nChannels;
+	pSound->m_pRawData = new unsigned char[ pSound->m_uDataSize ];
+	
+	int ptr = 0;
+	int bytes = 0;
+	int remaining = pSound->m_uDataSize;
+	do
+	{
+		int bitstream;
+		bytes = ov_read( oggFile, (char*)(pSound->m_pRawData+ptr), remaining, 0, 2, 1, &bitstream );
+		ptr += bytes;
+		remaining -= bytes;
+	} while( remaining > 0 && bytes > 0 );
+
+	ov_clear( oggFile );
+}
+
 UINT cSoundMgr::AddOGGFile( const uString &szFilename, int iMaxInstances )
 {
 	UINT iID = m_iLastID + 1;
@@ -1234,7 +1379,6 @@ void cSoundMgr::AddOGGFile( UINT iID, const uString &szFilename, int iMaxInstanc
 		return;
 	}
 
-	vorbis_info *pInfo;
 	OggVorbis_File oggFile;
 	if ( ov_open_callbacks( &oFile, &oggFile, NULL, 0, callbacks ) != 0 )
 	{
@@ -1245,8 +1389,6 @@ void cSoundMgr::AddOGGFile( UINT iID, const uString &szFilename, int iMaxInstanc
 		return;
 	}
 
-	pInfo = ov_info( &oggFile, -1 );
-
 	// cosntruct AGK sound file
 	cSoundMgr::cSoundFile *pSound = new cSoundMgr::cSoundFile();
 	m_pSoundFiles[ iID ] = pSound;
@@ -1254,32 +1396,89 @@ void cSoundMgr::AddOGGFile( UINT iID, const uString &szFilename, int iMaxInstanc
 	pSound->m_iMax = iMaxInstances;
 	pSound->m_sFile.SetStr( szFile );
 
-	// wave header
-	pSound->m_fmt.wFormatTag = 1;
-	pSound->m_fmt.nChannels = pInfo->channels;
-	pSound->m_fmt.nSamplesPerSec = pInfo->rate;
-	pSound->m_fmt.wBitsPerSample = 16;
-	pSound->m_fmt.nBlockAlign = pSound->m_fmt.nChannels*(pSound->m_fmt.wBitsPerSample/8);
-	pSound->m_fmt.nAvgBytesPerSec = pSound->m_fmt.nSamplesPerSec*pSound->m_fmt.nBlockAlign;
-	pSound->m_fmt.cbSize = 0;
+	ProcessOGG( pSound, &oggFile );
 
-	// raw sound data
-	int samples = (int) ov_pcm_total( &oggFile, -1 );
-	pSound->m_uDataSize = samples * (pSound->m_fmt.wBitsPerSample/8) * pSound->m_fmt.nChannels;
-	pSound->m_pRawData = new unsigned char[ pSound->m_uDataSize ];
+	PlatformAddFile( pSound );
+}
+
+UINT cSoundMgr::AddOGGMem( const unsigned char* data, UINT size, int iMaxInstances )
+{
+	UINT iID = m_iLastID + 1;
+	if ( iID >= MAX_SOUND_FILES ) iID = 1;
 	
-	int ptr = 0;
-	int bytes = 0;
-	int remaining = pSound->m_uDataSize;
-	do
+	while ( m_pSoundFiles[ iID ] && iID != m_iLastID )
 	{
-		int bitstream;
-		bytes = ov_read( &oggFile, (char*)(pSound->m_pRawData+ptr), remaining, 0, 2, 1, &bitstream );
-		ptr += bytes;
-		remaining -= bytes;
-	} while( remaining > 0 && bytes > 0 );
+		iID++;
+		if ( iID >= MAX_SOUND_FILES ) 
+		{
+			if ( m_iLastID == 0 ) iID = 0;
+			else iID = 1;
+		}
+	}
 
-	ov_clear( &oggFile );
+	if ( iID == m_iLastID )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error( "Could not add OGG sound - No free ID found" );
+#endif
+		return 0;
+	}
+
+	m_iLastID = iID;
+	AddOGGMem( iID, data, size, iMaxInstances );
+
+	return iID;
+}
+
+void cSoundMgr::AddOGGMem( UINT iID, const unsigned char* data, UINT size, int iMaxInstances )
+{
+	if ( iID < 1 || iID >= MAX_SOUND_FILES ) 
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString str( "Could not add OGG sound - ID must be between 1 and ", 100 ); 
+		str.AppendInt( MAX_SOUND_FILES-1 );
+		agk::Error( str );
+#endif
+		return;
+	}
+
+	if ( m_pSoundFiles[ iID ] )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString str( "Could not add OGG sound - ID ", 100 );
+		str.AppendUInt( iID ).Append( " already taken" );
+		agk::Error( str );
+#endif
+		return;
+	}
+
+	ov_callbacks callbacks = {
+		AGKSoundMemRead,
+		AGKSoundMemSeek,
+		AGKSoundMemClose,
+		AGKSoundMemTell
+	};
+
+	oggMemData oggData;
+	oggData.pData = (unsigned char*) data;
+	oggData.pos = 0;
+	oggData.size = size;
+
+	OggVorbis_File oggFile;
+	if ( ov_open_callbacks( &oggData, &oggFile, NULL, 0, callbacks ) != 0 )
+	{
+		agk::Error( "Failed to read OGG data" );
+		return;
+	}
+
+	// cosntruct AGK sound file
+	cSoundMgr::cSoundFile *pSound = new cSoundMgr::cSoundFile();
+	m_pSoundFiles[ iID ] = pSound;
+	pSound->m_iID = iID;
+	pSound->m_iMax = iMaxInstances;
+	pSound->m_sFile.SetStr( "memory" );
+	
+	ProcessOGG( pSound, &oggFile );
 
 	PlatformAddFile( pSound );
 }

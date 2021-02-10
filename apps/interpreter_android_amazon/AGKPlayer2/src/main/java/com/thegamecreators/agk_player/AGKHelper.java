@@ -1243,6 +1243,10 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		videoHeight = m_videoHeight;
 		pausePos = -1;
 		completed = 0;
+
+		RunnableVideo.videoWidth = videoWidth;
+		RunnableVideo.videoHeight = videoHeight;
+		RunnableVideo.videoDuration = videoDuration;
 	}
 
 	public void DeleteVideo()
@@ -1405,24 +1409,23 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 	public void UpdateVideo()
 	{
-		synchronized( AGKHelper.videoLock )
-		{
-			if (pTexture == null) return;
+		synchronized( AGKHelper.videoLock ) {
 			if (Build.VERSION.SDK_INT < 14) return;
 
-			try
-			{
-				pTexture.updateTexImage();
-				float matrix[] = new float[16];
-				pTexture.getTransformMatrix(matrix);
-				U1 = matrix[12];
-				V1 = matrix[5] + matrix[13];
-				U2 = matrix[0] + matrix[12];
-				V2 = matrix[13];
-			}
-			catch( RuntimeException e )
-			{
-				Log.e( "Video", "Failed to update video texture: " + e.toString() );
+			if ( player != null ) RunnableVideo.videoPosition = player.getCurrentPosition();
+
+			if (pTexture != null) {
+				try {
+					pTexture.updateTexImage();
+					float matrix[] = new float[16];
+					pTexture.getTransformMatrix(matrix);
+					U1 = matrix[12];
+					V1 = matrix[5] + matrix[13];
+					U2 = matrix[0] + matrix[12];
+					V2 = matrix[13];
+				} catch (RuntimeException e) {
+					Log.e( "Video", "Failed to update video texture: " + e.toString() );
+				}
 			}
 		}
 	}
@@ -1631,6 +1634,11 @@ class RunnableVideo implements Runnable
 	public Activity act;
 	public static volatile AGKSurfaceView video = null;
 	public int action = 0;
+
+	public static int videoWidth = 0;
+	public static int videoHeight = 0;
+	public static int videoDuration = 0;
+	public static int videoPosition = 0;
 	
 	public String filename = "";
 	public int fileType = 0;
@@ -2437,6 +2445,11 @@ public class AGKHelper {
 	
 	public static void LoadVideo( Activity act, String filename, int type )
 	{
+		RunnableVideo.videoDuration = 0;
+		RunnableVideo.videoPosition = 0;
+		RunnableVideo.videoWidth = 0;
+		RunnableVideo.videoHeight = 0;
+
 		Log.i("Video", "Load Video");
 		RunnableVideo video = new RunnableVideo();
 		video.act = act;
@@ -2523,45 +2536,41 @@ public class AGKHelper {
 	{
 		return hasStartedVideo;
 	}
-	
+
 	public static float GetVideoValue( Activity act, int value )
 	{
-		if ( RunnableVideo.video == null ) return videoLoaded==1 ? 0 : -1;
-		if ( RunnableVideo.video.m_filename == null ) return videoLoaded==1 ? 0 : -1;
-		if ( RunnableVideo.video.m_filename.equals("Error") ) return -1;
-		if ( RunnableVideo.video.m_filename.equals("") ) return videoLoaded==1 ? 0 : -1;
-		
+		if ( videoLoaded == 0 ) return -1;
+
 		switch(value)
 		{
-			case 1: // video position
-			{
-				synchronized( videoLock ) 
-				{
-					if ( RunnableVideo.video == null ) return 0;
-					if ( RunnableVideo.video.player == null ) return 0;
-					return RunnableVideo.video.player.getCurrentPosition()/1000.0f;
-				}
-			}
-			case 2: return RunnableVideo.video.videoDuration/1000.0f; // video duration
-			case 3: return RunnableVideo.video.videoWidth; // video width
-			case 4: return RunnableVideo.video.videoHeight; // video height
+			case 1: return RunnableVideo.videoPosition/1000.0f; // video position
+			case 2: return RunnableVideo.videoDuration/1000.0f; // video duration
+			case 3: return RunnableVideo.videoWidth; // video width
+			case 4: return RunnableVideo.videoHeight; // video height
 		}
-		
+
 		return 0;
 	}
 
 	public static float GetVideoTextureValue( Activity act, int value )
 	{
-		if ( RunnableVideo.video == null ) return 0;
-		if ( RunnableVideo.video.m_filename.equals("Error") ) return 0;
-		if ( RunnableVideo.video.m_filename.equals("") ) return 0;
-
-		switch(value)
+		try
 		{
-			case 1: return RunnableVideo.video.U1;
-			case 2: return RunnableVideo.video.V1;
-			case 3: return RunnableVideo.video.U2;
-			case 4: return RunnableVideo.video.V2;
+			if ( RunnableVideo.video == null ) return 0;
+			if ( RunnableVideo.video.m_filename.equals("Error") ) return 0;
+			if ( RunnableVideo.video.m_filename.equals("") ) return 0;
+
+			switch(value) {
+				case 1: return RunnableVideo.video.U1;
+				case 2: return RunnableVideo.video.V1;
+				case 3: return RunnableVideo.video.U2;
+				case 4: return RunnableVideo.video.V2;
+			}
+		}
+		catch( Exception e )
+		{
+			Log.e( "GetVideoTextureValue", "Caught Exception: " + e.toString() );
+			return 0;
 		}
 
 		return 0;
@@ -2816,6 +2825,11 @@ public class AGKHelper {
 		RunnableAd.testMode = mode;
 	}
 
+	public static void SetAdMobChildRating( int rating )
+	{
+
+	}
+
 	public static void LoadAdMobConsentStatus( Activity act, String publisherID, String privacyPolicy )
 	{
 		if ( m_iAdMobConsentStatus == -2 )
@@ -2991,12 +3005,17 @@ public class AGKHelper {
 		run.rewardpubID = publisherID;
 		run.action = 11;
 		run.act = act;
-		act.runOnUiThread(run);
+		act.runOnUiThread( run );
 	}
 
 	public static int GetRewardAdRewarded()
 	{
 		return m_iRewardAdRewarded;
+	}
+
+	public static int GetRewardAdValue()
+	{
+		return 0;
 	}
 
 	public static void ResetRewardAd()
@@ -3138,6 +3157,12 @@ public class AGKHelper {
 	public static int GetFullscreenLoadedAmazon()
 	{
 		return RunnableAmazonAds.cached;
+	}
+
+	// Rate App
+	public static void RequestReview()
+	{
+		// do nothing on Amazon
 	}
 
 	// local notifications

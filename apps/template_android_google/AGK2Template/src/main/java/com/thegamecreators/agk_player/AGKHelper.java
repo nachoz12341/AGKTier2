@@ -11,6 +11,9 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
 import com.google.android.gms.ads.reward.RewardedVideoAdListener;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdCallback;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -36,6 +39,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.play.core.review.ReviewInfo;
+import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.api.client.googleapis.extensions.android.gms.auth.*;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -179,6 +185,8 @@ import com.chartboost.sdk.Model.CBError.CBImpressionError;
 import com.google.ads.consent.*;
 
 import com.mycompany.mytemplate.R;
+
+import static com.google.android.gms.ads.RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE;
 
 // Used for agk::Message()
 class RunnableMessage implements Runnable
@@ -566,13 +574,16 @@ class RunnableAd implements Runnable
 	public String pubID = "";
 	public String rewardpubID = "";
 
+	public static int childRating = 0;
 	public static int testMode = 0;
 	public static AdView ad = null;
 	public static int adType = 0;
 	public static com.google.android.gms.ads.InterstitialAd interstitial = null;
-	public static RewardedVideoAd rewardAd = null;
+	public static RewardedAd rewardAd = null;
 	public static int cached = 0;
 	public static int rewardCached = 0;
+	RewardedAdLoadCallback callbackLoad = null;
+	RewardedAdCallback callbackShow = null;
 	
 	public WindowManager.LayoutParams makeLayout()
 	{
@@ -630,6 +641,62 @@ class RunnableAd implements Runnable
 		return "";
 	}
 	
+	private void LoadRewardAd()
+	{
+		Log.i("AdMob", "Loading reward ad");
+		rewardAd = new RewardedAd(act, (testMode == 1) ? "ca-app-pub-3940256099942544/5224354917" : rewardpubID );
+
+		Bundle extras = new Bundle();
+		if ( childRating == 1 ) extras.putString("max_ad_content_rating", "G");
+		if ( AGKHelper.m_iAdMobConsentStatus < 2 ) extras.putString("npa", "1");
+
+		AdRequest.Builder request = new AdRequest.Builder();
+		request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+		if ( childRating == 1 ) request.tagForChildDirectedTreatment(true);
+		else request.tagForChildDirectedTreatment(false);
+
+		rewardAd.loadAd(request.build(), callbackLoad);
+	}
+
+	private void CheckRewardAdInit()
+	{
+		if ( callbackShow == null )
+		{
+			callbackShow = new RewardedAdCallback() {
+				@Override
+				public void onUserEarnedReward(com.google.android.gms.ads.rewarded.RewardItem rewardItem) {
+					Log.i("AdMob", "Reward ad rewarded: " + Integer.toString(rewardItem.getAmount()) );
+					AGKHelper.m_iRewardAdRewarded = 1;
+				}
+
+				@Override
+				public void onRewardedAdClosed() {
+					Log.i("AdMob", "Reward ad closed");
+					rewardAd = null;
+					LoadRewardAd();
+				}
+			};
+		}
+
+		if ( callbackLoad == null )
+		{
+			callbackLoad = new RewardedAdLoadCallback()
+			{
+				@Override
+				public void onRewardedAdLoaded() {
+					AGKHelper.m_iRewardAdValue = rewardAd.getRewardItem().getAmount();
+					rewardCached = 1;
+				}
+
+				@Override
+				public void onRewardedAdFailedToLoad(LoadAdError adError) {
+					Log.e( "AdMob", "Failed to load reward ad: " + adError.toString() );
+					rewardAd = null;
+				}
+			};
+		}
+	}
+
 	public void run() 
 	{
 		switch ( action )
@@ -738,14 +805,12 @@ class RunnableAd implements Runnable
 			case 7: // pause ad
 			{
 				if ( ad != null ) ad.pause();
-				if ( rewardAd != null ) rewardAd.pause(act);
 				break;
 			}
 			
 			case 8: // resume ad
 			{
 				if ( ad != null ) ad.resume();
-				if ( rewardAd != null ) rewardAd.resume(act);
 				break;
 			}
 			
@@ -864,67 +929,13 @@ class RunnableAd implements Runnable
 			case 11: // show reward ad
 			{
 				Log.i("AdMob", "Show reward ad");
-				if ( rewardAd == null )
-				{
-					rewardAd = MobileAds.getRewardedVideoAdInstance(act);
+				CheckRewardAdInit();
 
-					rewardAd.setRewardedVideoAdListener(new RewardedVideoAdListener() {
-						public void onRewardedVideoAdLoaded() { rewardCached = 1; Log.i("AdMob", "Reward ad loaded"); }
-						public void onRewardedVideoAdOpened() { Log.i("AdMob", "Reward ad opened"); }
-						public void onRewardedVideoStarted() { Log.i("AdMob", "Reward ad started"); }
-						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
-						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
-						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
-						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
-						public void onRewardedVideoAdClosed()
+				if ( rewardAd == null ) LoadRewardAd();
+				else if ( rewardAd.isLoaded() )
 						{
-							Log.i("AdMob", "Reward ad closed");
-
-							Bundle extras = new Bundle();
-							extras.putString("npa", "1");
-
-							if ( testMode == 1 )
-							{
-								Log.i("AdMob", "loading test reward ad");
-								AdRequest.Builder request = new AdRequest.Builder();
-								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
-							}
-							else
-							{
-								Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
-								AdRequest.Builder request = new AdRequest.Builder();
-								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-								rewardAd.loadAd(rewardpubID, request.build());
-							}
-						}
-					});
-				}
-
-				if ( rewardAd.isLoaded() )
-				{
 					rewardCached = 0;
-					rewardAd.show();
-				}
-				else
-				{
-					Bundle extras = new Bundle();
-					extras.putString("npa", "1");
-
-					if ( testMode == 1 )
-					{
-						Log.i("AdMob", "loading test reward ad");
-						AdRequest.Builder request = new AdRequest.Builder();
-						if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-						rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
-					}
-					else
-					{
-						Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
-						AdRequest.Builder request = new AdRequest.Builder();
-						if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-						rewardAd.loadAd(rewardpubID, request.build());
-					}
+					rewardAd.show( act, callbackShow );
 				}
 
 				break;
@@ -933,59 +944,9 @@ class RunnableAd implements Runnable
 			case 12: // cache reward ad
 			{
 				Log.i("AdMob", "Cache reward ad");
-				if ( rewardAd == null )
-				{
-					rewardAd = MobileAds.getRewardedVideoAdInstance(act);
+				CheckRewardAdInit();
 
-					rewardAd.setRewardedVideoAdListener(new RewardedVideoAdListener() {
-						public void onRewardedVideoAdLoaded() { rewardCached = 1; Log.i("AdMob", "Reward ad loaded"); }
-						public void onRewardedVideoAdOpened() { Log.i("AdMob", "Reward ad opened"); }
-						public void onRewardedVideoStarted() { Log.i("AdMob", "Reward ad started"); }
-						public void onRewardedVideoAdLeftApplication() { Log.i("AdMob", "Reward ad left app"); }
-						public void onRewarded(RewardItem item) { AGKHelper.m_iRewardAdRewarded = 1; Log.i("AdMob", "Reward ad rewarded"); }
-						public void onRewardedVideoAdFailedToLoad(int errorCode) { Log.e( "AdMob", "Failed to load reward ad: " + Integer.toString(errorCode) ); }
-						public void onRewardedVideoCompleted() { Log.i("AdMob", "Reward ad completed"); }
-						public void onRewardedVideoAdClosed() {
-							Log.i("AdMob", "Reward ad closed");
-
-							Bundle extras = new Bundle();
-							extras.putString("npa", "1");
-
-							if ( testMode == 1 )
-							{
-								Log.i("AdMob", "loading test reward ad");
-								AdRequest.Builder request = new AdRequest.Builder();
-								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-								rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
-							}
-							else
-							{
-								Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
-								AdRequest.Builder request = new AdRequest.Builder();
-								if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-								rewardAd.loadAd(rewardpubID, request.build());
-							}
-						}
-					});
-				}
-
-				Bundle extras = new Bundle();
-				extras.putString("npa", "1");
-
-				if ( testMode == 1 )
-				{
-					Log.i("AdMob", "loading test reward ad");
-					AdRequest.Builder request = new AdRequest.Builder();
-					if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-					rewardAd.loadAd( "ca-app-pub-3940256099942544/5224354917", request.build() );
-				}
-				else
-				{
-					Log.i("AdMob", "loading real reward ad with: " + rewardpubID);
-					AdRequest.Builder request = new AdRequest.Builder();
-					if ( AGKHelper.m_iAdMobConsentStatus < 2 ) request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-					rewardAd.loadAd(rewardpubID, request.build());
-				}
+				if ( rewardAd == null ) LoadRewardAd();
 
 				break;
 			}
@@ -1056,6 +1017,8 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 	
 	public void LoadVideo( String filename, int type )
 	{
+		if ( RunnableVideo.video != null ) RunnableVideo.video.videoDuration = 0;
+
 		Log.i("Video", "Load Video");
 		
 		m_filename = filename;
@@ -1221,6 +1184,10 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 		videoHeight = m_videoHeight;
 		pausePos = -1;
 		completed = 0;
+
+		RunnableVideo.videoWidth = videoWidth;
+		RunnableVideo.videoHeight = videoHeight;
+		RunnableVideo.videoDuration = videoDuration;
 	}
 	
 	public void DeleteVideo()
@@ -1383,13 +1350,13 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 
 	public void UpdateVideo()
 	{
-		synchronized( AGKHelper.videoLock )
-		{
-			if (pTexture == null) return;
+		synchronized( AGKHelper.videoLock ) {
 			if (Build.VERSION.SDK_INT < 14) return;
 
-			try
-			{
+			if ( player != null ) RunnableVideo.videoPosition = player.getCurrentPosition();
+
+			if (pTexture != null) {
+				try {
 				pTexture.updateTexImage();
 				float matrix[] = new float[16];
 				pTexture.getTransformMatrix(matrix);
@@ -1397,12 +1364,11 @@ class AGKSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Medi
 				V1 = matrix[5] + matrix[13];
 				U2 = matrix[0] + matrix[12];
 				V2 = matrix[13];
-			}
-			catch( RuntimeException e )
-			{
+				} catch (RuntimeException e) {
 				Log.e( "Video", "Failed to update video texture: " + e.toString() );
 			}
 		}
+	}
 	}
 	
 	public void SetDimensions( int x, int y, int width, int height )
@@ -1617,6 +1583,11 @@ class RunnableVideo implements Runnable
 	public Activity act;
 	public static volatile AGKSurfaceView video = null;
 	public int action = 0;
+	
+	public static int videoWidth = 0;
+	public static int videoHeight = 0;
+	public static int videoDuration = 0;
+	public static int videoPosition = 0;
 	
 	public String filename = "";
 	public int fileType = 0;
@@ -2799,7 +2770,10 @@ public class AGKHelper {
 	
 	public static void LoadVideo( Activity act, String filename, int type )
 	{
-		if ( RunnableVideo.video != null ) RunnableVideo.video.videoDuration = 0;
+		RunnableVideo.videoDuration = 0;
+		RunnableVideo.videoPosition = 0;
+		RunnableVideo.videoWidth = 0;
+		RunnableVideo.videoHeight = 0;
 
 		Log.i("Video","Load Video");
 		RunnableVideo video = new RunnableVideo();
@@ -2890,42 +2864,42 @@ public class AGKHelper {
 
 	public static float GetVideoValue( Activity act, int value )
 	{
-		if ( RunnableVideo.video == null ) return videoLoaded==1 ? 0 : -1;
-		if ( RunnableVideo.video.m_filename == null ) return videoLoaded==1 ? 0 : -1;
-		if ( RunnableVideo.video.m_filename.equals("Error") ) return -1;
-		if ( RunnableVideo.video.m_filename.equals("") ) return videoLoaded==1 ? 0 : -1;
+		if ( videoLoaded == 0 ) return -1;
 		
 		switch(value)
 		{
-			case 1: // video position
-			{
-				synchronized( videoLock ) 
-				{
-					if ( RunnableVideo.video == null ) return 0;
-					if ( RunnableVideo.video.player == null ) return 0;
-					return RunnableVideo.video.player.getCurrentPosition()/1000.0f;
+			case 1: return RunnableVideo.videoPosition/1000.0f; // video position
+			case 2: return RunnableVideo.videoDuration/1000.0f; // video duration
+			case 3: return RunnableVideo.videoWidth; // video width
+			case 4: return RunnableVideo.videoHeight; // video height
 				}
-			}
-			case 2: return RunnableVideo.video.videoDuration/1000.0f; // video duration
-			case 3: return RunnableVideo.video.videoWidth; // video width
-			case 4: return RunnableVideo.video.videoHeight; // video height
-		}
 		
 		return 0;
 	}
 
 	public static float GetVideoTextureValue( Activity act, int value )
 	{
+		try
+		{
 		if ( RunnableVideo.video == null ) return 0;
 		if ( RunnableVideo.video.m_filename.equals("Error") ) return 0;
 		if ( RunnableVideo.video.m_filename.equals("") ) return 0;
 
-		switch(value)
+			switch(value) {
+				case 1:
+					return RunnableVideo.video.U1;
+				case 2:
+					return RunnableVideo.video.V1;
+				case 3:
+					return RunnableVideo.video.U2;
+				case 4:
+					return RunnableVideo.video.V2;
+		}
+		}
+		catch( Exception e )
 		{
-			case 1: return RunnableVideo.video.U1;
-			case 2: return RunnableVideo.video.V1;
-			case 3: return RunnableVideo.video.U2;
-			case 4: return RunnableVideo.video.V2;
+			Log.e( "GetVideoTextureValue", "Caught Exception: " + e.toString() );
+			return 0;
 		}
 
 		return 0;
@@ -3188,6 +3162,7 @@ public class AGKHelper {
 	}
 
 	// adverts
+	static int m_iRewardAdValue = 0;
 	static int m_iRewardAdRewarded = 0;
 	static int m_iRewardAdRewardedChartboost = 0;
 
@@ -3199,6 +3174,11 @@ public class AGKHelper {
 	public static void SetAdMobTestMode( int mode )
 	{
 		RunnableAd.testMode = mode;
+	}
+
+	public static void SetAdMobChildRating( int rating )
+	{
+		RunnableAd.childRating = rating;
 	}
 
 	public static void LoadAdMobConsentStatus( Activity act, String publisherID, String privacyPolicy )
@@ -3316,6 +3296,11 @@ public class AGKHelper {
 	{
 		if ( m_iAdMobInitialized == 0 ) {
 			m_iAdMobInitialized = 1;
+			if ( RunnableAd.childRating == 1 )
+			{
+				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
+				MobileAds.setRequestConfiguration(conf);
+			}
 			MobileAds.initialize(act);
 		}
 
@@ -3335,6 +3320,11 @@ public class AGKHelper {
 	{
 		if ( m_iAdMobInitialized == 0 ) {
 			m_iAdMobInitialized = 1;
+			if ( RunnableAd.childRating == 1 )
+			{
+				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
+				MobileAds.setRequestConfiguration(conf);
+			}
 			MobileAds.initialize(act);
 		}
 
@@ -3349,6 +3339,11 @@ public class AGKHelper {
 	{
 		if ( m_iAdMobInitialized == 0 ) {
 			m_iAdMobInitialized = 1;
+			if ( RunnableAd.childRating == 1 )
+			{
+				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
+				MobileAds.setRequestConfiguration(conf);
+			}
 			MobileAds.initialize(act);
 		}
 
@@ -3363,6 +3358,11 @@ public class AGKHelper {
 	{
 		if ( m_iAdMobInitialized == 0 ) {
 			m_iAdMobInitialized = 1;
+			if ( RunnableAd.childRating == 1 )
+			{
+				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
+				MobileAds.setRequestConfiguration(conf);
+			}
 			MobileAds.initialize(act);
 		}
 
@@ -3377,6 +3377,11 @@ public class AGKHelper {
 	{
 		if ( m_iAdMobInitialized == 0 ) {
 			m_iAdMobInitialized = 1;
+			if ( RunnableAd.childRating == 1 )
+			{
+				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
+				MobileAds.setRequestConfiguration(conf);
+			}
 			MobileAds.initialize(act);
 		}
 
@@ -3392,6 +3397,11 @@ public class AGKHelper {
 	public static int GetRewardAdRewarded()
 	{
 		return m_iRewardAdRewarded;
+	}
+
+	public static int GetRewardAdValue()
+	{
+		return m_iRewardAdValue;
 	}
 
 	public static void ResetRewardAd()
@@ -3514,6 +3524,26 @@ public class AGKHelper {
 	public static int GetFullscreenLoadedAmazon()
 	{
 		return 0;
+	}
+
+	// Rate App
+	static ReviewManager reviewManager = null;
+	public static void RequestReview()
+	{
+		if ( reviewManager == null ) reviewManager = ReviewManagerFactory.create( g_pAct );
+
+		com.google.android.play.core.tasks.Task<ReviewInfo> request = reviewManager.requestReviewFlow();
+		request.addOnCompleteListener(task -> {
+			if (task.isSuccessful()) {
+				Log.i("RateApp", "Starting review process");
+				ReviewInfo reviewInfo = task.getResult();
+				reviewManager.launchReviewFlow( g_pAct, reviewInfo );
+			}
+			else
+			{
+				Log.w("RateApp", "Unable to start review process");
+			}
+		});
 	}
 
 	// local notifications
@@ -4178,9 +4208,6 @@ public class AGKHelper {
 	public static void GenerateCrashReport(Activity act)
 	{
 		// no longer used
-			
-			
-			
 	}
 	
 	// expansion files

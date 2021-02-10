@@ -87,7 +87,7 @@ AGKSizedFont::AGKSizedFont( AGKFont *parent ) : m_CharImages(512)
 	m_pMainImages[ 0 ] = new cImage();
 	m_pCurrImage = m_pMainImages[0];
 
-	m_pCurrImage->LoadFromData( 0, 0, 0, 2 );
+	m_pCurrImage->LoadFromData( 1, 1, 0, 2 );
 }
 
 AGKSizedFont::~AGKSizedFont()
@@ -198,7 +198,7 @@ void AGKSizedFont::RebuildImages()
 		int width = m_pMainImages[ i ]->GetWidth();
 		int height = m_pMainImages[ i ]->GetHeight();
 		unsigned char *data = new unsigned char[ width * height ];
-		for( int j = 0; j < width * height; j++ ) data[ j ] = 0;
+		memset( data, 0, width * height );
 		
 		AGKFontImage *pFontImage = m_CharImages.GetFirst();
 		while ( pFontImage )
@@ -259,7 +259,7 @@ int AGKSizedFont::AddToMainImage( AGKFontImage* pNewFontImage )
 			for ( unsigned int i = 0; i < m_iNumMainImages; i++ ) pNewImages[ i ] = m_pMainImages[ i ];
 			pNewImages[ m_iNumMainImages ] = new cImage();
 			m_pCurrImage = pNewImages[ m_iNumMainImages ];
-			m_pCurrImage->LoadFromData( 0, 0, 0, 2 );
+			m_pCurrImage->LoadFromData( 1, 1, 0, 2 );
 
 			delete [] m_pMainImages;
 			m_pMainImages = pNewImages;
@@ -276,7 +276,8 @@ int AGKSizedFont::AddToMainImage( AGKFontImage* pNewFontImage )
 		{
 			// expand current image, all characters on this image must be redrawn to resize the image
 			unsigned char *data = new unsigned char[ m_iImageWidth * newHeight ];
-			if ( border > 0 ) for( int i = 0; i < m_iImageWidth * newHeight; i++ ) data[ i ] = 0;
+			memset( data, 0, m_iImageWidth * newHeight );
+			
 			int posX = 0;
 			int posY = 0;
 			int rowY = 0;
@@ -401,6 +402,8 @@ AGKFontImage* AGKSizedFont::GetCharImage( unsigned int unicodeChar, unsigned int
 	// calculate the image values
 	int imgHeight = bmpHeight;	
 	int imgWidth = bmpWidth;
+	if ( imgWidth < 1 ) imgWidth = 1;
+	if ( imgHeight < 1 ) imgHeight = 1;
 	
 	int padding = 0;
 	if ( style & 0x01 ) 
@@ -410,6 +413,7 @@ AGKFontImage* AGKSizedFont::GetCharImage( unsigned int unicodeChar, unsigned int
 	}
 
 	unsigned char *data = new unsigned char[ imgWidth*imgHeight ];
+	memset( data, 0, imgWidth*imgHeight );
 
 	for( int y = 0; y < bmpHeight; y++ )
 	{
@@ -493,13 +497,35 @@ AGKFont::AGKFont() : m_SizedFonts(32)
 	g_pAllFonts = this;
 }
 
+AGKFont::AGKFont( unsigned char* data, UINT compressedSize, UINT uncompressedSize ) : m_SizedFonts(32)
+{
+	m_pPrevFont = 0;
+	m_pNextFont = 0;
+	m_iMemFontSize = uncompressedSize;
+	m_pMemFont = new unsigned char[ m_iMemFontSize ];
+	unsigned long size = m_iMemFontSize;
+	int err = uncompress( m_pMemFont, &size, data, compressedSize );
+	if ( err != Z_OK )
+	{
+		uString sErr;
+		sErr.Format( "Failed to uncompress font: %d", err );
+		agk::Error( sErr );
+	}
+	m_iMemFontSize = size;
+
+	if ( g_pAllFonts ) g_pAllFonts->m_pPrevFont = this;
+	m_pPrevFont = 0;
+	m_pNextFont = g_pAllFonts;
+	g_pAllFonts = this;
+}
+
 AGKFont::AGKFont( const uString &sFilename ) : m_SizedFonts(32)
 {
 	m_pPrevFont = 0;
 	m_pNextFont = 0;
 	m_pMemFont = 0;
 	m_iMemFontSize = 0;
-	m_sFontFile.SetStr( "" );
+	m_sFontFile.SetStr( sFilename );
 	int mode = 0;
 
 	cFile oFile;
@@ -507,6 +533,7 @@ AGKFont::AGKFont( const uString &sFilename ) : m_SizedFonts(32)
 	{
 		// if SetErrorMode is set to 2 then failing to load will cause a fatal error, so check for existence first
 		if ( !oFile.OpenToRead( sFilename ) ) return;
+		agk::GetRealPath( m_sFontFile );
 	}
 	else
 	{
@@ -530,7 +557,6 @@ AGKFont::AGKFont( const uString &sFilename ) : m_SizedFonts(32)
 		}
 	}
 
-	m_sFontFile.SetStr( "" );
 	m_iMemFontSize = oFile.GetSize();
 	m_pMemFont = new unsigned char[ m_iMemFontSize ];
 	oFile.ReadData( (char*)m_pMemFont, m_iMemFontSize );
@@ -565,7 +591,9 @@ AGKFont::AGKFont( const uString &sFilename ) : m_SizedFonts(32)
 
 	char num[ 32 ];
 	pFile = fopen( "E:\\Temp\\DefaultFont.h", "wb" );
-	fputs( "unsigned int g_iDefaultFontSize = ", pFile );
+	fputs( "// ", pFile );
+	fputs( m_sFontFile.GetStr(), pFile );
+	fputs( "\nunsigned int g_iDefaultFontSize = ", pFile );
 	sprintf( num, "%d", size );
 	fputs( num, pFile );
 	fputs( ";\n", pFile );

@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2047;
+int g_iNumAGKFunctions = 2057;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -177,6 +177,8 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"CREATEIMAGECOLOR_L_L_L_L_L", (AGKVoidFunc) (UINT(*)(UINT,UINT,UINT,UINT)) (agk::CreateImageColor) },
 	{"CREATEIMAGEFROMMEMBLOCK_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::CreateImageFromMemblock) },
 	{"CREATEIMAGEFROMMEMBLOCK_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::CreateImageFromMemblock) },
+	{"CREATEIMAGEFROMPNGMEMBLOCK_0_L_L", (AGKVoidFunc) (void(*)(uint32_t,uint32_t)) (agk::CreateImageFromPNGMemblock) },
+	{"CREATEIMAGEFROMPNGMEMBLOCK_L_L", (AGKVoidFunc) (uint32_t(*)(uint32_t)) (agk::CreateImageFromPNGMemblock) },
 	{"CREATELINEJOINT_0_L_L_L_F_F_F_F_L", (AGKVoidFunc) (void(*)(UINT,UINT,UINT,float,float,float,float,int)) (agk::CreateLineJoint) },
 	{"CREATELINEJOINT_L_L_L_F_F_F_F_L", (AGKVoidFunc) (UINT(*)(UINT,UINT,float,float,float,float,int)) (agk::CreateLineJoint) },
 	{"CREATEMEMBLOCKFROMFILE_0_L_S", (AGKVoidFunc) (void(*)(UINT,const char*)) (agk::CreateMemblockFromFile) },
@@ -191,6 +193,8 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"CREATEMEMBLOCK_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::CreateMemblock) },
 	{"CREATEMOUSEJOINT_0_L_L_F_F_F", (AGKVoidFunc) (void(*)(UINT,UINT,float,float,float)) (agk::CreateMouseJoint) },
 	{"CREATEMOUSEJOINT_L_L_F_F_F", (AGKVoidFunc) (UINT(*)(UINT,float,float,float)) (agk::CreateMouseJoint) },
+	{"CREATEMUSICFROMOGGMEMBLOCK_0_L_L", (AGKVoidFunc) (void(*)(uint32_t,uint32_t)) (agk::CreateMusicFromOGGMemblock) },
+	{"CREATEMUSICFROMOGGMEMBLOCK_L_L", (AGKVoidFunc) (uint32_t(*)(uint32_t)) (agk::CreateMusicFromOGGMemblock) },
 	{"CREATENETWORKMESSAGE_L_0", (AGKVoidFunc) (UINT(*)()) (agk::CreateNetworkMessage) },
 	{"CREATEOBJECTBOX_0_L_F_F_F", (AGKVoidFunc) (void(*)(UINT,float,float,float)) (agk::CreateObjectBox) },
 	{"CREATEOBJECTBOX_L_F_F_F", (AGKVoidFunc) (UINT(*)(float,float,float)) (agk::CreateObjectBox) },
@@ -234,6 +238,8 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"CREATESOCKETLISTENER_L_S_L", (AGKVoidFunc) (UINT(*)(const char *,int)) (agk::CreateSocketListener) },
 	{"CREATESOUNDFROMMEMBLOCK_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::CreateSoundFromMemblock) },
 	{"CREATESOUNDFROMMEMBLOCK_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::CreateSoundFromMemblock) },
+	{"CREATESOUNDFROMOGGMEMBLOCK_0_L_L", (AGKVoidFunc) (void(*)(uint32_t,uint32_t)) (agk::CreateSoundFromOGGMemblock) },
+	{"CREATESOUNDFROMOGGMEMBLOCK_L_L", (AGKVoidFunc) (uint32_t(*)(uint32_t)) (agk::CreateSoundFromOGGMemblock) },
 	{"CREATESPRITE_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::CreateSprite) },
 	{"CREATESPRITE_L_L", (AGKVoidFunc) (UINT(*)(UINT)) (agk::CreateSprite) },
 	{"CREATESTRING_S_L", (AGKVoidFunc) (char*(*)(unsigned int)) (agk::CreateString) },
@@ -588,6 +594,8 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETMEMBLOCKFLOAT_F_L_L", (AGKVoidFunc) (float(*)(UINT,UINT)) (agk::GetMemblockFloat) },
 	{"GETMEMBLOCKINT_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetMemblockInt) },
 	{"GETMEMBLOCKPTR_P_L", (AGKVoidFunc) (unsigned char*(*)(UINT)) (agk::GetMemblockPtr) },
+	{"GETMEMBLOCKSHA1_S_L", (AGKVoidFunc) (char*(*)(uint32_t)) (agk::GetMemblockSHA1) },
+	{"GETMEMBLOCKSHA256_S_L", (AGKVoidFunc) (char*(*)(uint32_t)) (agk::GetMemblockSHA256) },
 	{"GETMEMBLOCKSHORT_L_L_L", (AGKVoidFunc) (int(*)(UINT,UINT)) (agk::GetMemblockShort) },
 	{"GETMEMBLOCKSIZE_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetMemblockSize) },
 	{"GETMEMBLOCKSTRING_S_L_L_L", (AGKVoidFunc) (char*(*)(UINT,UINT,UINT)) (agk::GetMemblockString) },
@@ -900,6 +908,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETREWARDADLOADEDCHARTBOOST_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRewardAdLoadedChartboost) },
 	{"GETREWARDADREWARDEDADMOB_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRewardAdRewardedAdMob) },
 	{"GETREWARDADREWARDEDCHARTBOOST_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRewardAdRewardedChartboost) },
+	{"GETREWARDADVALUEADMOB_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRewardAdValueAdMob) },
 	{"GETROTATIONVECTORSENSOREXISTS_L_0", (AGKVoidFunc) (int(*)()) (agk::GetRotationVectorSensorExists) },
 	{"GETRUNTIME_F_0", (AGKVoidFunc) (float(*)()) (agk::GetRunTime) },
 	{"GETSCREENBOUNDSBOTTOM_F_0", (AGKVoidFunc) (float(*)()) (agk::GetScreenBoundsBottom) },
@@ -1416,6 +1425,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SET3DPHYSICSTWISTJOINTMAXMOTORIMPULSE_0_L_F", (AGKVoidFunc) (void(*)(UINT,float)) (agk::Set3DPhysicsTwistJointMaxMotorImpulse) },
 	{"SET3DPHYSICSTWISTJOINTMOTORISENABLED_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::Set3DPhysicsTwistJointMotorIsEnabled) },
 	{"SET3DPHYSICSTWISTJOINTMOTORROTATIONTARGET_0_L_L", (AGKVoidFunc) (void(*)(UINT,int)) (agk::Set3DPhysicsTwistJointMotorRotationTarget) },
+	{"SETADMOBCHILDRATING_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetAdMobChildRating) },
 	{"SETADMOBDETAILS_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::SetAdMobDetails) },
 	{"SETADMOBREWARDADDETAILS_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::SetAdMobRewardAdDetails) },
 	{"SETADMOBTESTING_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetAdMobTesting) },

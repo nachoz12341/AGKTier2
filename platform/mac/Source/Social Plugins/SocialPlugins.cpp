@@ -158,12 +158,22 @@ int agk::PlatformAdMobGetRewardAdRewarded()
 	return 0;
 }
 
+int agk::PlatformAdMobGetRewardAdValue()
+{
+	return 0;
+}
+
 void agk::PlatformAdMobResetRewardAd()
 {
 	
 }
 
 void agk::PlatformAdMobSetTesting (int testing)
+{
+
+}
+
+void agk::PlatformAdMobSetChildRating(int rating)
 {
 
 }

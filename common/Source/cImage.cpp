@@ -2535,6 +2535,112 @@ void cImage::OverrideSubImage( cImage *pParent, int width, int height, float u1,
 	m_iOrigHeight = m_iHeight;
 }
 
+void cImage::SetSubImages( const char* szSubImageFile )
+{
+	// delete any existing sub images
+	while ( m_pSubImages ) 
+	{
+		cSubImage *pSubImage = m_pSubImages;
+		m_pSubImages = m_pSubImages->pNextSubImage;
+		delete pSubImage;
+	}
+
+	cFile oFile;
+	if ( !oFile.OpenToRead( szSubImageFile ) ) 
+	{
+		uString err; err.Format( "Failed to set sub images, could not open file \"%s\"", szSubImageFile );
+		agk::Error( err );
+		return;
+	}
+	
+	uString szLine;
+	char szFilename[ 1024 ];
+	char szTemp[ 30 ];
+	float subX;
+	float subY;
+	float subWidth;
+	float subHeight;
+	uString sTemp;
+	while ( !oFile.IsEOF() )
+	{
+		// extract values, one sub image per line
+		//if ( !fgets( szLine, 1024, pFile ) ) continue;
+		oFile.ReadLine( szLine );
+
+		// filename
+		const char *szRemaining = szLine.GetStr();
+		const char *szFound = strchr( szRemaining, ':' );
+		if ( !szFound ) continue;
+		uint32_t dwLength = (uint32_t) (szFound - szRemaining);
+		strncpy( szFilename, szRemaining, dwLength );
+		szFilename[ dwLength ] = '\0';
+
+		// x
+		szRemaining = szFound + 1;
+		szFound = strchr( szRemaining, ':' );
+		if ( !szFound ) continue;
+		dwLength = (uint32_t) (szFound - szRemaining);
+		strncpy( szTemp, szRemaining, dwLength );
+		szTemp[ dwLength ] = '\0';
+		sTemp.SetStr( szTemp );
+		subX = sTemp.ToFloat();
+
+		// y
+		szRemaining = szFound + 1;
+		szFound = strchr( szRemaining, ':' );
+		if ( !szFound ) continue;
+		dwLength = (uint32_t) (szFound - szRemaining);
+		strncpy( szTemp, szRemaining, dwLength );
+		szTemp[ dwLength ] = '\0';
+		sTemp.SetStr( szTemp );
+		subY = sTemp.ToFloat();
+
+		// width
+		szRemaining = szFound + 1;
+		szFound = strchr( szRemaining, ':' );
+		if ( !szFound ) continue;
+		dwLength = (uint32_t) (szFound - szRemaining);
+		strncpy( szTemp, szRemaining, dwLength );
+		szTemp[ dwLength ] = '\0';
+		sTemp.SetStr( szTemp );
+		subWidth = sTemp.ToFloat();
+
+		// height
+		szRemaining = szFound + 1;
+		szFound = strchr( szRemaining, ':' );
+		if ( szFound ) continue; // don't want to find another ':' this time
+		strcpy( szTemp, szRemaining );
+		sTemp.SetStr( szTemp );
+		sTemp.Trunc( '\r' );
+		subHeight = sTemp.ToFloat();
+
+		subX = subX * m_fScaledAmount;
+		subY = subY * m_fScaledAmount;
+		subWidth = subWidth * m_fScaledAmount;
+		subHeight = subHeight * m_fScaledAmount;
+
+		if ( subX < 0 ) subX = 0;
+		if ( subY < 0 ) subY = 0;
+		if ( subX > GetTotalWidth() ) subX = (float)GetTotalWidth();
+		if ( subY > GetTotalHeight() ) subY = (float)GetTotalHeight();
+
+		if ( subX + subWidth > GetTotalWidth() ) subWidth = GetTotalWidth() - subX;
+		if ( subY + subHeight > GetTotalHeight() ) subHeight = GetTotalHeight() - subY;
+
+		// add new sub image details
+		cSubImage *pSubImage = new cSubImage();
+		pSubImage->x = subX;
+		pSubImage->y = subY;
+		pSubImage->width = subWidth;
+		pSubImage->height = subHeight;
+		pSubImage->szFilename.SetStr( szFilename );
+		pSubImage->pNextSubImage = m_pSubImages;
+		m_pSubImages = pSubImage;
+	}
+
+	oFile.Close();
+}
+
 void cImage::CommonResize( unsigned char * pSrc, int width1, int height1, unsigned char * pDest, int width2, int height2 )
 {
 	unsigned char *pTemp = (unsigned char*) new unsigned int[ width2*height1 ];

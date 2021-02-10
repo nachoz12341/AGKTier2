@@ -3203,23 +3203,23 @@ void cSprite::Draw()
 		float VwDw = agk::DeviceToDisplayRatioX();
 		float VhDh = agk::DeviceToDisplayRatioY();
 
-		int x1i = agk::Round( x1/VwDw );
-		int y1i = agk::Round( y1/VhDh );
+		int x1i = agk::Floor( x1/VwDw + 0.5f );
+		int y1i = agk::Floor( y1/VhDh + 0.5f );
 		x1 = (x1i) * VwDw;
 		y1 = (y1i) * VhDh;
-		
-		int x2i = agk::Round( x2/VwDw );
-		int y2i = agk::Round( y2/VhDh );
+			
+		int x2i = agk::Floor( x2/VwDw + 0.5f );
+		int y2i = agk::Floor( y2/VhDh + 0.5f );
 		x2 = (x2i) * VwDw;
 		y2 = (y2i) * VhDh;
-		
-		int x3i = agk::Round( x3/VwDw );
-		int y3i = agk::Round( y3/VhDh );
+			
+		int x3i = agk::Floor( x3/VwDw + 0.5f );
+		int y3i = agk::Floor( y3/VhDh + 0.5f );
 		x3 = (x3i) * VwDw;
 		y3 = (y3i) * VhDh;
-		
-		int x4i = agk::Round( x4/VwDw );
-		int y4i = agk::Round( y4/VhDh );
+			
+		int x4i = agk::Floor( x4/VwDw + 0.5f );
+		int y4i = agk::Floor( y4/VhDh + 0.5f );
 		x4 = (x4i) * VwDw;
 		y4 = (y4i) * VhDh;
 	}
@@ -3799,23 +3799,23 @@ void cSprite::BatchDrawQuad( float *pVertices, float *pUV, unsigned char *pColor
 			float VwDw = agk::DeviceToDisplayRatioX();
 			float VhDh = agk::DeviceToDisplayRatioY();
 			
-			int x1i = agk::Round( x1/VwDw );
-			int y1i = agk::Round( y1/VhDh );
+			int x1i = agk::Floor( x1/VwDw + 0.5f );
+			int y1i = agk::Floor( y1/VhDh + 0.5f );
 			x1 = (x1i) * VwDw;
 			y1 = (y1i) * VhDh;
 			
-			int x2i = agk::Round( x2/VwDw );
-			int y2i = agk::Round( y2/VhDh );
+			int x2i = agk::Floor( x2/VwDw + 0.5f );
+			int y2i = agk::Floor( y2/VhDh + 0.5f );
 			x2 = (x2i) * VwDw;
 			y2 = (y2i) * VhDh;
 			
-			int x3i = agk::Round( x3/VwDw );
-			int y3i = agk::Round( y3/VhDh );
+			int x3i = agk::Floor( x3/VwDw + 0.5f );
+			int y3i = agk::Floor( y3/VhDh + 0.5f );
 			x3 = (x3i) * VwDw;
 			y3 = (y3i) * VhDh;
 			
-			int x4i = agk::Round( x4/VwDw );
-			int y4i = agk::Round( y4/VhDh );
+			int x4i = agk::Floor( x4/VwDw + 0.5f );
+			int y4i = agk::Floor( y4/VhDh + 0.5f );
 			x4 = (x4i) * VwDw;
 			y4 = (y4i) * VhDh;
 		}

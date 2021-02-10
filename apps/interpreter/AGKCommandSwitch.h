@@ -13986,5 +13986,71 @@ case AGKI_SETSPRITEBLENDMODES_0_L_L_L:
     agk::SetSpriteBlendModes( param0, param1, param2 );
     break;
 }
+case AGKI_SETADMOBCHILDRATING_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetAdMobChildRating( param0 );
+    break;
+}
+case AGKI_GETREWARDADVALUEADMOB_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetRewardAdValueAdMob( );
+    break;
+}
+case AGKI_GETMEMBLOCKSHA1_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetMemblockSHA1( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_GETMEMBLOCKSHA256_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetMemblockSHA256( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}
+case AGKI_CREATEIMAGEFROMPNGMEMBLOCK_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::CreateImageFromPNGMemblock( param0, param1 );
+    break;
+}
+case AGKI_CREATEIMAGEFROMPNGMEMBLOCK_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::CreateImageFromPNGMemblock( param0 );
+    break;
+}
+case AGKI_CREATESOUNDFROMOGGMEMBLOCK_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::CreateSoundFromOGGMemblock( param0, param1 );
+    break;
+}
+case AGKI_CREATESOUNDFROMOGGMEMBLOCK_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::CreateSoundFromOGGMemblock( param0 );
+    break;
+}
+case AGKI_CREATEMUSICFROMOGGMEMBLOCK_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::CreateMusicFromOGGMemblock( param0, param1 );
+    break;
+}
+case AGKI_CREATEMUSICFROMOGGMEMBLOCK_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::CreateMusicFromOGGMemblock( param0 );
+    break;
+}
 
 

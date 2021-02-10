@@ -1312,7 +1312,7 @@ void cText::SetSize( float fSize )
 			m_pFTSizedFont = pNewFont;
 			if ( m_pFTSizedFont ) m_pFTSizedFont->AddRef();
 
-			// have to resign all sprite images
+			// have to reassign all sprite images
 			Refresh();
 		}
 		else

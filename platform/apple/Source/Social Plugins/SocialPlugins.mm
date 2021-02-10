@@ -1316,6 +1316,13 @@ int agk::PlatformAdMobGetRewardAdRewarded()
 	return g_pAdMobRewardListener->rewarded;
 }
 
+int agk::PlatformAdMobGetRewardAdValue()
+{
+    if ( !g_pAdMobRewardListener ) return 0;
+	//return g_pAdMobRewardListener->rewarded;
+	return 0;
+}
+
 void agk::PlatformAdMobResetRewardAd()
 {
     if ( g_pAdMobRewardListener ) g_pAdMobRewardListener->rewarded = 0;
@@ -1324,6 +1331,11 @@ void agk::PlatformAdMobResetRewardAd()
 void agk::PlatformAdMobSetTesting (int testing)
 {
     g_iAdMobTesting = testing;
+}
+
+void agk::PlatformAdMobSetChildRating(int rating)
+{
+	// todo
 }
 
 // CHARTBOOST

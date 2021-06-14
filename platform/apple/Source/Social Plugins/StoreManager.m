@@ -18,11 +18,24 @@ static int				productCount = 0;
 static char				productID [ MAX_PRODUCTS ] [ 128 ];
 static char				productPrice [ MAX_PRODUCTS ] [ 15 ];
 static char				productDesc [ MAX_PRODUCTS ] [ 256 ];
-static BOOL				purchasedProducts [ MAX_PRODUCTS ];
+static int				productState [ MAX_PRODUCTS ];
 static char*			productSig [ MAX_PRODUCTS ];
 static StoreManager*	_sharedStoreManager;
 static char				title [ 128 ];
-static int				state = 1;
+
++ ( void ) reset
+{
+    productCount = 0;
+
+	for ( int i = 0; i < MAX_PRODUCTS; i++ )
+    {
+		productState[ i ] = 0;
+        productPrice[ i ][ 0 ] = 0;
+        productDesc[ i ][ 0 ] = 0;
+		productID[ i ][ 0 ] = 0;
+		productSig[i] = 0;
+    }
+}
 
 + ( void ) addProductID: ( const char* ) ID
 {
@@ -42,7 +55,7 @@ static int				state = 1;
 
 + ( int  ) getState
 {
-	return state;
+	return 1; // deprecated
 }
 
 + ( void ) setTitle: ( const char* ) ID
@@ -65,7 +78,14 @@ static int				state = 1;
 	
 	//return YES;
 	
-	return purchasedProducts [ ID ];
+	return (productState[ ID ] == 4);
+}
+
++ ( int ) getContentState: ( int ) ID
+{
+	// use this function to determine whether content is available
+		
+	return productState[ ID ];
 }
 
 + ( void ) setup
@@ -78,7 +98,7 @@ static int				state = 1;
 		{
 			for ( int i = 0; i < MAX_PRODUCTS; i++ )
             {
-				purchasedProducts [ i ] = NO;
+				productState [ i ] = 0;
                 memset( productPrice[ i ], 0, 15 );
                 memset( productDesc[ i ], 0, 256 );
 				productSig[i] = 0;
@@ -290,48 +310,56 @@ static int				state = 1;
 - ( void ) purchaseUnlockableContent: ( int ) ID
 {
 	// call this function when you want to purchase some new content
-
-	state = 0;
-
-	purchasedProducts [ ID ] = NO;
+	
+	productState[ ID ] = 2; // in progress
 
 	NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ ID ] ];
 
-	[ self buyFeature: pString ];
-    [pString release];
-}
-
-- ( void ) buyFeature: ( NSString* ) featureId
-{
-	// see if payments are available then add to queue or show an alert
 	if ( [ SKPaymentQueue canMakePayments ] )
 	{
-		SKPayment* payment = [ SKPayment paymentWithProductIdentifier: featureId ];
+		SKPayment* payment = [ SKPayment paymentWithProductIdentifier: pString ];
 		[ [ SKPaymentQueue defaultQueue ] addPayment: payment ];
 	}
 	else
 	{
-		NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ 0 ] ];
+		NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ ID ] ];
+		productState[ ID ] = 0;
 			
 		UIAlertView *alert = [ [ UIAlertView alloc ] initWithTitle:pString message:@"You are not authorized to purchase from the App Store"
 													   delegate:self cancelButtonTitle:@"OK" otherButtonTitles: nil ];
 		[ alert show ];
 		[ alert release ];
         [pString release];
-		
-		state = 1;
 	}
+	
+    [pString release];
 }
+
 
 - ( void ) cancelledTransaction: ( SKPaymentTransaction* ) transaction
 {
-	state = 1;
+	for ( int i = 0; i < productCount; i++ )
+	{
+		NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ i ] ];
+		
+		if ( [ transaction.payment.productIdentifier isEqualToString: pString ] )
+		{
+			productState [ i ] = 0; // not purchased
+		}
+	}
 }
 
 - ( void ) failedTransaction: ( SKPaymentTransaction* ) transaction
 {
-	state = 1;
-
+	for ( int i = 0; i < productCount; i++ )
+	{
+		NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ i ] ];
+		
+		if ( [ transaction.payment.productIdentifier isEqualToString: pString ] )
+		{
+			productState [ i ] = 0; // not purchased
+		}
+	}
 	
 	NSString* messageToBeShown = [ NSString stringWithFormat:@"Please try again later." ];
 	UIAlertView* alert = [ [ UIAlertView alloc ] initWithTitle:@"Unable to complete your purchase" message:messageToBeShown
@@ -342,27 +370,23 @@ static int				state = 1;
 
 - ( void ) restore
 {
-    state = 0;
     [[SKPaymentQueue defaultQueue]   restoreCompletedTransactions];
 }
 
 - ( void ) finishedRestore: (int) success
 {
     NSLog(@"Restore Finished");
-    state = 1;
 }
 
 - ( void ) provideContent: ( NSString* ) productIdentifier signature:(NSString*) signature
 {
-	state = 1;
-
 	for ( int i = 0; i < productCount; i++ )
 	{
 		NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ i ] ];
 		
 		if ( [ productIdentifier isEqualToString: pString ] )
 		{
-			purchasedProducts [ i ] = YES;
+			productState [ i ] = 4; // purchased
 
 			if ( signature )
 			{
@@ -390,7 +414,7 @@ static int				state = 1;
 	{
 		NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ i ] ];
 	
-		purchasedProducts [ i ] = [ userDefaults boolForKey:pString ];
+		productState [ i ] = [ userDefaults boolForKey:pString ] ? 4 : 0;
         [pString release];
 	}
 }
@@ -403,7 +427,7 @@ static int				state = 1;
 	{
 		NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID [ i ] ];
 	
-		[ userDefaults setBool: purchasedProducts [ i ] forKey: pString ];
+		[ userDefaults setBool: (productState [ i ] == 4) forKey: pString ];
         [pString release];
 	}
 }

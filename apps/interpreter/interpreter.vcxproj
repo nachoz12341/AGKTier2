@@ -392,7 +392,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>E:\APIs\steamworks_sdk_130\sdk\public;..\..\common\Include;..\..\bullet;..\..\bullet\BulletCollision\CollisionShapes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(STEAMWORKS_PATH)\sdk\public;..\..\common\Include;..\..\bullet;..\..\bullet\BulletCollision\CollisionShapes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>AGK_STEAM;AGK_WINDOWS;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -406,7 +406,7 @@
     <Link>
       <AdditionalDependencies>steam_api.lib;Shlwapi.lib;AGKWindows.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>Final/Windows.exe</OutputFile>
-      <AdditionalLibraryDirectories>E:\APIs\steamworks_sdk_130\sdk\redistributable_bin;..\..\platform\windows\Lib\VS2015\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(STEAMWORKS_PATH)\sdk\redistributable_bin;..\..\platform\windows\Lib\VS2015\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ManifestFile>$(IntDir)$(TargetFileName).intermediate.manifest</ManifestFile>
       <DelayLoadDLLs>Dwmapi.dll;MFPlat.dll;MF.dll;steam_api.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -428,7 +428,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>E:\APIs\steamworks_sdk_130\sdk\public;..\..\common\Include;..\..\bullet;..\..\bullet\BulletCollision\CollisionShapes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(STEAMWORKS_PATH)\sdk\public;..\..\common\Include;..\..\bullet;..\..\bullet\BulletCollision\CollisionShapes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>AGK_STEAM;AGK_WINDOWS;WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -442,7 +442,7 @@
     <Link>
       <AdditionalDependencies>steam_api64.lib;Shlwapi.lib;AGKWindows64.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>Final/Windows64.exe</OutputFile>
-      <AdditionalLibraryDirectories>E:\APIs\steamworks_sdk_130\sdk\redistributable_bin\win64;..\..\platform\windows\Lib\VS2015\Release64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(STEAMWORKS_PATH)\sdk\redistributable_bin\win64;..\..\platform\windows\Lib\VS2015\Release64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ManifestFile>$(IntDir)$(TargetFileName).intermediate.manifest</ManifestFile>
       <DelayLoadDLLs>Dwmapi.dll;MFPlat.dll;MF.dll;steam_api64.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <GenerateDebugInformation>false</GenerateDebugInformation>

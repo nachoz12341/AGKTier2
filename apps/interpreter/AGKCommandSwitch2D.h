@@ -10337,3 +10337,30 @@ case AGKI_CREATEMUSICFROMOGGMEMBLOCK_L_L:
     m_pStack[ m_iStackPtr++ ].i = agk::CreateMusicFromOGGMemblock( param0 );
     break;
 }
+case AGKI_SETIMAGESUBIMAGES_0_L_S:
+{
+    const char* param1 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetImageSubImages( param0, param1 );
+    break;
+}
+case AGKI_GETINAPPPURCHASEAVAILABLE2_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetInAppPurchaseAvailable2( param0 );
+    break;
+}
+case AGKI_INAPPPURCHASERESETPURCHASE_0_S:
+{
+    const char* param0 = m_pStrStack[ --m_iStrStackPtr ].GetStr();
+    agk::InAppPurchaseResetPurchase( param0 );
+    break;
+}
+case AGKI_GETINAPPPURCHASETOKEN_S_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    char *szReturnStr = agk::GetInAppPurchaseToken( param0 );
+    m_pStrStack[ m_iStrStackPtr++ ].SetStrUTF8( szReturnStr );
+    delete [] szReturnStr;
+    break;
+}

@@ -31,7 +31,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.gms:play-services-ads:15.0.0'
     implementation 'com.google.android.ads.consent:consent-library:1.0.8'
-    implementation files('libs/amazon-ads-6.0.0.jar')
     implementation files('libs/in-app-purchasing-2.0.76.jar')
     implementation files('libs/chartboost.jar')
 }

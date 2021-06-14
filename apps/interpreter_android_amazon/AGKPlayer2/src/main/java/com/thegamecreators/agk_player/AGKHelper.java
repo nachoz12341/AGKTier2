@@ -6,8 +6,6 @@ import com.amazon.device.iap.PurchasingService;
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.*;
 
-import com.amazon.device.ads.*;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -488,94 +486,6 @@ class RunnableChartboost implements Runnable
 			default:
 			{
 				Log.i("CBTEST", "undefinedChartboostAction");
-				break;
-			}
-		}
-	}
-}
-
-class RunnableAmazonAds implements Runnable
-{
-	public Activity act;
-	public int action = 0;
-	public static int caching = 0;
-	public static int cached = 0;
-	public static int testing = 0;
-	public static String AppID;
-	private static com.amazon.device.ads.InterstitialAd interstitialAd;
-
-	private DefaultAdListener AmazonAdsDelegate = new DefaultAdListener() {
-		@Override
-		public void onAdLoaded(final Ad ad, final AdProperties adProperties) {
-			Log.i("Amazon Ads", "Interstitial loaded");
-			caching = 0;
-			cached = 1;
-		}
-
-		@Override
-		public void onAdFailedToLoad(final Ad view, final com.amazon.device.ads.AdError error) {
-			caching = 0;
-			cached = 0;
-			Log.e("Amazon Ads", "Failed to load interstitial - Error: " + error.getMessage());
-		}
-
-		@Override
-		public void onAdDismissed(final Ad ad) {
-			Log.i("Amazon Ads", "Interstitial dismissed");
-			if ( cached == 0 && caching == 0 )
-			{
-				caching = 1;
-				interstitialAd.loadAd();
-			}
-		}
-	};
-
-	@Override
-	public void run() {
-		switch ( action )
-		{
-			case 1: // initialize
-			{
-				Log.i("Amazon Ads", "Initializing Amazon Ads SDK");
-
-				cached = 0;
-				caching = 1;
-				interstitialAd = new com.amazon.device.ads.InterstitialAd(act);
-				AdRegistration.setAppKey(AppID);
-				AdRegistration.enableTesting(testing != 0 ? true : false);
-				interstitialAd.setListener(AmazonAdsDelegate);
-				interstitialAd.loadAd();
-				break;
-			}
-			case 2:
-			{
-				AdRegistration.enableTesting(testing != 0 ? true : false);
-				break;
-			}
-			case 3: // show ad
-			{
-				Log.i("Amazon Ads", "Display Ad");
-
-				if ( cached == 0 )
-				{
-					if ( caching == 0 )
-					{
-						caching = 1;
-						interstitialAd.loadAd();
-					}
-				}
-				else
-				{
-					Log.i("Amazon Ads", "Showing Ad");
-					cached = 0;
-					interstitialAd.showAd();
-				}
-
-				break;
-			}
-			default:
-			{
-				Log.i("Amazon Ads", "undefined action");
 				break;
 			}
 		}
@@ -3116,34 +3026,6 @@ public class AGKHelper {
 		return RunnableChartboost.rewardCached;
 	}
 
-	public static void SetAmazonAdDetails( Activity act, String publisherID )
-	{
-		RunnableAmazonAds.AppID = publisherID;
-
-		RunnableAmazonAds run = new RunnableAmazonAds();
-		run.action = 1;
-		run.act = act;
-		act.runOnUiThread( run );
-	}
-
-	public static void SetAmazonAdTesting( Activity act, int testing )
-	{
-		RunnableAmazonAds.testing = testing;
-
-		RunnableAmazonAds run = new RunnableAmazonAds();
-		run.action = 2;
-		run.act = act;
-		act.runOnUiThread(run);
-	}
-
-	public static void CreateFullscreenAdAmazon(Activity act)
-	{
-		RunnableAmazonAds run = new RunnableAmazonAds();
-		run.action = 3;
-		run.act = act;
-		act.runOnUiThread( run );
-	}
-
 	public static int GetFullscreenLoadedAdMob()
 	{
 		return RunnableAd.cached;
@@ -3152,11 +3034,6 @@ public class AGKHelper {
 	public static int GetFullscreenLoadedChartboost()
 	{
 		return RunnableChartboost.cached;
-	}
-
-	public static int GetFullscreenLoadedAmazon()
-	{
-		return RunnableAmazonAds.cached;
 	}
 
 	// Rate App
@@ -3782,8 +3659,8 @@ public class AGKHelper {
 	// Shared variables
 	public static void SaveSharedVariableWithPermission( Activity act, String varName, String varValue )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		String packageName = act.getPackageName();
 		String folderName = packageName;
@@ -3837,8 +3714,8 @@ public class AGKHelper {
 
 	public static void SaveSharedVariable( Activity act, String varName, String varValue )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		// write local value to the shared preferences, then try and write globally
 		SharedPreferences sharedPref = act.getSharedPreferences("agksharedvariables", Context.MODE_PRIVATE);
@@ -3862,8 +3739,8 @@ public class AGKHelper {
 
 	public static String LoadSharedVariable( Activity act, String varName, String defaultValue )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return defaultValue;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return defaultValue;
 
 		// must request permissions on API 23 (Android 6.0) and above
 		if (Build.VERSION.SDK_INT >= 23)
@@ -3930,8 +3807,8 @@ public class AGKHelper {
 
 	public static void DeleteSharedVariable( Activity act, String varName )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		// delete any local value
 		SharedPreferences sharedPref = act.getSharedPreferences( "agksharedvariables", Context.MODE_PRIVATE );

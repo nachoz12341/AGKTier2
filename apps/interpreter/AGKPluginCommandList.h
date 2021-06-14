@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2057;
+int g_iNumAGKFunctions = 2061;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -559,11 +559,13 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETIMAGEWIDTH_F_L", (AGKVoidFunc) (float(*)(unsigned int)) (agk::GetImageWidth) },
 	{"GETIMAGE_0_L_F_F_F_F", (AGKVoidFunc) (void(*)(UINT,float,float,float,float)) (agk::GetImage) },
 	{"GETIMAGE_L_F_F_F_F", (AGKVoidFunc) (UINT(*)(float,float,float,float)) (agk::GetImage) },
+	{"GETINAPPPURCHASEAVAILABLE2_L_L", (AGKVoidFunc) (int(*)(int)) (agk::GetInAppPurchaseAvailable2) },
 	{"GETINAPPPURCHASEAVAILABLE_L_L", (AGKVoidFunc) (int(*)(int)) (agk::GetInAppPurchaseAvailable) },
 	{"GETINAPPPURCHASEDESCRIPTION_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetInAppPurchaseDescription) },
 	{"GETINAPPPURCHASELOCALPRICE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetInAppPurchaseLocalPrice) },
 	{"GETINAPPPURCHASESIGNATURE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetInAppPurchaseSignature) },
 	{"GETINAPPPURCHASESTATE_L_0", (AGKVoidFunc) (int(*)()) (agk::GetInAppPurchaseState) },
+	{"GETINAPPPURCHASETOKEN_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetInAppPurchaseToken) },
 	{"GETINTERNETSTATE_L_0", (AGKVoidFunc) (int(*)()) (agk::GetInternetState) },
 	{"GETJOINTEXISTS_L_L", (AGKVoidFunc) (int(*)(UINT)) (agk::GetJointExists) },
 	{"GETJOINTREACTIONFORCEX_F_L", (AGKVoidFunc) (float(*)(UINT)) (agk::GetJointReactionForceX) },
@@ -1138,6 +1140,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"HTTPENCODE_S_S", (AGKVoidFunc) (char*(*)(const char*)) (agk::HTTPEncode) },
 	{"INAPPPURCHASEACTIVATE_0_L", (AGKVoidFunc) (void(*)(int)) (agk::InAppPurchaseActivate) },
 	{"INAPPPURCHASEADDPRODUCTID_0_S_L", (AGKVoidFunc) (void(*)(const char*,int)) (agk::InAppPurchaseAddProductID) },
+	{"INAPPPURCHASERESETPURCHASE_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::InAppPurchaseResetPurchase) },
 	{"INAPPPURCHASERESTORE_0_0", (AGKVoidFunc) (void(*)()) (agk::InAppPurchaseRestore) },
 	{"INAPPPURCHASESETKEYS_0_S_S", (AGKVoidFunc) (void(*)(const char*,const char*)) (agk::InAppPurchaseSetKeys) },
 	{"INAPPPURCHASESETTITLE_0_S", (AGKVoidFunc) (void(*)(const char*)) (agk::InAppPurchaseSetTitle) },
@@ -1509,6 +1512,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"SETIMAGEMASK_0_L_L_L_L_L_L", (AGKVoidFunc) (void(*)(UINT,UINT,int,int,int,int)) (agk::SetImageMask) },
 	{"SETIMAGEMINFILTER_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::SetImageMinFilter) },
 	{"SETIMAGESAVEPIXELS_0_L", (AGKVoidFunc) (void(*)(int)) (agk::SetImageSavePixels) },
+	{"SETIMAGESUBIMAGES_0_L_S", (AGKVoidFunc) (void(*)(uint32_t,const char*)) (agk::SetImageSubImages) },
 	{"SETIMAGETRANSPARENTCOLOR_0_L_L_L_L", (AGKVoidFunc) (void(*)(UINT,int,int,int)) (agk::SetImageTransparentColor) },
 	{"SETIMAGEWRAPU_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::SetImageWrapU) },
 	{"SETIMAGEWRAPV_0_L_L", (AGKVoidFunc) (void(*)(UINT,UINT)) (agk::SetImageWrapV) },

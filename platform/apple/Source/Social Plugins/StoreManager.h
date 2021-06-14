@@ -15,9 +15,11 @@
 // public functions
 + ( void ) setup;
 + ( void ) setTitle: ( const char* ) ID;
++ ( void ) reset;
 + ( void ) addProductID: ( const char* ) ID;
 - ( void ) purchaseUnlockableContent:    ( int ) ID;
 + ( BOOL ) isUnlockableContentAvailable: ( int ) ID;
++ ( int ) getContentState: ( int ) ID;
 + ( int  ) getState;
 
 // private functions

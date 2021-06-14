@@ -241,10 +241,15 @@ using namespace AGK;
 
 @implementation ASIdentifierManager : NSObject @end
 
+// use this to get rid of the Ad Tracking consent form
+@implementation UMPConsentForm : NSObject @end
+@implementation UMPConsentInformation : NSObject @end
+@implementation UMPRequestParameters : NSObject @end
+
 // use this if you want to remove the AdMob SDK (remove libGoogleAdMobAds.a and AdSupport.framework)
 @implementation GADBannerView : UIView @end
 @implementation GADRequest : NSObject @end
-@implementation GADInterstitial : NSObject @end
+@implementation GADInterstitialAd : NSObject @end
 @implementation GADAdSize : NSObject @end
 @implementation GADExtras : NSObject @end
 @implementation GADMobileAds : NSObject @end
@@ -256,18 +261,17 @@ GADAdSize const *kGADAdSizeLeaderboard;
 GADAdSize const *kGADAdSizeSmartBannerPortrait;
 GADAdSize const *kGADAdSizeSmartBannerLandscape;
 GADAdSize const *kGADAdSizeFluid;
-@implementation GADRewardBasedVideoAd : NSObject @end
+@implementation GADRewardedAd : NSObject @end
 @implementation PACConsentForm : NSObject @end
 @implementation PACConsentInformation : NSObject @end
 
 // use this if you want to remove the Chartboost framework (also remove AdSupport.framework)
 @implementation Chartboost : NSObject @end
+@implementation CHBGDPRDataUseConsent: NSObject @end
+@implementation CHBCCPADataUseConsent: NSObject @end
+extern "C" NSString* const CHBPrivacyStandardGDPR = 0;
+extern "C" NSString* const CHBPrivacyStandardCCPA = 0;
 NSString * CBLocationGameScreen;
-
-// use this if you want to remove the Amazon Ad framework
-@implementation AmazonAdRegistration : NSObject @end
-@implementation AmazonAdOptions : NSObject @end
-@implementation AmazonAdInterstitial : NSObject @end
 
 // use this if you want to remove the Firebase frameworks
 /*

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4A0710F81C788B4F00FB45C4 /* AmazonAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A0710F71C788B4F00FB45C4 /* AmazonAd.framework */; };
 		4A104FDA1DA5560700343096 /* sha2.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A104FD91DA5560700343096 /* sha2.h */; };
 		4A104FDC1DA5561300343096 /* sha2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A104FDB1DA5561300343096 /* sha2.cpp */; };
 		4A12DDA51DFA605F00BD53CA /* DefaultFont.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A12DDA41DFA605F00BD53CA /* DefaultFont.h */; };
@@ -203,7 +202,6 @@
 		4A45AB381D00E96900CF29C4 /* vorbisenc.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A45AB091D00E96900CF29C4 /* vorbisenc.h */; };
 		4A45AB391D00E96900CF29C4 /* vorbisfile.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A45AB0A1D00E96900CF29C4 /* vorbisfile.h */; };
 		4A45AB3A1D00E96900CF29C4 /* window.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A45AB0B1D00E96900CF29C4 /* window.h */; };
-		4A54010E20C59D7F002874FA /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A54010D20C59D7E002874FA /* PersonalizedAdConsent.framework */; };
 		4A54011020C5DFD1002874FA /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A54010F20C5DFD0002874FA /* GoogleMobileAds.framework */; };
 		4A5720E619F0716F001BA462 /* Chartboost.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A5720E519F0716F001BA462 /* Chartboost.framework */; };
 		4A58BA4D206AA20B0038F2F0 /* FirebaseAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */; };
@@ -1018,6 +1016,7 @@
 		4AF8FC051BCEB85100850A31 /* XFileParser.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AF8FAAC1BCEB85100850A31 /* XFileParser.h */; };
 		4AF8FC061BCEB85100850A31 /* XGLLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4AF8FAAD1BCEB85100850A31 /* XGLLoader.cpp */; };
 		4AF8FC071BCEB85100850A31 /* XGLLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AF8FAAE1BCEB85100850A31 /* XGLLoader.h */; };
+		67098D912670249100F8BD74 /* UserMessagingPlatform.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098D902670249100F8BD74 /* UserMessagingPlatform.framework */; };
 		9B4BD438134A399F00D36159 /* NetworkCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B4BD436134A399F00D36159 /* NetworkCommon.h */; };
 		9B99755712D3136800F8A432 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B99755612D3136800F8A432 /* QuartzCore.framework */; };
 		9B99759312D313B400F8A432 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B99759212D313B400F8A432 /* AudioToolbox.framework */; };
@@ -1430,7 +1429,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		4A0710F71C788B4F00FB45C4 /* AmazonAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AmazonAd.framework; path = "platform/apple/Source/Social Plugins/AmazonAd.framework"; sourceTree = "<group>"; };
 		4A104FD91DA5560700343096 /* sha2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha2.h; path = common/include/sha2.h; sourceTree = SOURCE_ROOT; };
 		4A104FDB1DA5561300343096 /* sha2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sha2.cpp; sourceTree = "<group>"; };
 		4A12DDA41DFA605F00BD53CA /* DefaultFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DefaultFont.h; path = common/include/DefaultFont.h; sourceTree = SOURCE_ROOT; };
@@ -1626,7 +1624,6 @@
 		4A45AB091D00E96900CF29C4 /* vorbisenc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vorbisenc.h; sourceTree = "<group>"; };
 		4A45AB0A1D00E96900CF29C4 /* vorbisfile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vorbisfile.h; sourceTree = "<group>"; };
 		4A45AB0B1D00E96900CF29C4 /* window.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = window.h; path = libogg/include/window.h; sourceTree = "<group>"; };
-		4A54010D20C59D7E002874FA /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
 		4A54010F20C5DFD0002874FA /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = "platform/apple/Source/Social Plugins/GoogleMobileAds.framework"; sourceTree = "<group>"; };
 		4A5720E519F0716F001BA462 /* Chartboost.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Chartboost.framework; path = "platform/apple/Source/Social Plugins/Chartboost.framework"; sourceTree = "<group>"; };
 		4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FirebaseAnalytics.framework; path = "platform/apple/Source/Social Plugins/Firebase/FirebaseAnalytics.framework"; sourceTree = "<group>"; };
@@ -2456,6 +2453,7 @@
 		4AF8FAAC1BCEB85100850A31 /* XFileParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XFileParser.h; sourceTree = "<group>"; };
 		4AF8FAAD1BCEB85100850A31 /* XGLLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XGLLoader.cpp; sourceTree = "<group>"; };
 		4AF8FAAE1BCEB85100850A31 /* XGLLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XGLLoader.h; sourceTree = "<group>"; };
+		67098D902670249100F8BD74 /* UserMessagingPlatform.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserMessagingPlatform.framework; path = "platform/apple/Source/Social Plugins/UserMessagingPlatform.framework"; sourceTree = "<group>"; };
 		9B4BD436134A399F00D36159 /* NetworkCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkCommon.h; sourceTree = "<group>"; };
 		9B99755612D3136800F8A432 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
 		9B99759212D313B400F8A432 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
@@ -2873,15 +2871,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4A54010E20C59D7F002874FA /* PersonalizedAdConsent.framework in Frameworks */,
 				4A653C1D2062C68F008B519B /* ARKit.framework in Frameworks */,
+				67098D912670249100F8BD74 /* UserMessagingPlatform.framework in Frameworks */,
 				4A367B8C1D6F164F00CF46E6 /* CoreVideo.framework in Frameworks */,
 				4A1DB88E19C1D7C80048316C /* CoreLocation.framework in Frameworks */,
 				4A1DB88C19C10DCA0048316C /* CoreMotion.framework in Frameworks */,
 				D893E52B1616883D000304BA /* MediaPlayer.framework in Frameworks */,
 				D893E52916168835000304BA /* CoreMedia.framework in Frameworks */,
 				D806E9FB124B95CF0067F527 /* Foundation.framework in Frameworks */,
-				4A0710F81C788B4F00FB45C4 /* AmazonAd.framework in Frameworks */,
 				9B99755712D3136800F8A432 /* QuartzCore.framework in Frameworks */,
 				4A5C2D63230AD21E00E42FE5 /* SCSDKCoreKit.framework in Frameworks */,
 				4A58BA4D206AA20B0038F2F0 /* FirebaseAnalytics.framework in Frameworks */,
@@ -2924,14 +2921,13 @@
 		0867D69AFE84028FC02AAC07 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67098D902670249100F8BD74 /* UserMessagingPlatform.framework */,
 				4A5C2D61230AD21E00E42FE5 /* SCSDKCoreKit.framework */,
 				4A5C2D60230AD21E00E42FE5 /* SCSDKCreativeKit.framework */,
 				4A54010F20C5DFD0002874FA /* GoogleMobileAds.framework */,
-				4A54010D20C59D7E002874FA /* PersonalizedAdConsent.framework */,
 				4A58BA4C206AA20B0038F2F0 /* FirebaseAnalytics.framework */,
 				4A653C1C2062C68F008B519B /* ARKit.framework */,
 				4A367B8B1D6F164F00CF46E6 /* CoreVideo.framework */,
-				4A0710F71C788B4F00FB45C4 /* AmazonAd.framework */,
 				4A5720E519F0716F001BA462 /* Chartboost.framework */,
 				4A1DB88D19C1D7C80048316C /* CoreLocation.framework */,
 				4A1DB88B19C10DCA0048316C /* CoreMotion.framework */,
@@ -6465,8 +6461,8 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(DEVELOPER_DIR)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/Firebase\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins\"",
+					"$(PROJECT_DIR)/platform/apple/Source/Social\\ Plugins/Firebase",
+					"$(PROJECT_DIR)/platform/apple/Source/Social\\ Plugins",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_MODEL_TUNING = G5;
@@ -6524,8 +6520,8 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(DEVELOPER_DIR)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/Firebase\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins\"",
+					"$(PROJECT_DIR)/platform/apple/Source/Social\\ Plugins/Firebase",
+					"$(PROJECT_DIR)/platform/apple/Source/Social\\ Plugins",
 				);
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -6661,8 +6657,8 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(DEVELOPER_DIR)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/System/Library/Frameworks\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins/Firebase\"",
-					"\"$(PROJECT_DIR)/platform/apple/Source/Social Plugins\"",
+					"$(PROJECT_DIR)/platform/apple/Source/Social\\ Plugins/Firebase",
+					"$(PROJECT_DIR)/platform/apple/Source/Social\\ Plugins",
 				);
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

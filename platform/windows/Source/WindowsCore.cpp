@@ -7686,12 +7686,13 @@ char* agk::GetReadPath()
 //****f* File/Access/GetDocumentsPath
 // FUNCTION
 //   Returns the directory that contains the current users documents. On Windows this will be something like 
-//   "C:\Users\Me\My Documents", on iOS this will just be the app write directory.
-//   By default all apps write to the system specified app settings folder, for example "C:\Users\Me\AppData" 
-//   on Windows, "/home/user/.config" on Linux, and a protected app data folder on Android. Where possible the 
-//   contents pf the documents path is visible to the user, for example on Android 10 and below it will be the 
-//   sdcard folder. iOS and Android 11 and higher can't provide a publicly accessible location to write to so 
-//   will return the app write directory instead, which is not visible to the user.
+//   "C:\Users\Me\My Documents". This is different from the usual write path which is a system specified app 
+//   write folder, for example "C:\Users\Me\AppData" on Windows.</br></br>
+//   The documents folder path can be used to write files that are easily accessible by the user. On Android 
+//   9 and below the documents path will be the internal storage root folder, on Android 10 and above it will
+//   be a folder in the Andorid/data folder that is separate for each app but still accessible to the user.</br></br>
+//   iOS does not have a user accessible folder so GetDocumentsPath will just return the normal write path
+//   where files will be inaccessible to the user.
 // SOURCE
 char* agk::GetDocumentsPath()
 //****
@@ -10510,19 +10511,19 @@ void agk::SetSharedVariableAppGroup( const char* group )
 
 //****f* Extras/Shared Variables/SaveSharedVariable
 // FUNCTION
-//   Saves a variable so it can be accessed from other apps. This only works on iOS, Android 10 and below, and HTML5 platforms.
+//   Saves a variable so it can be accessed from other apps. This only works on iOS, Android 9 and below, and HTML5 platforms.
 //   Apps can only share a variable if they meet certain requirements based on the platform.<br/><br/>
 //
 //   On iOS the apps must be created by the same Apple developer account, and have the same App Group added 
 //   to their App IDs on the Apple developer portal. You will need to regenerate the provisioning profile 
 //   after doing this. On iOS you must tell AGK what the App Group is by using <i>SetSharedVariableAppGroup</i>.<br/><br/>
 //
-//   On Android 10 and below the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
+//   On Android 9 and below the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
 //   to the last dot. For example com.mycompany.mygroup.myapp1 and com.mycompany.mygroup.myapp2 would be able 
 //   to share variables. On Android shared variables are written to a user accessible location, so be aware 
 //   that users may be able to read and/or edit the variables that you save.<br/><br/>
 //
-//   On Android 11 or higher this command will not work as apps are restricted from writing to shared locations.<br/><br/>
+//   On Android 10 or higher this command will not work as apps are restricted from writing to shared locations.<br/><br/>
 //
 //   On HTML the apps must be hosted on the same domain, the values are stored as cookies.<br/><br/>
 //
@@ -10547,19 +10548,19 @@ void agk::SaveSharedVariable( const char *varName, const char *varValue )
 
 //****f* Extras/Shared Variables/LoadSharedVariable
 // FUNCTION
-//   Loads a variable that was saved by this app, or another app. This only works on iOS, Android 10 and below, and HTML5 platforms. 
+//   Loads a variable that was saved by this app, or another app. This only works on iOS, Android 9 and below, and HTML5 platforms. 
 //   Apps can only share a variable if they meet certain requirements based on the platform.<br/><br/>
 //
 //   On iOS the apps must have the same Bundle Seed ID (also called App ID Prefix) and have the same 
 //   explicit App ID up to the last dot. For example com.mycompany.mygroup.myapp1 and 
 //   com.mycompany.mygroup.myapp2 would be able to share variables.<br/><br/>
 //
-//   On Android 10 and below the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
+//   On Android 9 and below the apps must have the WRITE_EXTERNAL_STORAGE permission and have the same package name up 
 //   to the last dot. For example com.mycompany.mygroup.myapp1 and com.mycompany.mygroup.myapp2 would be able 
 //   to share variables. On Android shared variables are written to a user accessible location, so be aware 
 //   that users may be able to read and/or edit the variables that you save.<br/><br/>
 //
-//   On Android 11 or higher this command will not work as apps are restricted from writing to shared locations.<br/><br/>
+//   On Android 10 or higher this command will not work as apps are restricted from writing to shared locations.<br/><br/>
 //
 //   On HTML the apps must be hosted on the same domain, the values are stored as cookies.<br/><br/>
 //

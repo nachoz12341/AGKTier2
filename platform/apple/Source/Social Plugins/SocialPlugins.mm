@@ -6,24 +6,15 @@
 #import <vector>
 #include <algorithm>
 #import "AGK.h"
-//#import "json.h"
 
-#import "GoogleMobileAds/GADInterstitialDelegate.h"
-#import "GoogleMobileAds/GADRewardBasedVideoAdDelegate.h"
-#import "GoogleMobileAds/GADExtras.h"
-#import "GoogleMobileAds/GADMobileAds.h"
+#import <GoogleMobileAds/GoogleMobileAds.h>
 
 #import <Chartboost/Chartboost.h>
-
-#import <AmazonAd/AmazonAdRegistration.h>
-#import <AmazonAd/AmazonAdInterstitial.h>
-#import <AmazonAd/AmazonAdOptions.h>
-#import <AmazonAd/AmazonAdError.h>
 
 #import <AdSupport/ASIdentifierManager.h>
 #include <CommonCrypto/CommonDigest.h>
 
-#import <PersonalizedAdConsent/PersonalizedAdConsent.h>
+#import <UserMessagingPlatform/UMPConsentForm.h>
 
 // a few defines
 #define DEG 0.0174532925
@@ -56,116 +47,107 @@ bool bError = false;
 uString m_sFBUserID;
 uString m_sFBName;
 
-
-@interface InterstitialListener : NSObject <GADInterstitialDelegate>
-{
-@public
-    int loading;
-    int loaded;
-    uString sKey;
-    GADInterstitial* pInterstitial;
-}
-
-- (void)show;
-- (void)load;
-
-@end
-
 int g_iAdMobInitialized = 0;
 int g_iAdMobTesting = 0;
 int g_iAdMobConsentStatus = -2; //-2=initial value, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
 int g_iChartboostConsentStatus = -2; //-2=initial value, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
-uString g_sAdMobPrivacyPolicy;
+int g_iAppTargetsChildren = 0;
+
+@interface InterstitialListener : NSObject <GADFullScreenContentDelegate>
+{
+@public
+    int loading;
+    uString sKey;
+    GADInterstitialAd* pInterstitial;
+}
+
+- (void)show;
+- (void)load;
+- (void)reset;
+
+@end
 
 @implementation InterstitialListener
 -(id)init
 {
+    NSLog( @"Init Interstitial" );
     self = [super init];
     loading = 0;
-    loaded = 0;
-    pInterstitial = 0;
+    pInterstitial = nil;
     return self;
+}
+
+- (void) reset
+{
+    if ( pInterstitial ) [pInterstitial release];
+    pInterstitial = nil;
 }
 
 - (void)show
 {
-    if ( loaded == 0 )
+    if ( !pInterstitial )
     {
-        if ( loading == 0 )
-        {
-            [self load];
-        }
+        [self load];
     }
     else
     {
-        loaded = 0;
-        loading = 0;
+        NSLog( @"Showing Interstitial" );
         
         UIViewController* viewController = [ [ [ UIApplication sharedApplication ] delegate ] viewController ];
         [ viewController setInactive ];
         
-        if ( pInterstitial ) [pInterstitial presentFromRootViewController:viewController];
-        else [self load];
+        [pInterstitial presentFromRootViewController:viewController];
     }
 }
 
 - (void)load
 {
-    if ( !pInterstitial )
-    {
-        pInterstitial = [[GADInterstitial alloc] initWithAdUnitID:[NSString stringWithUTF8String: sKey.GetStr()]];
-        pInterstitial.delegate = self;
-    }
+    if ( loading != 0 ) return;
+    if ( pInterstitial ) return;
+    loading = 1;
     
-    if ( loaded == 0 && loading == 0 )
-    {
-        loading = 1;
-        GADRequest *request = [GADRequest request];
-        if ( g_iAdMobTesting )
-        {
-            NSUUID* adid = [[ASIdentifierManager sharedManager] advertisingIdentifier];
-            const char *cStr = [adid.UUIDString UTF8String];
-            unsigned char digest[16];
-            CC_MD5( cStr, (int)strlen(cStr), digest );
-            
-            NSMutableString *output = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
-            
-            for(int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
-                [output appendFormat:@"%02x", digest[i]];
-            
-            [request setTestDevices:@[output]];
-        }
-        if ( g_iAdMobConsentStatus != 2 )
-        {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
-        }
-        [pInterstitial loadRequest:request];
-    }
-}
-
-- (void)interstitialDidReceiveAd:(GADInterstitial *)ad
-{
-    loading = 0;
-    loaded = 1;
-}
-
-- (void)interstitial:(GADInterstitial *)ad didFailToReceiveAdWithError:(GADRequestError *)error
-{
-    loading = 0;
-    loaded = 0;
-    NSLog( @"Failed to load AdMob interstitial: %@", [ error description ] );
-}
-
-- (void)interstitialDidDismissScreen:(GADInterstitial *)interstitial
-{
-    if ( pInterstitial ) [pInterstitial release];
-    pInterstitial = 0;
+    NSLog( @"Loading Interstitial" );
     
+    GADRequest *request = [GADRequest request];
+    
+    NSString* adID = [NSString stringWithUTF8String: sKey.GetStr()];
+    if ( g_iAdMobTesting ) adID = @"ca-app-pub-3940256099942544/4411468910";
+    
+    [GADInterstitialAd loadWithAdUnitID:adID request:request
+                        completionHandler:^(GADInterstitialAd *ad, NSError *error)
+        {
+            loading = 0;
+            if (error) {
+                NSLog(@"Failed to load interstitial ad with error: %@", [error localizedDescription]);
+                return;
+            }
+            NSLog( @"Loaded Interstitial" );
+            pInterstitial = ad;
+            pInterstitial.fullScreenContentDelegate = self;
+            [ pInterstitial retain ];
+        }
+    ];
+}
+
+- (void)ad:(nonnull id<GADFullScreenPresentingAd>)ad
+didFailToPresentFullScreenContentWithError:(nonnull NSError *)error
+{
+    NSLog(@"AdMob interstitial failed to show: %@", [error localizedDescription]);
+    [self reset];
+}
+
+- (void)adDidPresentFullScreenContent:(nonnull id<GADFullScreenPresentingAd>)ad
+{
+    NSLog( @"Presented Interstitial" );
+}
+
+- (void)adDidDismissFullScreenContent:(nonnull id<GADFullScreenPresentingAd>)ad
+{
     UIViewController* viewController = [ [ [ UIApplication sharedApplication ] delegate ] viewController ];
     [ viewController setActive ];
     
+    NSLog( @"Dismissed Interstitial" );
+    [self reset];
     [self load];
 }
 @end
@@ -173,107 +155,111 @@ uString g_sAdMobPrivacyPolicy;
 InterstitialListener *g_pInterstitialListener = nil;
 
 // reward ads
-@interface AdMobRewardListener : NSObject <GADRewardBasedVideoAdDelegate, iRateDelegate>
+@interface AdMobRewardListener : NSObject <GADFullScreenContentDelegate>
 {
 @public
     int loading;
-    int loaded;
     int rewarded;
+    int rewardValue;
     uString sKey;
+    GADRewardedAd* pRewardAd;
 }
 
 - (void)show;
 - (void)load;
+- (void)reset;
 
 @end
-
 
 @implementation AdMobRewardListener
 -(id)init
 {
     self = [super init];
     loading = 0;
-    loaded = 0;
     rewarded = 0;
+    rewardValue = 0;
+    pRewardAd = 0;
     return self;
+}
+
+-(void) reset
+{
+    if ( pRewardAd ) [pRewardAd release];
+    pRewardAd = nil;
 }
 
 - (void)show
 {
-    if ( loaded == 0 )
+    if ( pRewardAd == 0 )
     {
-        if ( loading == 0 )
-        {
-            [self load];
-        }
+        [self load];
     }
     else
     {
-        loaded = 0;
-        loading = 0;
-        
         UIViewController* viewController = [ [ [ UIApplication sharedApplication ] delegate ] viewController ];
         [ viewController setInactive ];
         
-        if ([[GADRewardBasedVideoAd sharedInstance] isReady]) {
-            [[GADRewardBasedVideoAd sharedInstance] presentFromRootViewController:viewController];
-        }
+        [ pRewardAd presentFromRootViewController:viewController
+            userDidEarnRewardHandler:^
+            {
+                GADAdReward *reward = pRewardAd.adReward;
+                rewardValue = [reward.amount intValue];
+                rewarded = 1;
+            }
+        ];
+
     }
 }
 
 - (void)load
 {
-    if ( loaded == 0 && loading == 0 )
-    {
-        loading = 1;
-        GADRequest *request = [GADRequest request];
-        if ( g_iAdMobConsentStatus != 2 )
+    if ( loading != 0 ) return;
+    if ( pRewardAd ) return;
+    loading = 1;
+    
+    GADRequest *request = [GADRequest request];
+    
+    NSString* adID = [NSString stringWithUTF8String: sKey.GetStr()];
+    if ( g_iAdMobTesting ) adID = @"ca-app-pub-3940256099942544/1712485313";
+    
+    [GADRewardedAd loadWithAdUnitID:adID request:request
+                        completionHandler:^(GADRewardedAd *ad, NSError *error)
         {
-            GADExtras *extras = [[GADExtras alloc] init];
-            extras.additionalParameters = @{@"npa": @"1"};
-            [request registerAdNetworkExtras:extras];
+            loading = 0;
+            if (error) {
+                NSLog(@"Failed to load reward ad with error: %@", [error localizedDescription]);
+                return;
+            }
+            pRewardAd = ad;
+            pRewardAd.fullScreenContentDelegate = self;
+            [pRewardAd retain];
         }
-        if ( g_iAdMobTesting == 1 )
-        {
-            [[GADRewardBasedVideoAd sharedInstance] loadRequest:request
-                                               withAdUnitID:@"ca-app-pub-3940256099942544/1712485313"];
-        }
-        else
-        {
-            [[GADRewardBasedVideoAd sharedInstance] loadRequest:request
-                                                   withAdUnitID:[NSString stringWithUTF8String: sKey.GetStr()]];
-        }
-    }
+    ];
 }
 
-- (void)rewardBasedVideoAd:(GADRewardBasedVideoAd *)rewardBasedVideoAd didRewardUserWithReward:(GADAdReward *)reward
+- (void)ad:(nonnull id<GADFullScreenPresentingAd>)ad
+didFailToPresentFullScreenContentWithError:(nonnull NSError *)error
 {
-    rewarded = 1;
+    NSLog(@"AdMob interstitial failed to show: %@", [error localizedDescription]);
+    [self reset];
 }
 
-- (void)rewardBasedVideoAd:(GADRewardBasedVideoAd *)rewardBasedVideoAd didFailToLoadWithError:(NSError *)error
+- (void)adDidPresentFullScreenContent:(nonnull id<GADFullScreenPresentingAd>)ad
 {
-    loading = 0;
-    loaded = 0;
-    NSLog( @"Failed to load AdMob reward ad: %@", [error description] );
+
 }
 
-- (void)rewardBasedVideoAdDidReceiveAd:(GADRewardBasedVideoAd *)rewardBasedVideoAd
-{
-    loaded = 1;
-    loading = 0;
-}
-
-- (void)rewardBasedVideoAdDidClose:(GADRewardBasedVideoAd *)rewardBasedVideoAd
+- (void)adDidDismissFullScreenContent:(nonnull id<GADFullScreenPresentingAd>)ad
 {
     UIViewController* viewController = [ [ [ UIApplication sharedApplication ] delegate ] viewController ];
     [ viewController setActive ];
     
+    [self reset];
     [self load];
 }
 @end
 
-AdMobRewardListener *g_pAdMobRewardListener = nil;
+AdMobRewardListener* g_pAdMobRewardListener = nil;
 
 // chartboost listener
 #ifndef LITEVERSION
@@ -440,115 +426,6 @@ AdMobRewardListener *g_pAdMobRewardListener = nil;
 @end
 
 ChartboostListener *g_pChartboostListener = nil;
-#endif
-
-// amazon ad listener
-#ifndef LITEVERSION
-@interface AmazonAdListener : NSObject <AmazonAdInterstitialDelegate>
-{
-@public
-    int displayImmediately;
-    int loading;
-    int loaded;
-    int testing;
-}
-
-@property (strong, nonatomic) AmazonAdInterstitial *m_interstitial;
-
-- (void) reset;
-- (void) show;
-- (void) load;
-
-@end
-
-@implementation AmazonAdListener
--(id)init
-{
-    self = [super init];
-    displayImmediately = 0;
-    loading = 0;
-    loaded = 0;
-    testing = 0;
-    self.m_interstitial = [AmazonAdInterstitial amazonAdInterstitial];
-    self.m_interstitial.delegate = self;
-    return self;
-}
-
-- (void) reset
-{
-    displayImmediately = 0;
-    loading = 0;
-    loaded = 0;
-}
-
-- (void)load
-{
-    if ( loaded == 0 && loading == 0 )
-    {
-        //NSLog( @"Loading Amazon Ad" );
-        loading = 1;
-        AmazonAdOptions *options = [AmazonAdOptions options];
-        if ( testing ) options.isTestRequest = YES;
-        [self.m_interstitial load:options];
-    }
-}
-
-- (void)show
-{
-    if ( loaded == 0 )
-    {
-        displayImmediately = 1;
-        if ( loading == 0 )
-        {
-            [self load];
-        }
-    }
-    else
-    {
-        displayImmediately = 0;
-        loaded = 0;
-        loading = 0;
-        
-        //NSLog( @"Showing Amazon Ad" );
-        
-        UIViewController* viewController = [ [ [ UIApplication sharedApplication ] delegate ] viewController ];
-        [self.m_interstitial presentFromViewController:viewController];
-        [ viewController setInactive ];
-    }
-}
-
-- (void)interstitialDidLoad:(AmazonAdInterstitial *)interstitial
-{
-    //NSLog( @"Loaded Amazon Ad" );
-    loading = 0;
-    loaded = 1;
-    if ( displayImmediately > 0 )
-    {
-        //[self show];
-    }
-}
-
-- (void)interstitialDidFailToLoad:(AmazonAdInterstitial *)interstitial withError:(AmazonAdError *)error
-{
-    loaded = 0;
-    displayImmediately = 0;
-    loading = 0;
-    NSLog(@"Failed to load Amazon ad - %@", error.errorDescription);
-}
-
-- (void)interstitialDidDismiss:(AmazonAdInterstitial *)interstitial
-{
-    //NSLog( @"Dismissed Amazon Ad" );
-    
-    UIViewController* viewController = [ [ [ UIApplication sharedApplication ] delegate ] viewController ];
-    [ viewController setActive ];
-    
-    [self load];
-}
-
-@end
-
-AmazonAdListener *g_pAmazonAdListener = nil;
 #endif
 
 @implementation SocialPlugins
@@ -753,6 +630,11 @@ void agk::PlatformRateApp( const char* szID, const char* title, const char* mess
 #pragma mark -
 #pragma mark In App Purchase Commands
 
+void agk::PlatformInAppPurchaseReset()
+{
+    [ StoreManager reset ];
+}
+
 void agk::PlatformInAppPurchaseSetKeys ( const char* szData1, const char* szData2 )
 {
     // do nothing on iOS
@@ -821,6 +703,11 @@ int agk::PlatformGetInAppPurchaseAvailable ( int iID )
     return 0;
 }
 
+int agk::PlatformGetInAppPurchaseAvailable2 ( int iID )
+{
+    return [ StoreManager getContentState: iID ];
+}
+
 //****f* Extras/In App Purchase/InAppPurchaseActivate
 // FUNCTION
 //   Call this when you want to start the process of activating / unlocking extra content.
@@ -876,96 +763,155 @@ char* agk::PlatformGetInAppPurchaseSignature( int iID )
 #pragma mark -
 #pragma mark AdMob Commands
 
+void UpdateChartboostConsent()
+{
+#ifndef LITEVERSION
+    [Chartboost clearDataUseConsentForPrivacyStandard:CHBPrivacyStandardGDPR];
+    [Chartboost clearDataUseConsentForPrivacyStandard:CHBPrivacyStandardCCPA];
+    if ( g_iChartboostConsentStatus == 2 )
+    {
+        [Chartboost addDataUseConsent:[CHBGDPRDataUseConsent gdprConsent:CHBGDPRConsentBehavioral] ];
+        [Chartboost addDataUseConsent:[CHBCCPADataUseConsent ccpaConsent:CHBCCPAConsentOptInSale] ];
+    }
+    else
+    {
+        [Chartboost addDataUseConsent:[CHBGDPRDataUseConsent gdprConsent:CHBGDPRConsentBehavioral] ];
+        [Chartboost addDataUseConsent:[CHBCCPADataUseConsent ccpaConsent:CHBCCPAConsentOptInSale] ];
+    }
+    
+    if ( g_pChartboostListener )
+    {
+        g_pChartboostListener->loaded = 0;
+        g_pChartboostListener->loadedReward = 0;
+    }
+#endif
+}
+
+void UpdateConsentStatus()
+{
+    if (UMPConsentInformation.sharedInstance.consentStatus == UMPConsentStatusNotRequired)
+    {
+        g_iAdMobConsentStatus = 2;
+        return;
+    }
+    
+    if (UMPConsentInformation.sharedInstance.consentStatus == UMPConsentStatusRequired)
+    {
+        g_iAdMobConsentStatus = 0;
+        return;
+    }
+    
+    NSInteger gdpr_applies = [[NSUserDefaults standardUserDefaults] integerForKey:@"IABTCF_gdprApplies"];
+    if ( gdpr_applies == 0 )
+    {
+        g_iAdMobConsentStatus = 2;
+        return;
+    }
+    
+    NSString* purposes = [[NSUserDefaults standardUserDefaults] stringForKey:@"IABTCF_PurposeConsents"];
+    if ( [purposes length] == 0 )
+    {
+        g_iAdMobConsentStatus = 0;
+    }
+    else if ( [purposes length] < 4 || [purposes characterAtIndex:0] == '0' || [purposes characterAtIndex:1] == '0' || [purposes characterAtIndex:2] == '0' || [purposes characterAtIndex:3] == '0' )
+    {
+        g_iAdMobConsentStatus = 1;
+    }
+    else
+    {
+        g_iAdMobConsentStatus = 2;
+    }
+    
+    NSLog( @"Updated Consent" );
+    
+    g_iChartboostConsentStatus = g_iAdMobConsentStatus;
+    UpdateChartboostConsent();
+    
+    if ( g_pInterstitialListener ) [g_pInterstitialListener reset];
+    if ( g_pAdMobRewardListener ) [g_pAdMobRewardListener reset];
+}
+
 void agk::LoadConsentStatusAdMob( const char* szPubID, const char* privacyPolicy )
 //****
 {
-    if ( g_iAdMobConsentStatus > -2 ) return;
+    if ( g_iAdMobConsentStatus == -1 ) return;
     g_iAdMobConsentStatus = -1;
-    g_sAdMobPrivacyPolicy.SetStr( privacyPolicy );
-    
-    [PACConsentInformation.sharedInstance
-     requestConsentInfoUpdateForPublisherIdentifiers:@[ [NSString stringWithUTF8String:szPubID] ]
-     completionHandler:^(NSError *_Nullable error) {
-         if (error)
-         {
-             agk::Warning( [[error localizedDescription] UTF8String] );
-             g_iAdMobConsentStatus = 0;
-         }
-         else
-         {
-             if ( PACConsentInformation.sharedInstance.requestLocationInEEAOrUnknown == NO )
-             {
-                 g_iAdMobConsentStatus = 2;
-             }
-             else
-             {
-                 switch( PACConsentInformation.sharedInstance.consentStatus )
-                 {
-                     case PACConsentStatusPersonalized: g_iAdMobConsentStatus = 2; break;
-                     case PACConsentStatusNonPersonalized: g_iAdMobConsentStatus = 1; break;
-                     default: g_iAdMobConsentStatus = 0;
-                 }
-             }
-         }
-     }];
+
+    UMPRequestParameters *parameters = [[UMPRequestParameters alloc] init];
+    parameters.tagForUnderAgeOfConsent = g_iAppTargetsChildren ? YES : NO;
+
+    // Request an update to the consent information.
+    [UMPConsentInformation.sharedInstance requestConsentInfoUpdateWithParameters:parameters
+        completionHandler:^(NSError *_Nullable error)
+        {
+            if (error) {
+                agk::Warning( [[error localizedDescription] UTF8String] );
+                g_iAdMobConsentStatus = 0;
+            } else {
+                UpdateConsentStatus();
+            }
+        }
+    ];
 }
 
 int agk::GetConsentStatusAdMob()
 //****
 {
-    if ( g_iAdMobConsentStatus < -1 ) return -1;
-	return g_iAdMobConsentStatus;
+    return g_iAdMobConsentStatus;
 }
 
 void agk::RequestConsentAdMob()
 //****
 {
-    NSURL *privacyURL = [NSURL URLWithString:[NSString stringWithUTF8String:g_sAdMobPrivacyPolicy.GetStr()]];
-    PACConsentForm *form = [[PACConsentForm alloc] initWithApplicationPrivacyPolicyURL:privacyURL];
-    form.shouldOfferPersonalizedAds = YES;
-    form.shouldOfferNonPersonalizedAds = YES;
-    form.shouldOfferAdFree = NO;
+    if ( g_iAdMobConsentStatus == -1 ) return;
+    g_iAdMobConsentStatus = -1;
     
-    [form loadWithCompletionHandler:^(NSError *_Nullable error) {
-        NSLog(@"Load complete. Error: %@", error);
-        if (error) {
-            // Handle error.
-        } else {
-            // Load successful.
-            [g_pViewController setInactive];
-            [form presentFromViewController: g_pViewController
-              dismissCompletion:^(NSError *_Nullable error, BOOL userPrefersAdFree) {
-                  if (error) {
-                      // Handle error.
-                  } else {
-                      switch( PACConsentInformation.sharedInstance.consentStatus )
-                      {
-                          case PACConsentStatusPersonalized: g_iAdMobConsentStatus = 2; break;
-                          case PACConsentStatusNonPersonalized: g_iAdMobConsentStatus = 1; break;
-                          default: g_iAdMobConsentStatus = 0;
-                      }
-                  }
-                  [g_pViewController setActive];
-              }];
-        }
-    }];
+    UMPFormStatus formStatus = UMPConsentInformation.sharedInstance.formStatus;
+    if (formStatus == UMPFormStatusAvailable)
+    {
+        [UMPConsentForm loadWithCompletionHandler:^(UMPConsentForm *form, NSError *loadError)
+            {
+                if (loadError) {
+                    agk::Warning( [[loadError localizedDescription] UTF8String] );
+                    g_iAdMobConsentStatus = 0;
+                } else {
+                    [g_pViewController setInactive];
+                    [form presentFromViewController: g_pViewController
+                        completionHandler:^(NSError *_Nullable dismissError)
+                        {
+                            UpdateConsentStatus();
+                            [g_pViewController setActive];
+                        }
+                    ];
+                }
+            }
+        ];
+    }
 }
 
 void agk::OverrideConsentAdMob( int consent )
 {
-    g_iAdMobConsentStatus = 1;
-    if ( consent == 2 ) g_iAdMobConsentStatus = 2;
+    // can't override AdMob consent
 }
 
 void agk::OverrideConsentChartboost( int consent )
 //****
 {
 #ifndef LITEVERSION
-	g_iChartboostConsentStatus = 1;
+    g_iChartboostConsentStatus = 1;
     if ( consent == 2 ) g_iChartboostConsentStatus = 2;
     
-    [Chartboost restrictDataCollection:g_iChartboostConsentStatus!=2];
+    UpdateChartboostConsent();
 #endif
+}
+
+void CheckAdMobInitialised()
+{
+    if ( !g_iAdMobInitialized )
+    {
+        g_iAdMobInitialized = 1;
+        [[GADMobileAds sharedInstance] startWithCompletionHandler:nil];
+    }
 }
 
 void agk::PlatformAdMobSetupRelative ( const char* szID, int iHorz, int iVert, float fOffsetX, float fOffsetY, int type )
@@ -976,11 +922,7 @@ void agk::PlatformAdMobSetupRelative ( const char* szID, int iHorz, int iVert, f
     if ( !g_pSocialPlugins )
         return;
     
-    if ( !g_iAdMobInitialized )
-    {
-        g_iAdMobInitialized = 1;
-        [[GADMobileAds sharedInstance] startWithCompletionHandler:nil];
-    }
+    CheckAdMobInitialised();
     
     // get our view controller
     UIViewController* viewController = [ [ [ UIApplication sharedApplication ] delegate ] viewController ];
@@ -1086,11 +1028,7 @@ void agk::PlatformAdMobSetupRelative ( const char* szID, int iHorz, int iVert, f
 
 void  agk::PlatformAdMobFullscreen ()
 {
-    if ( !g_iAdMobInitialized )
-    {
-        g_iAdMobInitialized = 1;
-        [[GADMobileAds sharedInstance] startWithCompletionHandler:nil];
-    }
+    CheckAdMobInitialised();
     
     if ( !g_pInterstitialListener )
     {
@@ -1103,11 +1041,7 @@ void  agk::PlatformAdMobFullscreen ()
 
 void  agk::PlatformAdMobCacheFullscreen ()
 {
-    if ( !g_iAdMobInitialized )
-    {
-        g_iAdMobInitialized = 1;
-        [[GADMobileAds sharedInstance] startWithCompletionHandler:nil];
-    }
+    CheckAdMobInitialised();
     
     if ( !g_pInterstitialListener )
     {
@@ -1264,21 +1198,16 @@ int  agk::PlatformAdMobGetFullscreenLoaded ()
 {
 	if ( !g_pInterstitialListener ) return 0;
 	
-	return g_pInterstitialListener->loaded;
+    return g_pInterstitialListener->pInterstitial ? 1 : 0;
 }
 
 void agk::PlatformAdMobRewardAd()
 {
-    if ( !g_iAdMobInitialized )
-    {
-        g_iAdMobInitialized = 1;
-        [[GADMobileAds sharedInstance] startWithCompletionHandler:nil];
-    }
+    CheckAdMobInitialised();
     
     if ( !g_pAdMobRewardListener )
     {
         g_pAdMobRewardListener = [[AdMobRewardListener alloc] init];
-        [GADRewardBasedVideoAd sharedInstance].delegate = g_pAdMobRewardListener;
         g_pAdMobRewardListener->sKey.SetStr( m_sAdMobRewardAdCode );
     }
     
@@ -1288,16 +1217,11 @@ void agk::PlatformAdMobRewardAd()
 
 void agk::PlatformAdMobCacheRewardAd()
 {
-    if ( !g_iAdMobInitialized )
-    {
-        g_iAdMobInitialized = 1;
-        [[GADMobileAds sharedInstance] startWithCompletionHandler:nil];
-    }
+    CheckAdMobInitialised();
     
     if ( !g_pAdMobRewardListener )
     {
         g_pAdMobRewardListener = [[AdMobRewardListener alloc] init];
-        [GADRewardBasedVideoAd sharedInstance].delegate = g_pAdMobRewardListener;
         g_pAdMobRewardListener->sKey.SetStr( m_sAdMobRewardAdCode );
     }
     
@@ -1307,7 +1231,7 @@ void agk::PlatformAdMobCacheRewardAd()
 int agk::PlatformAdMobGetRewardAdLoaded()
 {
     if ( !g_pAdMobRewardListener ) return 0;
-    return g_pAdMobRewardListener->loaded;
+    return g_pAdMobRewardListener->pRewardAd ? 1 : 0;
 }
 
 int agk::PlatformAdMobGetRewardAdRewarded()
@@ -1319,7 +1243,7 @@ int agk::PlatformAdMobGetRewardAdRewarded()
 int agk::PlatformAdMobGetRewardAdValue()
 {
     if ( !g_pAdMobRewardListener ) return 0;
-	//return g_pAdMobRewardListener->rewarded;
+	return g_pAdMobRewardListener->rewardValue;
 	return 0;
 }
 
@@ -1335,7 +1259,7 @@ void agk::PlatformAdMobSetTesting (int testing)
 
 void agk::PlatformAdMobSetChildRating(int rating)
 {
-	// todo
+    g_iAppTargetsChildren = rating;
 }
 
 // CHARTBOOST
@@ -1345,10 +1269,11 @@ void  agk::PlatformChartboostSetup ()
 #ifndef LITEVERSION
 	if ( !g_pChartboostListener ) g_pChartboostListener = [[ChartboostListener alloc] init];
     
+    UpdateChartboostConsent();
+    
     [Chartboost startWithAppId:[ NSString stringWithUTF8String:m_sChartboostCode1.GetStr() ]
                   appSignature:[ NSString stringWithUTF8String:m_sChartboostCode2.GetStr() ]
                   delegate:g_pChartboostListener];
-    [Chartboost restrictDataCollection:g_iChartboostConsentStatus!=2];
     
     [g_pChartboostListener reset];
     [g_pChartboostListener load];
@@ -1422,51 +1347,6 @@ void agk::PlatformChartboostResetRewardAd()
 #ifndef LITEVERSION
     if ( !g_pChartboostListener ) return;
     g_pChartboostListener->rewarded = 0;
-#endif
-}
-
-// Amazon Ads
-
-void agk::PlatformAmazonAdSetup()
-{
-#ifndef LITEVERSION
-    NSLog( @"Registering Amazon Ad: %s", m_sAmazonAdCode.GetStr() );
-    [[AmazonAdRegistration sharedRegistration ] setAppKey:[ NSString stringWithUTF8String:m_sAmazonAdCode.GetStr() ]];
-//    [[AmazonAdRegistration sharedRegistration] setLogging:YES];
-    
-    if ( !g_pAmazonAdListener ) g_pAmazonAdListener = [[AmazonAdListener alloc] init];
-    [g_pAmazonAdListener reset];
-    [g_pAmazonAdListener load];
-#else
-    agk::Message("Amazon Ad commands are not available in the lite build of AGK, please use the full version");
-#endif
-}
-
-void agk::PlatformAmazonAdSetTesting( int testing )
-{
-#ifndef LITEVERSION
-    if ( !g_pAmazonAdListener ) return;
-    g_pAmazonAdListener->testing = testing;
-#endif
-}
-
-void agk::PlatformAmazonAdFullscreen()
-{
-#ifndef LITEVERSION
-    if ( !g_pAmazonAdListener ) return;
-    
-    [g_pAmazonAdListener show];
-#endif
-}
-
-int  agk::PlatformAmazonGetFullscreenLoaded ()
-{
-#ifndef LITEVERSION
-	if ( !g_pAmazonAdListener ) return 0;
-	
-	return g_pAmazonAdListener->loaded;
-#else
-    return 0;
 #endif
 }
 

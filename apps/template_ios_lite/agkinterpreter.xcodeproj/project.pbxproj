@@ -30,12 +30,13 @@
 		4A952B191FA00D3A006F2215 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A952B181FA00D3A006F2215 /* WatchConnectivity.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		4AAAB70F21C04950003BE3C8 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AAAB70E21C04950003BE3C8 /* WebKit.framework */; };
 		4AE64F161BCDD13D003C409C /* GoogleMobileAds.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AE64F151BCDD13D003C409C /* GoogleMobileAds.framework */; };
-		4AF55ACF2188C5E0004FDC97 /* PersonalizedAdConsent.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF55ACE2188C5E0004FDC97 /* PersonalizedAdConsent.framework */; };
-		4AF55AD12188C611004FDC97 /* PersonalizedAdConsent.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 4AF55AD02188C611004FDC97 /* PersonalizedAdConsent.bundle */; };
 		4AF55AD32188C63A004FDC97 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF55AD22188C63A004FDC97 /* Security.framework */; };
 		4AF8AEAF22F2168F00CC735F /* GoogleUtilities.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEAC22F2168E00CC735F /* GoogleUtilities.framework */; };
 		4AF8AEB022F2168F00CC735F /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEAD22F2168F00CC735F /* nanopb.framework */; };
 		4AF8AEB122F2168F00CC735F /* GoogleAppMeasurement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEAE22F2168F00CC735F /* GoogleAppMeasurement.framework */; };
+		67098DA52670382E00F8BD74 /* UserMessagingPlatform.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA42670382E00F8BD74 /* UserMessagingPlatform.framework */; };
+		67098DA72670392F00F8BD74 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA62670392F00F8BD74 /* AppTrackingTransparency.framework */; };
+		67098DA92670396200F8BD74 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA82670396200F8BD74 /* JavaScriptCore.framework */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
 		D823630F16120226008BD7C0 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D823630E16120226008BD7C0 /* MediaPlayer.framework */; };
@@ -83,12 +84,13 @@
 		4A9628832408772B003AC147 /* NetworkPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkPacket.h; sourceTree = "<group>"; };
 		4AAAB70E21C04950003BE3C8 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		4AE64F151BCDD13D003C409C /* GoogleMobileAds.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleMobileAds.framework; path = "../../platform/apple/Source/Social Plugins/GoogleMobileAds.framework"; sourceTree = "<group>"; };
-		4AF55ACE2188C5E0004FDC97 /* PersonalizedAdConsent.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PersonalizedAdConsent.framework; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.framework"; sourceTree = "<group>"; };
-		4AF55AD02188C611004FDC97 /* PersonalizedAdConsent.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = PersonalizedAdConsent.bundle; path = "../../platform/apple/Source/Social Plugins/PersonalizedAdConsent.bundle"; sourceTree = "<group>"; };
 		4AF55AD22188C63A004FDC97 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		4AF8AEAC22F2168E00CC735F /* GoogleUtilities.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleUtilities.framework; path = "../../platform/apple/Source/Social Plugins/GoogleUtilities.framework"; sourceTree = "<group>"; };
 		4AF8AEAD22F2168F00CC735F /* nanopb.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = nanopb.framework; path = "../../platform/apple/Source/Social Plugins/nanopb.framework"; sourceTree = "<group>"; };
 		4AF8AEAE22F2168F00CC735F /* GoogleAppMeasurement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GoogleAppMeasurement.framework; path = "../../platform/apple/Source/Social Plugins/GoogleAppMeasurement.framework"; sourceTree = "<group>"; };
+		67098DA42670382E00F8BD74 /* UserMessagingPlatform.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserMessagingPlatform.framework; path = "../../platform/apple/Source/Social Plugins/UserMessagingPlatform.framework"; sourceTree = "<group>"; };
+		67098DA62670392F00F8BD74 /* AppTrackingTransparency.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppTrackingTransparency.framework; path = System/Library/Frameworks/AppTrackingTransparency.framework; sourceTree = SDKROOT; };
+		67098DA82670396200F8BD74 /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		726A37B215B8DA0D002F8919 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		72EF411814632D6400C96B0A /* UntitledViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UntitledViewController.xib; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* agkinterpreter-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "agkinterpreter-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -149,6 +151,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				67098DA92670396200F8BD74 /* JavaScriptCore.framework in Frameworks */,
+				67098DA72670392F00F8BD74 /* AppTrackingTransparency.framework in Frameworks */,
 				4AF8AEAF22F2168F00CC735F /* GoogleUtilities.framework in Frameworks */,
 				4AF8AEB022F2168F00CC735F /* nanopb.framework in Frameworks */,
 				4AF8AEB122F2168F00CC735F /* GoogleAppMeasurement.framework in Frameworks */,
@@ -160,8 +164,8 @@
 				4A5FF6FE1F6C307E00BFF8C8 /* ReplayKit.framework in Frameworks */,
 				4A0E7D291DF87333007BC5C8 /* MobileCoreServices.framework in Frameworks */,
 				4A0E7D271DF87329007BC5C8 /* GLKit.framework in Frameworks */,
-				4AF55ACF2188C5E0004FDC97 /* PersonalizedAdConsent.framework in Frameworks */,
 				4A0E7D251DF8731E007BC5C8 /* CFNetwork.framework in Frameworks */,
+				67098DA52670382E00F8BD74 /* UserMessagingPlatform.framework in Frameworks */,
 				4A26DEC71D7F149400AAF62F /* CoreVideo.framework in Frameworks */,
 				4A17CC3219D25E93009881F4 /* EventKit.framework in Frameworks */,
 				4A17CC3319D25E93009881F4 /* EventKitUI.framework in Frameworks */,
@@ -239,7 +243,6 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				4AF55AD02188C611004FDC97 /* PersonalizedAdConsent.bundle */,
 				4A7962031FE031B600153A39 /* Icons.xcassets */,
 				D8D8207116FD160300D08FAD /* media */,
 				D8897F6712ADCB6500573108 /* MainWindow.xib */,
@@ -251,13 +254,15 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				67098DA82670396200F8BD74 /* JavaScriptCore.framework */,
+				67098DA62670392F00F8BD74 /* AppTrackingTransparency.framework */,
+				67098DA42670382E00F8BD74 /* UserMessagingPlatform.framework */,
 				4AF8AEAE22F2168F00CC735F /* GoogleAppMeasurement.framework */,
 				4AF8AEAC22F2168E00CC735F /* GoogleUtilities.framework */,
 				4AF8AEAD22F2168F00CC735F /* nanopb.framework */,
 				4A02FD0522B01BA800BECD20 /* UserNotifications.framework */,
 				4AAAB70E21C04950003BE3C8 /* WebKit.framework */,
 				4AF55AD22188C63A004FDC97 /* Security.framework */,
-				4AF55ACE2188C5E0004FDC97 /* PersonalizedAdConsent.framework */,
 				4A58BA90206AAF7F0038F2F0 /* ARKit.framework */,
 				4A952B181FA00D3A006F2215 /* WatchConnectivity.framework */,
 				4A5FF6FD1F6C307E00BFF8C8 /* ReplayKit.framework */,
@@ -390,7 +395,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4AF55AD12188C611004FDC97 /* PersonalizedAdConsent.bundle in Resources */,
 				D8897F6812ADCB6500573108 /* MainWindow.xib in Resources */,
 				4A7962041FE031B600153A39 /* Icons.xcassets in Resources */,
 				72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */,
@@ -451,7 +455,7 @@
 					../../bullet,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LIBRARY_SEARCH_PATHS = "\"../../platform/apple/Lib/ReleaseLite\"";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-ObjC";
@@ -495,7 +499,7 @@
 					../../bullet,
 				);
 				INFOPLIST_FILE = "agkinterpreter-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LIBRARY_SEARCH_PATHS = "\"../../platform/apple/Lib/ReleaseLite\"";
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				OTHER_LDFLAGS = "-ObjC";

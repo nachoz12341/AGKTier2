@@ -2771,8 +2771,8 @@ public class AGKHelper {
 	// Shared variables
 	public static void SaveSharedVariableWithPermission( Activity act, String varName, String varValue )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		String packageName = act.getPackageName();
 		String folderName = packageName;
@@ -2826,8 +2826,8 @@ public class AGKHelper {
 
 	public static void SaveSharedVariable( Activity act, String varName, String varValue )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		// write local value to the shared preferences, then try and write globally
 		SharedPreferences sharedPref = act.getSharedPreferences("agksharedvariables", Context.MODE_PRIVATE);
@@ -2851,8 +2851,8 @@ public class AGKHelper {
 
 	public static String LoadSharedVariable( Activity act, String varName, String defaultValue )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return defaultValue;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return defaultValue;
 
 		// must request permissions on API 23 (Android 6.0) and above
 		if (Build.VERSION.SDK_INT >= 23)
@@ -2919,8 +2919,8 @@ public class AGKHelper {
 
 	public static void DeleteSharedVariable( Activity act, String varName )
 	{
-           // Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		// delete any local value
 		SharedPreferences sharedPref = act.getSharedPreferences( "agksharedvariables", Context.MODE_PRIVATE );

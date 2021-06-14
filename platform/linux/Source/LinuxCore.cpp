@@ -5025,28 +5025,6 @@ void agk::PlatformChartboostResetRewardAd()
 	
 }
 
-// Amazon Ads
-
-void  agk::PlatformAmazonAdSetup ()
-{
-
-}
-
-void agk::PlatformAmazonAdSetTesting( int testing )
-{
-
-}
-
-void  agk::PlatformAmazonAdFullscreen ()
-{
-
-}
-
-int  agk::PlatformAmazonGetFullscreenLoaded ()
-{
-	return 0;
-}
-
 // FACEBOOK COMMANDS
 void  agk::PlatformFacebookSetup                ( const char* szID )
 {

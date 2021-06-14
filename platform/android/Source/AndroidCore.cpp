@@ -8158,11 +8158,25 @@ void agk::PlatformRateApp( const char* szID, const char* title, const char* mess
 }
 
 // IN APP PURCHASE COMMANDS
-#define MAX_PRODUCTS 25
-static int	productCount = 0;
-//static char	productID [ MAX_PRODUCTS ] [ 128 ];
-//static int	purchasedProducts [ MAX_PRODUCTS ];
-//static int lastProduct = -1;
+void agk::PlatformInAppPurchaseReset()
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "iapReset","()V" );
+	if ( method ) lJNIEnv->CallStaticVoidMethod( AGKHelper, method );
+	
+	// detatch thread from Java VM before we leave
+	vm->DetachCurrentThread();
+}
 
 void agk::PlatformInAppPurchaseSetKeys( const char* szData1, const char* szData2 )
 {
@@ -8197,12 +8211,6 @@ void agk::PlatformInAppPurchaseSetTitle( const char* szTitle )
 
 void  agk::PlatformInAppPurchaseAddProductID    ( const char* szID, int type )
 {
-	if ( productCount >= MAX_PRODUCTS )
-	{
-		agk::Error( "Max number of in-app purchase products reached" );
-		return;
-	}
-
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);
@@ -8218,13 +8226,11 @@ void  agk::PlatformInAppPurchaseAddProductID    ( const char* szID, int type )
 
 	// call our java class method
 	jstring strProduct = lJNIEnv->NewStringUTF( szID );
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, purchase, strProduct, productCount, type );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, purchase, strProduct, 0, type );
 	lJNIEnv->DeleteLocalRef( strProduct );
 
 	// detatch thread from Java VM before we leave
 	vm->DetachCurrentThread();
-
-	productCount++;
 }
 
 void  agk::PlatformInAppPurchaseSetup           ( void )
@@ -8251,8 +8257,6 @@ void  agk::PlatformInAppPurchaseSetup           ( void )
 
 void  agk::PlatformInAppPurchaseActivate        ( int iID )
 {
-	if ( iID < 0 || iID >= MAX_PRODUCTS ) return;
-	
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);
@@ -8273,7 +8277,7 @@ void  agk::PlatformInAppPurchaseActivate        ( int iID )
 	vm->DetachCurrentThread();
 }
 
-int   agk::PlatformGetInAppPurchaseState        ( void )
+void  agk::PlatformInAppPurchaseResetPurchase( const char* szToken )
 {
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
@@ -8286,15 +8290,20 @@ int   agk::PlatformGetInAppPurchaseState        ( void )
 	jclass AGKHelper = GetAGKHelper(lJNIEnv);
 
 	// get the method from our java class
-	jmethodID purchase = lJNIEnv->GetStaticMethodID( AGKHelper, "iapCheckPurchaseState","()I" );
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "iapResetPurchase","(Ljava/lang/String;)V" );
 
 	// call our java class method
-	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, purchase );
+	jstring strToken = lJNIEnv->NewStringUTF( szToken );
+	lJNIEnv->CallStaticVoidMethod( AGKHelper, method, strToken );
+	lJNIEnv->DeleteLocalRef( strToken );
 
 	// detatch thread from Java VM before we leave
 	vm->DetachCurrentThread();
+}
 
-	return result;
+int   agk::PlatformGetInAppPurchaseState        ( void )
+{
+	return 1; // deprecated
 }
 
 int   agk::PlatformGetInAppPurchaseAvailable    ( int iID )
@@ -8314,6 +8323,30 @@ int   agk::PlatformGetInAppPurchaseAvailable    ( int iID )
 
 	// call our java class method
 	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, purchase, iID );
+
+	// detatch thread from Java VM before we leave
+	vm->DetachCurrentThread();
+
+	return result;
+}
+
+int   agk::PlatformGetInAppPurchaseAvailable2    ( int iID )
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "iapCheckPurchase2","(I)I" );
+
+	// call our java class method
+	int result = lJNIEnv->CallStaticIntMethod( AGKHelper, method, iID );
 
 	// detatch thread from Java VM before we leave
 	vm->DetachCurrentThread();
@@ -8417,6 +8450,45 @@ char* agk::PlatformGetInAppPurchaseSignature(int iID)
 	return retstr;
 }
 
+char* agk::PlatformGetInAppPurchaseToken(int iID)
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if (!lNativeActivity) agk::Warning("Failed to get native activity pointer");
+
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID(AGKHelper, "iapGetToken", "(I)Ljava/lang/String;");
+
+	char *retstr;
+	if ( method )
+	{
+		jstring str = (jstring)lJNIEnv->CallStaticObjectMethod(AGKHelper, method, iID);
+		jboolean bCopy;
+		const char* str2 = lJNIEnv->GetStringUTFChars(str, &bCopy);
+
+		retstr = new char[strlen(str2) + 1];
+		strcpy(retstr, str2);
+
+		lJNIEnv->ReleaseStringUTFChars(str, str2);
+		lJNIEnv->DeleteLocalRef(str);
+	}
+	else
+	{
+		retstr = new char[1]; 
+		*retstr = 0;
+	}
+
+	vm->DetachCurrentThread();
+
+	return retstr;
+}
+
 bool  agk::PlatformHasInAppPurchase ( void )
 {
 	return true;
@@ -8424,7 +8496,22 @@ bool  agk::PlatformHasInAppPurchase ( void )
 
 void agk::PlatformInAppPurchaseRestore()
 {
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	// get NativeActivity object (clazz)
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
 	
+	jclass AGKHelper = GetAGKHelper(lJNIEnv);
+
+	// get the method from our java class
+	jmethodID method = lJNIEnv->GetStaticMethodID( AGKHelper, "iapRestore","()V" );
+	if ( method ) lJNIEnv->CallStaticVoidMethod( AGKHelper, method );
+	
+	// detatch thread from Java VM before we leave
+	vm->DetachCurrentThread();
 }
 
 
@@ -9122,100 +9209,6 @@ void agk::PlatformChartboostResetRewardAd()
 	
 	// detatch thread from Java VM before we leave
 	vm->DetachCurrentThread();
-}
-
-// Amazon Ads
-
-void agk::PlatformAmazonAdSetup()
-{
-	JNIEnv* lJNIEnv = g_pActivity->env;
-	JavaVM* vm = g_pActivity->vm;
-	vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-	// get NativeActivity object (clazz)
-	jobject lNativeActivity = g_pActivity->clazz;
-	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-	
-	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-
-	// get the method from our java class
-	jmethodID createAd = lJNIEnv->GetStaticMethodID( AGKHelper, "SetAmazonAdDetails","(Landroid/app/Activity;Ljava/lang/String;)V" );
-
-	// call our java class method
-	jstring strID = lJNIEnv->NewStringUTF(m_sAmazonAdCode.GetStr());
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, createAd, lNativeActivity, strID );
-	lJNIEnv->DeleteLocalRef( strID );
-
-	// detatch thread from Java VM before we leave
-	vm->DetachCurrentThread();
-}
-
-void agk::PlatformAmazonAdSetTesting( int testing )
-{
-	JNIEnv* lJNIEnv = g_pActivity->env;
-	JavaVM* vm = g_pActivity->vm;
-	vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-	// get NativeActivity object (clazz)
-	jobject lNativeActivity = g_pActivity->clazz;
-	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-	
-	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-
-	// get the method from our java class
-	jmethodID createAd = lJNIEnv->GetStaticMethodID( AGKHelper, "SetAmazonAdTesting","(Landroid/app/Activity;I)V" );
-
-	// call our java class method
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, createAd, lNativeActivity, testing );
-	
-	// detatch thread from Java VM before we leave
-	vm->DetachCurrentThread();
-}
-
-void agk::PlatformAmazonAdFullscreen()
-{
-	JNIEnv* lJNIEnv = g_pActivity->env;
-	JavaVM* vm = g_pActivity->vm;
-	vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-	// get NativeActivity object (clazz)
-	jobject lNativeActivity = g_pActivity->clazz;
-	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-	
-	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-
-	// get the method from our java class
-	jmethodID createAd = lJNIEnv->GetStaticMethodID( AGKHelper, "CreateFullscreenAdAmazon","(Landroid/app/Activity;)V" );
-
-	// call our java class method
-	lJNIEnv->CallStaticVoidMethod( AGKHelper, createAd, lNativeActivity );
-	
-	// detatch thread from Java VM before we leave
-	vm->DetachCurrentThread();
-}
-
-int agk::PlatformAmazonGetFullscreenLoaded()
-{
-	JNIEnv* lJNIEnv = g_pActivity->env;
-	JavaVM* vm = g_pActivity->vm;
-	vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-	// get NativeActivity object (clazz)
-	jobject lNativeActivity = g_pActivity->clazz;
-	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-	
-	jclass AGKHelper = GetAGKHelper(lJNIEnv);
-
-	// get the method from our java class
-	jmethodID createAd = lJNIEnv->GetStaticMethodID( AGKHelper, "GetFullscreenLoadedAmazon","()I" );
-
-	// call our java class method
-	int loaded = lJNIEnv->CallStaticIntMethod( AGKHelper, createAd );
-	
-	// detatch thread from Java VM before we leave
-	vm->DetachCurrentThread();
-
-	return loaded;
 }
 
 // FACEBOOK COMMANDS

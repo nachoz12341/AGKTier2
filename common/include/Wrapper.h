@@ -392,7 +392,6 @@ namespace AGK
 			static uString m_sInneractiveCode;
 			static uString m_sChartboostCode1;
 			static uString m_sChartboostCode2;
-			static uString m_sAmazonAdCode;
 			static uString m_sAdClientID;
 			static uString m_sInneractiveURL;
 			static uString m_sInneractiveImage;
@@ -529,18 +528,22 @@ namespace AGK
 			static void  PlatformRateApp                      ( const char* szID, const char* title, const char* message );
 
 			// IN APP PURCHASE COMMANDS
+			static void  PlatformInAppPurchaseReset           ();
 			static void  PlatformInAppPurchaseSetKeys		  ( const char *szData1, const char *szData2 );
 			static void  PlatformInAppPurchaseSetTitle        ( const char* szTitle );
 			static void  PlatformInAppPurchaseAddProductID    ( const char* szID, int type );
 			static void  PlatformInAppPurchaseSetup           ( void );
 			static void  PlatformInAppPurchaseActivate        ( int iID );
+			static void  PlatformInAppPurchaseResetPurchase   ( const char* token );
 			static int   PlatformGetInAppPurchaseState        ( void );
 			static int   PlatformGetInAppPurchaseAvailable    ( int iID );
+			static int   PlatformGetInAppPurchaseAvailable2   ( int iID );
             static char* PlatformGetInAppPurchaseLocalPrice   ( int iID );
             static char* PlatformGetInAppPurchaseDescription  ( int iID );
 			static bool  PlatformHasInAppPurchase             ( void );
 			static void  PlatformInAppPurchaseRestore		  ();
 			static char* PlatformGetInAppPurchaseSignature    ( int iID );
+			static char* PlatformGetInAppPurchaseToken        ( int iID );
 
 			// ADMOB COMMANDS
 			static void  PlatformAdMobSetupRelative			  ( const char* szID, int horz, int vert, float offsetX, float offsetY, int type );
@@ -2590,17 +2593,21 @@ namespace AGK
 			static void RequestAppReview(); // iOS only
 
 			// IN APP PURCHASE COMMANDS
+			static void  InAppPurchaseReset           (); // internal function
 			static void  InAppPurchaseSetKeys         ( const char* szData1, const char* szData2 );
 			static void  InAppPurchaseSetTitle        ( const char* szTitle );
 			static void  InAppPurchaseAddProductID    ( const char* szID, int type );
 			static void  InAppPurchaseSetup           ( void );
 			static void  InAppPurchaseActivate        ( int iID );
+			static void  InAppPurchaseResetPurchase   ( const char* token );
 			static int   GetInAppPurchaseState        ( void );
 			static int   GetInAppPurchaseAvailable    ( int iID );
+			static int   GetInAppPurchaseAvailable2   ( int iID );
             static char* GetInAppPurchaseLocalPrice   ( int iID );
             static char* GetInAppPurchaseDescription  ( int iID );
 			static void  InAppPurchaseRestore		  ();
 			static char* GetInAppPurchaseSignature    ( int iID );
+			static char* GetInAppPurchaseToken        ( int iID );
 
 			// FACEBOOK COMMANDS
 			static void  FacebookSetup                ( const char* szID );

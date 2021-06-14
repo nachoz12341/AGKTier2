@@ -1,18 +1,41 @@
 // Temporary until the NDK build system can deal with there being no Java source.
 package com.thegamecreators.agk_player;
 
+import com.android.billingclient.api.AcknowledgePurchaseParams;
+import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
+import com.android.billingclient.api.BillingClient;
+import com.android.billingclient.api.BillingClientStateListener;
+import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingResult;
+import com.android.billingclient.api.ConsumeParams;
+import com.android.billingclient.api.ConsumeResponseListener;
+import com.android.billingclient.api.Purchase;
+import com.android.billingclient.api.PurchasesUpdatedListener;
+import com.android.billingclient.api.SkuDetails;
+import com.android.billingclient.api.SkuDetailsParams;
+import com.android.billingclient.api.SkuDetailsResponseListener;
+import com.chartboost.sdk.Chartboost;
+import com.chartboost.sdk.CBLocation;
+import com.chartboost.sdk.ChartboostDelegate;
+import com.chartboost.sdk.Model.CBError.CBImpressionError;
+import com.chartboost.sdk.Privacy.model.CCPA;
 import com.chartboost.sdk.Privacy.model.DataUseConsent;
 import com.chartboost.sdk.Privacy.model.GDPR;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardItem;
+import com.google.android.ump.ConsentDebugSettings;
+import com.google.android.ump.ConsentForm;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.FormError;
+import com.google.android.ump.UserMessagingPlatform;
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.initialization.InitializationStatus;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
-import com.google.android.gms.ads.reward.RewardItem;
-import com.google.android.gms.ads.reward.RewardedVideoAd;
-import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.gms.ads.rewarded.RewardedAd;
-import com.google.android.gms.ads.rewarded.RewardedAdCallback;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -114,9 +137,11 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.text.Editable;
@@ -145,7 +170,6 @@ import com.snapchat.kit.sdk.creative.media.SnapMediaFactory;
 import com.snapchat.kit.sdk.creative.media.SnapPhotoFile;
 import com.snapchat.kit.sdk.creative.media.SnapSticker;
 import com.snapchat.kit.sdk.creative.models.SnapPhotoContent;
-import com.thegamecreators.agk_player.iap.*;
 
 import android.view.Surface;
 import android.webkit.MimeTypeMap;
@@ -177,12 +201,9 @@ import android.content.DialogInterface;
 
 import android.media.MediaMetadataRetriever;
 
-import com.chartboost.sdk.*; 
-import com.chartboost.sdk.Model.CBError.CBImpressionError;
 
 
 
-import com.google.ads.consent.*;
 
 import com.mycompany.mytemplate.R;
 
@@ -470,6 +491,19 @@ class RunnableChartboost implements Runnable
 		public boolean shouldDisplayRewardedVideo(String location) { return true; }
     };
 
+    public static void UpdateConsent( Activity act )
+	{
+		Chartboost.clearDataUseConsent( act, GDPR.GDPR_STANDARD );
+		Chartboost.clearDataUseConsent( act, CCPA.CCPA_STANDARD );
+		DataUseConsent dataUseConsent = new GDPR( consent ? GDPR.GDPR_CONSENT.BEHAVIORAL : GDPR.GDPR_CONSENT.NON_BEHAVIORAL );
+		Chartboost.addDataUseConsent(act, dataUseConsent);
+		dataUseConsent = new CCPA( consent ? CCPA.CCPA_CONSENT.OPT_IN_SALE : CCPA.CCPA_CONSENT.OPT_OUT_SALE );
+		Chartboost.addDataUseConsent(act, dataUseConsent);
+
+		cached = 0;
+		rewardCached = 0;
+	}
+
     @Override
     public void run() {
         switch ( action )
@@ -478,11 +512,11 @@ class RunnableChartboost implements Runnable
             {
                 Log.i("Chartboost", "Initialize Chartboost SDK");
 
+				UpdateConsent( act );
+
 				cached = 0;
 				caching = 1;
-				Chartboost.startWithAppId(this.act, AppID, AppSig);
-				DataUseConsent dataUseConsent = new GDPR( consent ? GDPR.GDPR_CONSENT.BEHAVIORAL : GDPR.GDPR_CONSENT.NON_BEHAVIORAL );
-				Chartboost.addDataUseConsent(this.act, dataUseConsent);
+				Chartboost.startWithAppId((Context)this.act, AppID, AppSig);
                 Chartboost.setShouldRequestInterstitialsInFirstSession(true);
 				Chartboost.setDelegate(this.chartBoostDelegate);
                 Chartboost.cacheInterstitial(CBLocation.LOCATION_DEFAULT);
@@ -578,12 +612,16 @@ class RunnableAd implements Runnable
 	public static int testMode = 0;
 	public static AdView ad = null;
 	public static int adType = 0;
-	public static com.google.android.gms.ads.InterstitialAd interstitial = null;
+	public static InterstitialAd interstitialAd = null;
+	public static int interstitialLoading = 0;
+	InterstitialAdLoadCallback callbackLoadI = null;
+	FullScreenContentCallback callbackShowI = null;
+
 	public static RewardedAd rewardAd = null;
-	public static int cached = 0;
-	public static int rewardCached = 0;
+	public static int rewardLoading = 0;
 	RewardedAdLoadCallback callbackLoad = null;
-	RewardedAdCallback callbackShow = null;
+	OnUserEarnedRewardListener callbackReward = null;
+	FullScreenContentCallback callbackShow = null;
 	
 	public WindowManager.LayoutParams makeLayout()
 	{
@@ -641,39 +679,111 @@ class RunnableAd implements Runnable
 		return "";
 	}
 	
+	private void LoadInterstitialAd()
+	{
+		if ( interstitialLoading == 1 ) return;
+		interstitialLoading = 1;
+
+		Log.i("AdMob", "Loading interstitial ad");
+
+		interstitialAd = null;
+		AdRequest request = new AdRequest.Builder().build();
+		InterstitialAd.load( act, (testMode == 1) ? "ca-app-pub-3940256099942544/5224354917" : pubID, request, callbackLoadI );
+	}
+
+	private void CheckInterstitialAdInit()
+	{
+		if ( callbackShowI == null ) {
+			callbackShowI = new FullScreenContentCallback() {
+				@Override
+				public void onAdFailedToShowFullScreenContent(AdError adError) {
+					super.onAdFailedToShowFullScreenContent(adError);
+					Log.e("AdMob", "Failed to show interstitial ad: " + adError.getMessage());
+					interstitialAd = null;
+	}
+
+				@Override
+				public void onAdShowedFullScreenContent() {
+					super.onAdShowedFullScreenContent();
+					interstitialAd = null;
+				}
+
+				@Override
+				public void onAdDismissedFullScreenContent() {
+					super.onAdDismissedFullScreenContent();
+					LoadInterstitialAd();
+				}
+			};
+		}
+
+		if ( callbackLoadI == null )
+	{
+			callbackLoadI = new InterstitialAdLoadCallback()
+		{
+				@Override
+				public void onAdLoaded( InterstitialAd ad )
+				{
+					Log.i( "AdMob", "Interstitial ad loaded" );
+					interstitialAd = ad;
+					interstitialLoading = 0;
+				}
+
+				@Override
+				public void onAdFailedToLoad(LoadAdError adError)
+				{
+					Log.e( "AdMob", "Failed to load interstitial ad: " + adError.toString() );
+					interstitialAd = null;
+					interstitialLoading = 0;
+				}
+			};
+		}
+	}
+
 	private void LoadRewardAd()
 	{
+		if ( rewardLoading == 1 ) return;
+		rewardLoading = 1;
+
 		Log.i("AdMob", "Loading reward ad");
-		rewardAd = new RewardedAd(act, (testMode == 1) ? "ca-app-pub-3940256099942544/5224354917" : rewardpubID );
 
-		Bundle extras = new Bundle();
-		if ( childRating == 1 ) extras.putString("max_ad_content_rating", "G");
-		if ( AGKHelper.m_iAdMobConsentStatus < 2 ) extras.putString("npa", "1");
-
-		AdRequest.Builder request = new AdRequest.Builder();
-		request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-		if ( childRating == 1 ) request.tagForChildDirectedTreatment(true);
-		else request.tagForChildDirectedTreatment(false);
-
-		rewardAd.loadAd(request.build(), callbackLoad);
+					rewardAd = null;
+		AdRequest request = new AdRequest.Builder().build();
+		RewardedAd.load( act, (testMode == 1) ? "ca-app-pub-3940256099942544/5224354917" : rewardpubID, request, callbackLoad );
 	}
 
 	private void CheckRewardAdInit()
 	{
-		if ( callbackShow == null )
-		{
-			callbackShow = new RewardedAdCallback() {
+		if ( callbackShow == null ) {
+			callbackShow = new FullScreenContentCallback() {
 				@Override
-				public void onUserEarnedReward(com.google.android.gms.ads.rewarded.RewardItem rewardItem) {
-					Log.i("AdMob", "Reward ad rewarded: " + Integer.toString(rewardItem.getAmount()) );
-					AGKHelper.m_iRewardAdRewarded = 1;
+				public void onAdFailedToShowFullScreenContent(AdError adError) {
+					super.onAdFailedToShowFullScreenContent(adError);
+					Log.e("AdMob", "Failed to show reward ad: " + adError.getMessage());
+					rewardAd = null;
 				}
 
 				@Override
-				public void onRewardedAdClosed() {
-					Log.i("AdMob", "Reward ad closed");
+				public void onAdShowedFullScreenContent() {
+					super.onAdShowedFullScreenContent();
 					rewardAd = null;
+				}
+
+				@Override
+				public void onAdDismissedFullScreenContent() {
+					super.onAdDismissedFullScreenContent();
 					LoadRewardAd();
+				}
+			};
+		}
+
+		if ( callbackReward == null )
+		{
+			callbackReward = new OnUserEarnedRewardListener() {
+				@Override
+				public void onUserEarnedReward( RewardItem rewardItem ) {
+					Log.i("AdMob", "Reward ad rewarded: " + Integer.toString(rewardItem.getAmount()) );
+					AGKHelper.m_iRewardAdValue = rewardItem.getAmount();
+					AGKHelper.m_iRewardAdRewarded = 1;
 				}
 			};
 		}
@@ -683,15 +793,20 @@ class RunnableAd implements Runnable
 			callbackLoad = new RewardedAdLoadCallback()
 			{
 				@Override
-				public void onRewardedAdLoaded() {
+				public void onAdLoaded( RewardedAd ad )
+				{
+					Log.i( "AdMob", "Reward ad loaded" );
+					rewardAd = ad;
+					rewardLoading = 0;
 					AGKHelper.m_iRewardAdValue = rewardAd.getRewardItem().getAmount();
-					rewardCached = 1;
 				}
 
 				@Override
-				public void onRewardedAdFailedToLoad(LoadAdError adError) {
+				public void onAdFailedToLoad(LoadAdError adError)
+				{
 					Log.e( "AdMob", "Failed to load reward ad: " + adError.toString() );
 					rewardAd = null;
+					rewardLoading = 0;
 				}
 			};
 		}
@@ -726,21 +841,6 @@ class RunnableAd implements Runnable
 
 					AdRequest.Builder request = new AdRequest.Builder();
 
-					if ( testMode == 1 )
-					{
-						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-						String deviceId = md5(android_id).toUpperCase();
-						request.addTestDevice(deviceId);
-					}
-
-					// if we don't have consent for personalized ads then tell Google
-					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
-					{
-						Bundle extras = new Bundle();
-						extras.putString("npa", "1");
-						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-					}
-					
 					ad.loadAd( request.build() );
 				}
 				break;
@@ -773,18 +873,6 @@ class RunnableAd implements Runnable
 				if ( ad != null )
 				{
 					AdRequest.Builder request = new AdRequest.Builder();
-					if ( testMode == 1 )
-					{
-						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-						String deviceId = md5(android_id).toUpperCase();
-						request.addTestDevice(deviceId);
-					}
-					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
-					{
-						Bundle extras = new Bundle();
-						extras.putString("npa", "1");
-						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-					}
 					ad.loadAd(request.build());
 				}
 				break;
@@ -817,59 +905,15 @@ class RunnableAd implements Runnable
 			case 9: // fullscreen ad
 			{
 				Log.i("AdMob", "Show Interstitial");
-				if ( interstitial == null )
-				{
-					interstitial = new com.google.android.gms.ads.InterstitialAd(act);
-					interstitial.setAdUnitId(pubID);
 					
-					interstitial.setAdListener(new com.google.android.gms.ads.AdListener() {
-						  public void onAdLoaded() { cached = 1; Log.i("AdMob", "Interstitial Loaded"); }
-						  public void onAdClosed()
-						  {
-							  AdRequest.Builder request = new AdRequest.Builder();
-							  if ( testMode == 1 )
-							  {
-								  String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-								  String deviceId = md5(android_id).toUpperCase();
-								  request.addTestDevice(deviceId);
-							  }
-							  if ( AGKHelper.m_iAdMobConsentStatus < 2 )
-							  {
-								  Bundle extras = new Bundle();
-								  extras.putString("npa", "1");
-								  request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-							  }
-							  interstitial.loadAd(request.build());
-							  Log.i("AdMob", "Interstitial closed");
-						  }
-						});
-				}
+				CheckInterstitialAdInit();
 			    
-				if ( interstitial.isLoaded() )
-				{
-					cached = 0;
-					interstitial.show();
-				}
+				if ( interstitialAd == null ) LoadInterstitialAd();
 				else
 				{
-					if ( !interstitial.isLoading() )
-					{
-						AdRequest.Builder request = new AdRequest.Builder();
-						if ( testMode == 1 )
-						{
-							String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-							String deviceId = md5(android_id).toUpperCase();
-							request.addTestDevice(deviceId);
+					interstitialAd.setFullScreenContentCallback( callbackShowI );
+					interstitialAd.show( act );
 						}
-						if ( AGKHelper.m_iAdMobConsentStatus < 2 )
-						{
-							Bundle extras = new Bundle();
-							extras.putString("npa", "1");
-							request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-						}
-						interstitial.loadAd(request.build());
-					}
-				}
 				
 				break;
 			}
@@ -877,52 +921,10 @@ class RunnableAd implements Runnable
 			case 10: // cache fullscreen ad
 			{
 				Log.i("AdMob", "Cache Interstitial");
-				if ( interstitial == null )
-				{
-					interstitial = new com.google.android.gms.ads.InterstitialAd(act);
-					interstitial.setAdUnitId(pubID);
+				CheckInterstitialAdInit();
 					
-					interstitial.setAdListener(new com.google.android.gms.ads.AdListener() {
-						  public void onAdLoaded() { cached = 1; Log.i("AdMob", "Interstitial Loaded"); }
-						  public void onAdClosed()
-						  {
-							  AdRequest.Builder request = new AdRequest.Builder();
-							  if ( testMode == 1 )
-							  {
-								  String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-								  String deviceId = md5(android_id).toUpperCase();
-								  request.addTestDevice(deviceId);
-							  }
-							  if ( AGKHelper.m_iAdMobConsentStatus < 2 )
-							  {
-								  Bundle extras = new Bundle();
-								  extras.putString("npa", "1");
-								  request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-							  }
-							  interstitial.loadAd(request.build());
-							  Log.i("AdMob", "Interstitial closed");
-						  }
-						});
-				}
+				if ( interstitialAd == null ) LoadInterstitialAd();
 			    
-				if ( !interstitial.isLoaded() && !interstitial.isLoading() )
-				{
-					AdRequest.Builder request = new AdRequest.Builder();
-					if ( testMode == 1 )
-					{
-						String android_id = android.provider.Settings.Secure.getString(act.getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-						String deviceId = md5(android_id).toUpperCase();
-						request.addTestDevice(deviceId);
-					}
-					if ( AGKHelper.m_iAdMobConsentStatus < 2 )
-					{
-						Bundle extras = new Bundle();
-						extras.putString("npa", "1");
-						request.addNetworkExtrasBundle(AdMobAdapter.class, extras);
-					}
-					interstitial.loadAd(request.build());
-				}
-				
 				break;
 			}
 
@@ -932,10 +934,10 @@ class RunnableAd implements Runnable
 				CheckRewardAdInit();
 
 				if ( rewardAd == null ) LoadRewardAd();
-				else if ( rewardAd.isLoaded() )
+				else
 						{
-					rewardCached = 0;
-					rewardAd.show( act, callbackShow );
+					rewardAd.setFullScreenContentCallback( callbackShow );
+					rewardAd.show( act, callbackReward );
 				}
 
 				break;
@@ -2141,6 +2143,10 @@ public class AGKHelper {
 		}
 
 		if ( g_GamesSignIn != null ) GameCenterLogin( act );
+
+		if ( billingClient != null ) {
+			iapRestore();
+	}
 	}
 	
 	public static void OnStop( Activity act ) {
@@ -3167,9 +3173,24 @@ public class AGKHelper {
 	static int m_iRewardAdRewardedChartboost = 0;
 
 	static int m_iAdMobConsentStatus = -2; // -2=startup value triggers consent load, -1=loading, 0=unknown, 1=non-personalised, 2=personalised
-	static String m_sAdMobPrivacyPolicy = "";
-	static ConsentForm m_pAdMobConsentForm = null;
 	static int m_iAdMobInitialized = 0;
+	static ConsentInformation consentInformation;
+
+	public static void AdMobCheckInitialised( Activity act )
+	{
+		if ( m_iAdMobInitialized == 1 ) return;
+
+		m_iAdMobInitialized = 1;
+		if ( RunnableAd.childRating == 1 )
+		{
+			RequestConfiguration conf= new RequestConfiguration.Builder()
+					.setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
+					.setTagForUnderAgeOfConsent( 1 )
+					.build();
+			MobileAds.setRequestConfiguration(conf);
+		}
+		MobileAds.initialize( act );
+	}
 
 	public static void SetAdMobTestMode( int mode )
 	{
@@ -3181,106 +3202,133 @@ public class AGKHelper {
 		RunnableAd.childRating = rating;
 	}
 
-	public static void LoadAdMobConsentStatus( Activity act, String publisherID, String privacyPolicy )
+	public static void AdMobUpdateConsentStatus()
 	{
-		if ( m_iAdMobConsentStatus == -2 )
+		if ( consentInformation.getConsentStatus() == ConsentInformation.ConsentStatus.REQUIRED )
 		{
-			m_iAdMobConsentStatus = -1;
-			m_sAdMobPrivacyPolicy = privacyPolicy;
-			final Activity pAct = act;
-			ConsentInformation consentInformation = ConsentInformation.getInstance(act);
-			String[] publisherIds = {publisherID};
-			consentInformation.requestConsentInfoUpdate(publisherIds, new ConsentInfoUpdateListener() {
-				@Override
-				public void onConsentInfoUpdated(ConsentStatus consentStatus) {
-					// if not EEA then we can use personalized ads
-					if ( ConsentInformation.getInstance(pAct).isRequestLocationInEeaOrUnknown() == false ) m_iAdMobConsentStatus = 2;
+			Log.i( "AdMob Consent", "Consent required" );
+			m_iAdMobConsentStatus = 0;
+			return;
+		}
+
+		if ( consentInformation.getConsentStatus() == ConsentInformation.ConsentStatus.NOT_REQUIRED )
+		{
+			Log.i( "AdMob Consent", "Consent not required" );
+			m_iAdMobConsentStatus = 2;
+			return;
+		}
+
+		SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(g_pAct);
+		String consentString = sharedPrefs.getString("IABTCF_PurposeConsents", "");
+		int gdprApplies = sharedPrefs.getInt("IABTCF_gdprApplies", -1);
+
+		Log.i( "AdMob Consent", "GDPR Applies: " + gdprApplies );
+		Log.i( "AdMob Consent", "ConsentString: " + consentString );
+
+		if ( gdprApplies == 0 )
+		{
+			m_iAdMobConsentStatus = 2;
+		}
 					else
 					{
-						switch( consentStatus )
+			if ( consentString.length() == 0 )
 						{
-							case PERSONALIZED: m_iAdMobConsentStatus = 2; break;
-							case NON_PERSONALIZED: m_iAdMobConsentStatus = 1; break;
-							default: m_iAdMobConsentStatus = 0;
+				m_iAdMobConsentStatus = 0;
 						}
+			else if ( consentString.length() < 4 || consentString.charAt(0) != '1' || consentString.charAt(1) != '1' || consentString.charAt(2) != '1' || consentString.charAt(3) != '1' )
+			{
+				m_iAdMobConsentStatus = 1;
 					}
+			else
+			{
+				m_iAdMobConsentStatus = 2;
 				}
+		}
 
+		RunnableChartboost.consent = (m_iAdMobConsentStatus == 2);
+		RunnableChartboost.UpdateConsent( g_pAct );
+
+		RunnableAd.interstitialAd = null;
+		RunnableAd.rewardAd = null;
+	}
+
+	public static void LoadAdMobConsentStatus( Activity act, String publisherID, String privacyPolicy )
+	{
+		if ( m_iAdMobConsentStatus != -1 )
+		{
+			m_iAdMobConsentStatus = -1;
+
+			ConsentRequestParameters consentParams = new ConsentRequestParameters
+					.Builder()
+					.setTagForUnderAgeOfConsent(RunnableAd.childRating != 0)
+					.build();
+
+			consentInformation = UserMessagingPlatform.getConsentInformation(act);
+			consentInformation.requestConsentInfoUpdate( act, consentParams,
+					new ConsentInformation.OnConsentInfoUpdateSuccessListener() {
 				@Override
-				public void onFailedToUpdateConsentInfo(String errorDescription) {
-					Log.w( "AdMob Consent", "Failed to request consent status");
-					m_iAdMobConsentStatus = 0;
+						public void onConsentInfoUpdateSuccess() {
+							AdMobUpdateConsentStatus();
 				}
-			});
+					},
+					new ConsentInformation.OnConsentInfoUpdateFailureListener() {
+						@Override
+						public void onConsentInfoUpdateFailure(FormError formError) {
+							Log.w( "AdMob Consent", "Failed to request consent status: " + formError.getMessage());
+							m_iAdMobConsentStatus = 0;
+		}
+	}
+			);
+
 		}
 	}
 
 	public static int GetAdMobConsentStatus( Activity act )
 	{
-		if ( m_iAdMobConsentStatus < 0 ) return -1;
-		else return m_iAdMobConsentStatus;
+		return m_iAdMobConsentStatus;
 	}
 
 	public static void RequestAdMobConsent( Activity act )
 	{
+		if ( m_iAdMobConsentStatus == -1 ) return;
+		m_iAdMobConsentStatus = -1;
+
 		final Activity pAct = act;
 		act.runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				URL privacyUrl = null;
-				try {
-					privacyUrl = new URL( m_sAdMobPrivacyPolicy );
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-					ShowMessage( pAct, "Failed to construct privacy policy URL: " + e.toString() );
-					return;
-				}
-
-				m_pAdMobConsentForm = new ConsentForm.Builder(pAct, privacyUrl)
-						.withListener(new ConsentFormListener() {
+				UserMessagingPlatform.loadConsentForm(act,
+						new UserMessagingPlatform.OnConsentFormLoadSuccessListener() {
 							@Override
-							public void onConsentFormLoaded() {
-								Log.i( "AdMob Consent", "Form loaded, showing form");
-								m_pAdMobConsentForm.show();
+							public void onConsentFormLoadSuccess(ConsentForm consentForm) {
+								Log.i( "AdMob Consent", "Consent form loaded" );
+								consentForm.show(
+										pAct,
+										new ConsentForm.OnConsentFormDismissedListener() {
+							@Override
+											public void onConsentFormDismissed(@Nullable FormError formError) {
+												AdMobUpdateConsentStatus();
 							}
-
-							@Override
-							public void onConsentFormOpened() {
-								Log.i( "AdMob Consent", "Form displayed");
-							}
-
-							@Override
-							public void onConsentFormClosed( ConsentStatus consentStatus, Boolean userPrefersAdFree ) {
-								switch( consentStatus )
-								{
-									case PERSONALIZED: m_iAdMobConsentStatus = 2; break;
-									case NON_PERSONALIZED: m_iAdMobConsentStatus = 1; break;
-									default: m_iAdMobConsentStatus = 0;
 								}
-								Log.i( "AdMob Consent", "Form closed");
+								);
 							}
-
+						},
+						new UserMessagingPlatform.OnConsentFormLoadFailureListener() {
 							@Override
-							public void onConsentFormError(String errorDescription) {
-								Log.w( "AdMob Consent", "Failed to load consent form: "+ errorDescription);
-								ShowMessage( pAct, "Ad Consent Form " + errorDescription );
-								m_pAdMobConsentForm = null;
+							public void onConsentFormLoadFailure(FormError formError) {
+								Log.w( "AdMob Consent", "Failed to load consent form: " + formError.getMessage());
+								m_iAdMobConsentStatus = 0;
 							}
-						})
-						.withPersonalizedAdsOption()
-						.withNonPersonalizedAdsOption()
-						.build();
-
-				Log.i("Ad Consent", "Loading consent form" );
-				m_pAdMobConsentForm.load();
+			}
+				);
 			}
 		});
 	}
 
 	public static void OverrideAdMobConsent( Activity act, int mode )
 	{
-		m_iAdMobConsentStatus = 1;
-		if ( mode == 2 ) m_iAdMobConsentStatus = 2;
+		//m_iAdMobConsentStatus = 1;
+		//if ( mode == 2 ) m_iAdMobConsentStatus = 2;
 	}
 
 	public static void OverrideChartboostConsent( Activity act, int mode )
@@ -3288,21 +3336,12 @@ public class AGKHelper {
 		RunnableChartboost.consent = false;
 		if ( mode == 2 ) RunnableChartboost.consent = true;
 
-		DataUseConsent dataUseConsent = new GDPR( RunnableChartboost.consent ? GDPR.GDPR_CONSENT.BEHAVIORAL : GDPR.GDPR_CONSENT.NON_BEHAVIORAL );
-		Chartboost.addDataUseConsent(act, dataUseConsent);
+		RunnableChartboost.UpdateConsent( g_pAct );
 	}
 
 	public static void CreateAd(Activity act, String publisherID, int horz, int vert, int offsetX, int offsetY, int type)
 	{
-		if ( m_iAdMobInitialized == 0 ) {
-			m_iAdMobInitialized = 1;
-			if ( RunnableAd.childRating == 1 )
-			{
-				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
-				MobileAds.setRequestConfiguration(conf);
-			}
-			MobileAds.initialize(act);
-		}
+		AdMobCheckInitialised( act );
 
 		RunnableAd run = new RunnableAd();
 		run.pubID = publisherID;
@@ -3318,15 +3357,7 @@ public class AGKHelper {
 	
 	public static void CacheFullscreenAd(Activity act, String publisherID)
 	{
-		if ( m_iAdMobInitialized == 0 ) {
-			m_iAdMobInitialized = 1;
-			if ( RunnableAd.childRating == 1 )
-			{
-				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
-				MobileAds.setRequestConfiguration(conf);
-			}
-			MobileAds.initialize(act);
-		}
+		AdMobCheckInitialised( act );
 
 		RunnableAd run = new RunnableAd();
 		run.pubID = publisherID;
@@ -3337,15 +3368,7 @@ public class AGKHelper {
 	
 	public static void CreateFullscreenAd(Activity act, String publisherID)
 	{
-		if ( m_iAdMobInitialized == 0 ) {
-			m_iAdMobInitialized = 1;
-			if ( RunnableAd.childRating == 1 )
-			{
-				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
-				MobileAds.setRequestConfiguration(conf);
-			}
-			MobileAds.initialize(act);
-		}
+		AdMobCheckInitialised( act );
 
 		RunnableAd run = new RunnableAd();
 		run.pubID = publisherID;
@@ -3356,15 +3379,7 @@ public class AGKHelper {
 
 	public static void CacheRewardAd(Activity act, String publisherID)
 	{
-		if ( m_iAdMobInitialized == 0 ) {
-			m_iAdMobInitialized = 1;
-			if ( RunnableAd.childRating == 1 )
-			{
-				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
-				MobileAds.setRequestConfiguration(conf);
-			}
-			MobileAds.initialize(act);
-		}
+		AdMobCheckInitialised( act );
 
 		RunnableAd run = new RunnableAd();
 		run.rewardpubID = publisherID;
@@ -3375,15 +3390,7 @@ public class AGKHelper {
 
 	public static void ShowRewardAd(Activity act, String publisherID)
 	{
-		if ( m_iAdMobInitialized == 0 ) {
-			m_iAdMobInitialized = 1;
-			if ( RunnableAd.childRating == 1 )
-			{
-				RequestConfiguration conf= new RequestConfiguration.Builder().setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE).build();
-				MobileAds.setRequestConfiguration(conf);
-			}
-			MobileAds.initialize(act);
-		}
+		AdMobCheckInitialised( act );
 
 		m_iRewardAdRewarded = 0;
 
@@ -3411,7 +3418,7 @@ public class AGKHelper {
 
 	public static int GetRewardAdLoadedAdMob()
 	{
-		return RunnableAd.rewardCached;
+		return (RunnableAd.rewardAd != null) ? 1 : 0;
 	}
 	
 	public static void PositionAd(Activity act, int horz, int vert, int offsetX, int offsetY)
@@ -3513,7 +3520,7 @@ public class AGKHelper {
 
 	public static int GetFullscreenLoadedAdMob()
 	{
-		return RunnableAd.cached;
+		return (RunnableAd.interstitialAd != null) ? 1 : 0;
 	}
 
 	public static int GetFullscreenLoadedChartboost()
@@ -3634,174 +3641,244 @@ public class AGKHelper {
 	// ********************
 	// In App Purchase
 	// ********************
-	
-	public static final int MAX_PRODUCTS = 25;
-	public static int g_iPurchaseState = 1;
-	public static int g_iNumProducts = 0;
-	public static int[] g_iPurchaseProductStates = new int[MAX_PRODUCTS];
-	public static String[] g_sPurchaseProductNames = new String[MAX_PRODUCTS];
-	public static String[] g_sPurchaseProductPrice = new String[MAX_PRODUCTS];
-	public static String[] g_sPurchaseProductDesc = new String[MAX_PRODUCTS];
-	public static int[] g_iPurchaseProductTypes = new int[MAX_PRODUCTS];
-	public static String[] g_sPurchaseProductSignature = new String[MAX_PRODUCTS];
-	public static String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApOzYM9UojDHwdf+EpvYyNksRzclcVhSWwsVBvHX/iAwl6TtVWwUnYRJowGRQe89VplxDE1BCZpbtfCKKUf/M+7Bd4L1TG8Oje5+cccdX9KPvSVd4ZQQOp/qnkkpmxehY6p2h1t2yII+8PyPtpGkDq6ns7z3lyVQtYBd51xm40ma0wspu/w8HeEkecOIjZx5CFhQyTVWetgfRow2u5eeG9Y0Y2nJ6LDYhSPr3Fgq02PEtfvYxuZmu465UOCiylYxgxPXIP2R5X6ciqoxxQHi9sKux8dl8Ale8erAKc7n6HGdtIkzpIOTFX8/xYjycfsN64gW2KoR3a2j7Z9kpQOFlMwIDAQAB";
-	public static IabHelper mHelper = null;
-	public static int g_iIAPID = -1;
+
+	enum IAPProductState
+	{
+		NOT_PURCHASED,
+		QUEUED,
+		IN_PROGRESS,
+		PENDING,
+		PURCHASED
+	}
+
+	static class IAPProduct
+	{
+		String name = "";
+		String price = "";
+		String desc = "";
+		int type = 0; // 0=non-consumable, 1=consumable, 2=subscription
+		IAPProductState state = IAPProductState.NOT_PURCHASED;
+		String lastSignature = "";
+		String lastToken = "";
+		SkuDetails sku = null;
+	}
+
+	public static BillingClient billingClient = null;
+	//public static int g_iNumProducts = 0;
+	public static List<IAPProduct> g_pIAPProducts = new ArrayList<IAPProduct>();
 	public static Activity g_pAct = null;
 	public static final Object iapLock = new Object();
 	public static int g_iIAPStatus = 0;
 
-	static IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
-		public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
-			Log.d("IAB InventoryFinished", "Query inventory finished.");
-			if (result.isFailure()) {
-                Log.e("IAB InventoryFinished","Failed to query inventory: " + result.getMessage());
+	static SkuDetailsResponseListener billingSkuListener = new SkuDetailsResponseListener() {
+		@Override
+		public void onSkuDetailsResponse(@NonNull BillingResult billingResult, @Nullable List<SkuDetails> list) {
+			if ( billingResult.getResponseCode() != BillingClient.BillingResponseCode.OK ) {
+				Log.e("IAP","Failed to query Skus: " + billingResult.getResponseCode() +", " + billingResult.getDebugMessage() );
 				g_iIAPStatus = -1;
 				return;
 			}
 
-			Log.d("IAB InventoryFinished", "Query inventory was successful.");
+			Log.d("IAP", "Query sku was successful.");
 
-			for( int i = 0; i < g_iNumProducts; i++ )
+			if ( list == null ) return;
+
+			for( SkuDetails sku : list )
 			{
-				Purchase purchased = inventory.getPurchase(g_sPurchaseProductNames[i]);
-				if (purchased != null)
+				if ( sku == null ) continue;
+
+				String name = sku.getSku();
+				IAPProduct foundProduct = null;
+				for( IAPProduct product : g_pIAPProducts )
 				{
-					// is it consumable?
-					if ( g_iPurchaseProductTypes[i] == 1 )
+					if ( product.name.equals(name) )
 					{
-						try { mHelper.consumeAsync(inventory.getPurchase(g_sPurchaseProductNames[i]), mConsumeFinishedListener); }
-						catch( IabHelper.IabAsyncInProgressException e ) { Log.e( "In App Billing", e.toString() ); }
-					}
-					else
-					{
-						g_iPurchaseProductStates[i] = 1;
-						Log.d("IAB InventoryFinished", "Remembered purchase: " + g_sPurchaseProductNames[i]);
+						foundProduct = product;
+						break;
 					}
 				}
-
-				SkuDetails details = inventory.getSkuDetails(g_sPurchaseProductNames[i]);
-				if ( details != null )
+				if ( foundProduct == null )
 				{
-					// if currency symbol is one we can display in AGK then keep it, otherwise append currency code to price and remove symbol
-					String price = details.getPrice();
-					char symbol = price.charAt(0);
-					String numbers = "0123456789.,";
-					int index = 0;
-					while( index < price.length() && !numbers.contains(price.substring(index,index+1)) ) index++;
-					if ( index == 0 ) symbol = price.charAt(price.length()-1);
-					price = price.substring(index);
-					index = price.length()-1;
-					while( index > 0 && !numbers.contains(price.substring(index,index+1)) ) index--;
-					price = price.substring(0,index+1);
+					Log.e( "IAP", "Unknown Sku: " + name );
+					continue;
+				}
 
-					switch( symbol )
-					{
-						case '$': price = "$" + price; break;
-						case '£': price = "p" + price; break; // can't transfer pound character to AGK easily, so use a place holder and replace it in AGK
-						case '€': price = "e" + price; break; // can't transfer euro character to AGK easily, so use a place holder and replace it in AGK
-						default: price = price + " " + details.getPriceCurrencyCode();
-					}
+				// if currency symbol is one we can display in AGK then keep it, otherwise append currency code to price and remove symbol
+				String price = sku.getPrice();
+				char symbol = price.charAt(0);
+				String numbers = "0123456789.,";
+				int index = 0;
+				while( index < price.length() && !numbers.contains(price.substring(index,index+1)) ) index++;
+				if ( index == 0 ) symbol = price.charAt(price.length()-1);
+				price = price.substring(index);
+				index = price.length()-1;
+				while( index > 0 && !numbers.contains(price.substring(index,index+1)) ) index--;
+				price = price.substring(0,index+1);
 
-					synchronized (iapLock)
-					{
-						g_sPurchaseProductPrice[i] = price;
-						g_sPurchaseProductDesc[i] = ConvertString(details.getDescription());
+				switch( symbol )
+				{
+					case '$': price = "$" + price; break;
+					case '£': price = "p" + price; break; // can't transfer pound character to AGK easily, so use a place holder and replace it in AGK
+					case '€': price = "e" + price; break; // can't transfer euro character to AGK easily, so use a place holder and replace it in AGK
+					default: price = price + " " + sku.getPriceCurrencyCode();
+				}
 
-						Log.d("IAB InventoryFinished", "SKU Details for " + g_sPurchaseProductNames[i] + " Desc: " + g_sPurchaseProductDesc[i] + ", Price Raw: " + details.getPrice() + ", Price: " + g_sPurchaseProductPrice[i]);
-					}
+				synchronized (iapLock)
+				{
+					foundProduct.sku = sku;
+					foundProduct.price = price;
+					foundProduct.desc = ConvertString(sku.getDescription());
+
+					Log.d("IAP", "Got SKU Details for " + name + " Desc: " + foundProduct.desc + ", Price Raw: " + sku.getPrice() + ", Price: " + price);
 				}
 			}
 
 			g_iIAPStatus = 2;
+			Log.d("IAP", "Query Sku finished.");
 		}
 	};
 
-	static IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
-		public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
-			Log.d("IAB PurchaseFinished", "Purchase finished: " + result + ", purchase: " + purchase);
-			if (result.isFailure()) {
-				Log.e("IAB PurchaseFinished","Error purchasing: " + result);
-				if ( result.getMessage().contains("User cancelled") == false ) AGKHelper.ShowMessage(g_pAct, "Purchase Result: " + result.getMessage());
-				g_iPurchaseState = 1;
-				return;
-			}
-
-			for( int i = 0; i < g_iNumProducts; i++ )
+	static void iapHandlePurchases( List<Purchase> list, BillingResult billingResult, int type )
+	{
+		synchronized (iapLock)
+		{
+			if ( billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED )
 			{
-				if ( purchase.getSku().equals(g_sPurchaseProductNames[i]) )
-				{
-					// is it consumable?
-					if ( g_iPurchaseProductTypes[i] == 1 )
-					{
-						try	{ mHelper.consumeAsync(purchase, mConsumeFinishedListener); }
-						catch( IabHelper.IabAsyncInProgressException e ) { Log.e( "In App Billing", e.toString() ); }
-					}
-					else
-					{
-						synchronized (iapLock) {
-							g_sPurchaseProductSignature[i] = purchase.getSignature();
-						}
-						g_iPurchaseProductStates[i] = 1;
-						g_iPurchaseState = 1;
-						Log.d("IAB PurchaseFinished", "Purchase successful: " + g_sPurchaseProductNames[i]);
-					}
-
-					return;
-				}
-			}
-
-			g_iPurchaseState = 1;
-			Log.e("IAB PurchaseFinished", "Purchase failure SKU not found: " + purchase.getSku());
-		}
-	};
-
-	// Called when consumption is complete
-	static IabHelper.OnConsumeFinishedListener mConsumeFinishedListener = new IabHelper.OnConsumeFinishedListener() {
-		public void onConsumeFinished(Purchase purchase, IabResult result) {
-			Log.d("IAB ConsumeFinished", "Consumption finished. Purchase: " + purchase + ", result: " + result);
-
-			int ID = -1;
-			for( int i = 0; i < g_iNumProducts; i++ )
-			{
-				if ( purchase.getSku().equals(g_sPurchaseProductNames[i]) )
-				{
-					ID = i;
-					break;
-				}
-			}
-
-			if ( ID < 0 )
-			{
-				Log.e("IAB ConsumeFinished","Error while consuming: SKU not found " + purchase.getSku());
-				g_iPurchaseState = 1;
-				return;
-			}
-
-			if (result.isSuccess()) {
-				g_iPurchaseProductStates[ID] = 1;
 				synchronized (iapLock) {
-					g_sPurchaseProductSignature[ID] = purchase.getSignature();
+					for (IAPProduct product : g_pIAPProducts) {
+						if (product.state == IAPProductState.IN_PROGRESS)
+							product.state = IAPProductState.NOT_PURCHASED;
+					}
 				}
-				Log.d("IAB ConsumeFinished", "Consumption successful. Provisioning.");
-			}
-			else {
-				Log.e("IAB ConsumeFinished","Error while consuming: " + result);
-				AGKHelper.ShowMessage(g_pAct, "Error while consuming purchase: " + result);
+				return;
 			}
 
-			g_iPurchaseState = 1;
+			for (IAPProduct product : g_pIAPProducts)
+			{
+				int prodType = product.type;
+				if ( prodType == 1 ) prodType = 0;
+				if ( prodType == type ) product.state = IAPProductState.NOT_PURCHASED;
+			}
+
+			for (Purchase purchase : list)
+			{
+				boolean found = false;
+				for (IAPProduct product : g_pIAPProducts)
+				{
+					int prodType = product.type;
+					if ( prodType == 1 ) prodType = 0;
+					if (prodType == type && product.name.equals(purchase.getSku()))
+					{
+						found = true;
+						Log.d("IAP", "Handling purchase for " + product.name + ", State: " + purchase.getPurchaseState());
+
+						if (purchase.getPurchaseState() == Purchase.PurchaseState.PENDING) {
+							synchronized (iapLock) {
+								product.state = IAPProductState.PENDING;
+							}
+						} else if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+							synchronized (iapLock) {
+								product.lastSignature = purchase.getSignature();
+								product.lastToken = purchase.getPurchaseToken();
+								product.state = IAPProductState.PURCHASED;
+							}
+
+							// is it consumable? This should be phased out in favour of iapResetPurchase
+							if (product.type == 1) {
+								ConsumeParams params = ConsumeParams.newBuilder().setPurchaseToken(purchase.getPurchaseToken()).build();
+								billingClient.consumeAsync(params, new ConsumeResponseListener() {
+									@Override
+									public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String s) {
+										Log.d("IAP", "Consumption finished: " + billingResult.getResponseCode());
+									}
+								});
+							} else if (!purchase.isAcknowledged()) {
+								AcknowledgePurchaseParams params = AcknowledgePurchaseParams.newBuilder().setPurchaseToken(purchase.getPurchaseToken()).build();
+								billingClient.acknowledgePurchase(params, new AcknowledgePurchaseResponseListener() {
+									@Override
+									public void onAcknowledgePurchaseResponse(@NonNull BillingResult billingResult) {
+										Log.d("IAP", "Acknowledge finished: " + billingResult.getResponseCode());
+									}
+								});
+							}
+						}
+
+						break;
+					}
+				}
+
+				if (!found)
+					Log.e("IAP", "Product not found for purchase " + purchase.getSku() + ", State: " + purchase.getPurchaseState());
+			}
+		}
+	}
+
+	static boolean BillingResultIsError( int code )
+	{
+		switch( code ) {
+			case BillingClient.BillingResponseCode.SERVICE_TIMEOUT:
+			case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED:
+			case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED:
+			case BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE:
+			case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE:
+			case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE:
+			case BillingClient.BillingResponseCode.DEVELOPER_ERROR:
+				return true;
+		}
+		return false;
+	}
+
+	static String BillingResultMessage( int code )
+	{
+		switch( code )
+		{
+			case BillingClient.BillingResponseCode.SERVICE_TIMEOUT: return "Billing service timed out";
+			case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED: return "Feature not supported";
+			case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED: return "Billing service disconnected";
+			case BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE: return "Billing service unavailable";
+			case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE: return "Billing unavailable";
+			case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE: return "Item unavailable";
+			case BillingClient.BillingResponseCode.DEVELOPER_ERROR: return "Process error";
+			case BillingClient.BillingResponseCode.ERROR: return "Unknown error";
+			case BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED: return "Item already owned";
+			case BillingClient.BillingResponseCode.ITEM_NOT_OWNED: return "Item not owned";
+			case BillingClient.BillingResponseCode.OK: return "Ok";
+			case BillingClient.BillingResponseCode.USER_CANCELED: return "User cancelled";
+			default: return "Unknown";
+		}
+	}
+
+	static PurchasesUpdatedListener billingPurchaseListener = new PurchasesUpdatedListener() {
+		@Override
+		public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> list) {
+			Log.d("IAP", "Purchases updated: " + ((list == null) ? 0 : list.size()) +", result: " + billingResult.getResponseCode() + ", " + billingResult.getDebugMessage());
+
+			if ( BillingResultIsError( billingResult.getResponseCode() ) )
+			{
+				AGKHelper.ShowMessage( g_pAct, "Failed to complete purchase, " + BillingResultMessage( billingResult.getResponseCode() ) );
+			}
+
+			// don't know if purchase list is for subscriptions or one-time purchases, so query them instead
+
+			Purchase.PurchasesResult result = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+			iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 0 );
+			result = billingClient.queryPurchases(BillingClient.SkuType.SUBS);
+			iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 2);
 		}
 	};
 
 	public static void iapSetKeyData( String publicKey, String developerID )
 	{
-		base64EncodedPublicKey = publicKey;
-		g_iIAPStatus = 0;
-		mHelper = null;
+		//base64EncodedPublicKey = publicKey;
 	}
 
-	public static void iapAddProduct( String name, int ID, int type )
+	public static void iapReset()
+	{
+		g_iIAPStatus = 0;
+		g_pIAPProducts.clear();
+	}
+
+	public static void iapAddProduct( String name, int unused, int type )
 	{
 		if ( g_iIAPStatus != 0 )
 		{
@@ -3810,13 +3887,11 @@ public class AGKHelper {
 		}
 
 		name = name.toLowerCase();
-		Log.i("IAB AddProduct","Adding: " + name + " to ID: " + Integer.toString(ID));
-		if ( ID < 0 || ID >= MAX_PRODUCTS ) return;
-		g_iPurchaseProductStates[ ID ] = 0;
-		g_sPurchaseProductNames[ ID ] = name;
-		g_iPurchaseProductTypes[ ID ] = type;
-		//Log.i("IAB AddProduct","Added: " + name);
-		if ( ID+1 > g_iNumProducts ) g_iNumProducts = ID+1;
+		Log.i("IAP","Adding product: " + name + " to ID: " + g_pIAPProducts.size());
+		IAPProduct newProduct = new IAPProduct();
+		newProduct.name = name;
+		newProduct.type = type;
+		g_pIAPProducts.add( newProduct );
 	}
 
 	public static void iapSetup( Activity act )
@@ -3826,66 +3901,123 @@ public class AGKHelper {
 			switch( g_iIAPStatus )
 			{
 				case 1: ShowMessage( act, "Cannot set up IAP, setup is already in progress" ); return;
-				case 2: {
-					if ( !act.getApplicationContext().getPackageName().equals("com.thegamecreators.agk_player2") ) {
-						ShowMessage(act, "Failed to call InAppPurchaseSetup(), setup has already been completed");
-						return;
-					}
-					break;
-				}
+				case 2: ShowMessage(act, "Failed to call InAppPurchaseSetup(), setup has already been completed"); return;
 			}
 		}
 
 		g_iIAPStatus = 1;
 		g_pAct = act;
-		mHelper = new IabHelper(act, base64EncodedPublicKey);
-		mHelper.enableDebugLogging(true);
 
-		mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-			public void onIabSetupFinished(IabResult result) {
-				Log.d("In App Billing", "Setup finished.");
+		if ( billingClient == null ) {
+			billingClient = BillingClient.newBuilder(g_pAct)
+					.setListener(billingPurchaseListener)
+					.enablePendingPurchases()
+					.build();
+		}
 
-				if (!result.isSuccess()) {
-					Log.e("In App Billing", "Problem setting up in-app billing: " + result.getMessage());
+		billingClient.startConnection(new BillingClientStateListener() {
+			@Override
+			public void onBillingSetupFinished(BillingResult billingResult) {
+				if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+					Log.w( "IAP", "Billing service connected, querying skus" );
+
+					ArrayList<String> skus = new ArrayList<String>();
+					ArrayList<String> subscriptionSkus = new ArrayList<String>();
+					for( IAPProduct product : g_pIAPProducts )
+					{
+						if ( product.type == 2 ) subscriptionSkus.add(product.name);
+						else skus.add(product.name);
+					}
+
+					// normal items
+					SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
+					params.setSkusList(skus).setType(BillingClient.SkuType.INAPP);
+					billingClient.querySkuDetailsAsync( params.build(), billingSkuListener );
+
+					// subscription items
+					params = SkuDetailsParams.newBuilder();
+					params.setSkusList(subscriptionSkus).setType(BillingClient.SkuType.SUBS);
+					billingClient.querySkuDetailsAsync( params.build(), billingSkuListener );
+
+					// query purchases
+					Purchase.PurchasesResult result = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+					iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 0 );
+					result = billingClient.queryPurchases(BillingClient.SkuType.SUBS);
+					iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 2 );
+				}
+				else
+				{
+					Log.w( "IAP", "Billing service connection error: " + billingResult.getResponseCode() + ", " + billingResult.getDebugMessage() );
 					g_iIAPStatus = -1;
-					return;
 				}
+			}
 
-				// Hooray, IAB is fully set up. Now, let's get an inventory of stuff we own.
-				Log.d("In App Billing", "Setup successful. Querying inventory.");
-
-				// create a list of all products
-				ArrayList<String> skus = new ArrayList<String>();
-				ArrayList<String> subscriptionSkus = new ArrayList<String>();
-				for (int i = 0; i < g_iNumProducts; i++)
-				{
-					if ( g_iPurchaseProductTypes[i] == 2 ) subscriptionSkus.add(g_sPurchaseProductNames[i]);
-					else skus.add(g_sPurchaseProductNames[i]);
-				}
-
-				try {
-					mHelper.queryInventoryAsync(true, skus, subscriptionSkus, mGotInventoryListener);
-				}
-				catch ( IabHelper.IabAsyncInProgressException e )
-				{
-					Log.e( "In App Billing", e.toString() );
-				}
+			@Override
+			public void onBillingServiceDisconnected() {
+				Log.w( "IAP", "Billing service disconnected" );
 			}
 		});
 	}
 
+	public static void iapRestore()
+	{
+		if ( billingClient == null ) return;
+		if ( g_iIAPStatus != 2 ) return;
+
+		Log.i( "IAP", "Querying purchases" );
+
+		if ( billingClient.isReady() ) {
+			Purchase.PurchasesResult result = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+			iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 0 );
+			result = billingClient.queryPurchases(BillingClient.SkuType.SUBS);
+			iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 2 );
+		}
+		else
+		{
+			billingClient.startConnection(new BillingClientStateListener() {
+				@Override
+				public void onBillingSetupFinished(BillingResult billingResult) {
+					if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+						Log.d( "IAP", "Billing service reconnected, querying purchases" );
+
+						Purchase.PurchasesResult result = billingClient.queryPurchases(BillingClient.SkuType.INAPP);
+						iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 0 );
+						result = billingClient.queryPurchases(BillingClient.SkuType.SUBS);
+						iapHandlePurchases( result.getPurchasesList(), result.getBillingResult(), 2 );
+					}
+					else
+					{
+						Log.w( "IAP", "Billing service reconnection error: " + billingResult.getResponseCode() + ", " + billingResult.getDebugMessage() );
+						g_iIAPStatus = -1;
+					}
+				}
+
+				@Override
+				public void onBillingServiceDisconnected() {
+					Log.w( "IAP", "Billing service disconnected" );
+				}
+			});
+		}
+	}
+
 	public static void iapMakePurchase( Activity act, int ID )
 	{
-		if ( ID < 0 || ID >= g_iNumProducts )
+		if ( ID < 0 || ID >= g_pIAPProducts.size() )
 		{
 			AGKHelper.ShowMessage(act,"Invalid item ID");
 			return;
 		}
 
-		if ( g_iPurchaseProductTypes[ ID ] == 0 && g_iPurchaseProductStates[ ID ] == 1 )
+		IAPProduct product = g_pIAPProducts.get( ID );
+
+		// if not consumable
+		if ( product.type != 1 )
 		{
-			AGKHelper.ShowMessage(act,"You have already purchased that item");
-			return; // non-consumable item already purchased
+			if ( product.state == IAPProductState.QUEUED )
+			{
+				ShowMessage(act,"A purchase for that product is already in progress");
+				return;
+			}
 		}
 
 		if ( g_iIAPStatus != 2 )
@@ -3899,47 +4031,186 @@ public class AGKHelper {
 			return;
 		}
 
-		if ( g_iPurchaseState == 0 )
+		if ( product.sku == null )
 		{
-			ShowMessage( act, "Cannot start purchase as a purchase is already in progress" );
+			ShowMessage( act, "Product not recognised by Google Billing Library" );
 			return;
 		}
 
-		g_iPurchaseState = 0;
-		g_iPurchaseProductStates[ ID ] = 0;
-		g_sPurchaseProductSignature[ID] = "";
-		g_iIAPID = ID;
-		Log.i("IAB MakePurchase", "Buying " + g_sPurchaseProductNames[ID]);
-
-		try {
-			if ( g_iPurchaseProductTypes[ ID ] == 2 )
-				AGKHelper.mHelper.launchSubscriptionPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
-			else
-				AGKHelper.mHelper.launchPurchaseFlow(act, g_sPurchaseProductNames[ID], 9002, mPurchaseFinishedListener, "");
+		synchronized (iapLock) {
+			product.state = IAPProductState.QUEUED; // queued
+			product.lastSignature = "";
+			product.lastToken = "";
 		}
-		catch( IabHelper.IabAsyncInProgressException e )
+		Log.i("IAP", "Starting purchase for " + product.name);
+
+		if ( billingClient.isReady() ) {
+			synchronized (iapLock) { product.state = IAPProductState.IN_PROGRESS; }
+			BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+					.setSkuDetails(product.sku)
+					.build();
+			BillingResult result = billingClient.launchBillingFlow(act, billingFlowParams);
+			if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+				Log.e("IAP", "Failed to start purchase: " + result.getResponseCode() + ", " + result.getDebugMessage());
+				ShowMessage(act, "Failed to start purchase process, billing library returned the following error: " + result.getResponseCode() + ", " + result.getDebugMessage());
+			}
+		}
+		else
 		{
-			Log.e( "In App Billing", e.toString() );
+			billingClient.startConnection(new BillingClientStateListener() {
+				@Override
+				public void onBillingSetupFinished(BillingResult billingResult) {
+					if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+						Log.w( "IAP", "Billing service reconnected, starting queued purchases" );
+
+						for( IAPProduct product : g_pIAPProducts )
+						{
+							// only process queued products
+							if ( product.state != IAPProductState.QUEUED ) continue;
+							synchronized (iapLock) { product.state = IAPProductState.IN_PROGRESS; }
+
+							BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+									.setSkuDetails(product.sku)
+									.build();
+							BillingResult result = billingClient.launchBillingFlow(act, billingFlowParams);
+							if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+								Log.e("IAP", "Failed to start purchase: " + result.getResponseCode() + ", " + result.getDebugMessage());
+								ShowMessage(act, "Failed to start purchase process, billing library returned the following error: " + result.getResponseCode() + ", " + result.getDebugMessage());
+							}
+						}
+					}
+					else
+					{
+						Log.w( "IAP", "Billing service reconnection error: " + billingResult.getResponseCode() + ", " + billingResult.getDebugMessage() );
+						g_iIAPStatus = -1;
+					}
+				}
+
+				@Override
+				public void onBillingServiceDisconnected() {
+					Log.w( "IAP", "Billing service disconnected" );
+				}
+			});
+		}
+	}
+
+	public static void iapResetPurchase( String token )
+	{
+		if ( billingClient == null ) return;
+		if ( g_iIAPStatus != 2 ) return;
+
+		if ( billingClient.isReady() ) {
+			for (IAPProduct product : g_pIAPProducts) {
+				if (product.lastToken.equals(token)) {
+					if ( product.type == 2 )
+					{
+						ShowMessage( g_pAct, "Cannot reset a subscription, you can cancel it from your Google Play account" );
+						return;
+					}
+
+					ConsumeParams params = ConsumeParams.newBuilder().setPurchaseToken(token).build();
+					billingClient.consumeAsync(params, new ConsumeResponseListener() {
+						@Override
+						public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String s) {
+							Log.d("IAP", "Consumption finished: " + billingResult.getDebugMessage());
+						}
+					});
+					synchronized (iapLock)
+					{
+						product.state = IAPProductState.NOT_PURCHASED;
+						product.lastToken = "";
+						product.lastSignature = "";
+					}
+					return;
+				}
+			}
+		}
+		else
+		{
+			billingClient.startConnection(new BillingClientStateListener() {
+				@Override
+				public void onBillingSetupFinished(BillingResult billingResult) {
+					if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+						Log.w( "IAP", "Billing service reconnected, consuming purchase" );
+
+						for (IAPProduct product : g_pIAPProducts) {
+							if (product.lastToken.equals(token)) {
+								if ( product.type == 2 )
+								{
+									ShowMessage( g_pAct, "Cannot reset a subscription, you can cancel it from your Google Play account" );
+									return;
+								}
+
+								ConsumeParams params = ConsumeParams.newBuilder().setPurchaseToken(token).build();
+								billingClient.consumeAsync(params, new ConsumeResponseListener() {
+									@Override
+									public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String s) {
+										Log.d("IAP", "Consumption finished: " + billingResult.getDebugMessage());
+									}
+								});
+								synchronized (iapLock)
+								{
+									product.state = IAPProductState.NOT_PURCHASED;
+									product.lastToken = "";
+									product.lastSignature = "";
+								}
+								return;
+							}
+						}
+					}
+					else
+					{
+						Log.w( "IAP", "Billing service reconnection error: " + billingResult.getResponseCode() + ", " + billingResult.getDebugMessage() );
+						g_iIAPStatus = -1;
+					}
+				}
+
+				@Override
+				public void onBillingServiceDisconnected() {
+					Log.w( "IAP", "Billing service disconnected" );
+				}
+			});
 		}
 	}
 
 	public static int iapCheckPurchaseState()
 	{
-		return g_iPurchaseState;
+		return 1; // deprecated
 	}
 
 	public static int iapCheckPurchase( int ID )
 	{
-		if ( ID < 0 || ID >= MAX_PRODUCTS ) return 0;
-		return g_iPurchaseProductStates[ ID ];
+		if ( ID < 0 || ID >= g_pIAPProducts.size() ) return 0;
+		IAPProduct product = g_pIAPProducts.get( ID );
+		if ( product.state == IAPProductState.PURCHASED ) return 1;
+		else return 0;
+	}
+
+	public static int iapCheckPurchase2( int ID )
+	{
+		synchronized (iapLock)
+		{
+			if ( ID < 0 || ID >= g_pIAPProducts.size() ) return 0;
+			IAPProduct product = g_pIAPProducts.get( ID );
+			switch( product.state )
+			{
+				case NOT_PURCHASED:  return 0;
+				case QUEUED:         return 1;
+				case IN_PROGRESS:    return 2;
+				case PENDING:        return 3;
+				case PURCHASED:      return 4;
+				default:             return -1;
+			}
+		}
 	}
 
 	public static String iapGetPrice( int ID )
 	{
 		synchronized (iapLock)
 		{
-			if (ID < 0 || ID >= MAX_PRODUCTS || g_sPurchaseProductPrice[ID] == null) return "";
-			return g_sPurchaseProductPrice[ID];
+			if ( ID < 0 || ID >= g_pIAPProducts.size() ) return "";
+			IAPProduct product = g_pIAPProducts.get( ID );
+			return product.price;
 		}
 	}
 
@@ -3947,8 +4218,9 @@ public class AGKHelper {
 	{
 		synchronized (iapLock)
 		{
-			if (ID < 0 || ID >= MAX_PRODUCTS || g_sPurchaseProductDesc[ID] == null) return "";
-			return g_sPurchaseProductDesc[ID];
+			if ( ID < 0 || ID >= g_pIAPProducts.size() ) return "";
+			IAPProduct product = g_pIAPProducts.get( ID );
+			return product.desc;
 		}
 	}
 
@@ -3956,8 +4228,19 @@ public class AGKHelper {
 	{
 		synchronized (iapLock)
 		{
-			if ( ID < 0 || ID >= MAX_PRODUCTS || g_sPurchaseProductSignature[ID] == null ) return "";
-			return g_sPurchaseProductSignature[ID];
+			if ( ID < 0 || ID >= g_pIAPProducts.size() ) return "";
+			IAPProduct product = g_pIAPProducts.get( ID );
+			return product.lastSignature;
+		}
+	}
+
+	public static String iapGetToken( int ID )
+	{
+		synchronized (iapLock)
+		{
+			if ( ID < 0 || ID >= g_pIAPProducts.size() ) return "";
+			IAPProduct product = g_pIAPProducts.get( ID );
+			return product.lastToken;
 		}
 	}
 	
@@ -3980,16 +4263,18 @@ public class AGKHelper {
 	{
 		FirebaseMessaging.getInstance().setAutoInitEnabled( true );
 
-		FirebaseInstanceId.getInstance().getInstanceId()
-				.addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+		FirebaseMessaging.getInstance().getToken()
+				.addOnCompleteListener(new OnCompleteListener<String>() {
 					@Override
-					public void onComplete(@NonNull Task<InstanceIdResult> task) {
+					public void onComplete(@NonNull Task<String> task) {
 						if (!task.isSuccessful()) {
-							Log.w( "Firebase", "getInstanceId failed", task.getException());
+							Log.w("Firebase", "Fetching FCM registration token failed", task.getException());
+							GCM_PNRegID = "Error";
 							return;
 						}
 
-						GCM_PNRegID = task.getResult().getToken();
+						// Get new FCM registration token
+						GCM_PNRegID = task.getResult();
 						Log.i( "Firebase", "PN Token: " + GCM_PNRegID );
 					}
 				});
@@ -4784,8 +5069,8 @@ public class AGKHelper {
 	// Shared variables
 	public static void SaveSharedVariableWithPermission( Activity act, String varName, String varValue )
 	{
-		// Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		String packageName = act.getPackageName();
 		String folderName = packageName;
@@ -4839,8 +5124,8 @@ public class AGKHelper {
 
 	public static void SaveSharedVariable( Activity act, String varName, String varValue )
 	{
-		// Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		// write local value to the shared preferences, then try and write globally
 		SharedPreferences sharedPref = act.getSharedPreferences("agksharedvariables", Context.MODE_PRIVATE);
@@ -4864,8 +5149,8 @@ public class AGKHelper {
 
 	public static String LoadSharedVariable( Activity act, String varName, String defaultValue )
 	{
-		// Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return defaultValue;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return defaultValue;
 
 		// must request permissions on API 23 (Android 6.0) and above
 		if (Build.VERSION.SDK_INT >= 23)
@@ -4932,8 +5217,8 @@ public class AGKHelper {
 
 	public static void DeleteSharedVariable( Activity act, String varName )
 	{
-		// Android 11 blocks writing to external folders
-		if ( Build.VERSION.SDK_INT >= 30 ) return;
+		// Android 10+ blocks writing to external folders
+		if ( Build.VERSION.SDK_INT >= 29 ) return;
 
 		// delete any local value
 		SharedPreferences sharedPref = act.getSharedPreferences( "agksharedvariables", Context.MODE_PRIVATE );
@@ -5128,9 +5413,9 @@ public class AGKHelper {
 
 	public static String GetExternalDir()
 	{
-		if ( Build.VERSION.SDK_INT >= 30 )
+		if ( Build.VERSION.SDK_INT >= 29 ) // Android 10 or above
 		{
-			return g_pAct.getFilesDir().getAbsolutePath();
+			return g_pAct.getExternalFilesDir(null).getAbsolutePath();
 		}
 		else
 		{

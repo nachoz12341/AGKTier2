@@ -1,7 +1,6 @@
 #import "Rate.h"
 
 #import <GoogleMobileAds/GADBannerView.h>
-#import <GoogleMobileAds/GADInterstitial.h>
 
 //#define USE_FACEBOOK_SDK
 

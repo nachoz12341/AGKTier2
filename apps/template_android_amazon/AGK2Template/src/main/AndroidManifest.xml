@@ -56,8 +56,6 @@
         <activity android:name="com.google.android.gms.ads.AdActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"/>
 
-        <activity android:name="com.amazon.device.ads.AdActivity" android:configChanges="keyboardHidden|orientation|screenSize"/>
-
         <activity
             android:name="com.amazon.identity.auth.device.authorization.AuthorizationActivity"
             android:theme="@android:style/Theme.NoDisplay"

@@ -55,15 +55,6 @@ public class AGKActivity extends NativeActivity
     public void onActivityResult( int requestCode, int resultCode, Intent data )
     {
         switch( requestCode ) {
-            case 9000:
-            case 9002: {
-                if (!AGKHelper.mHelper.handleActivityResult(requestCode, resultCode, data)) {
-                    Log.e("IAP", "Failed to handle activity result " + resultCode);
-                } else {
-                    Log.i("IAP", "Result code handled by IABUtil: " + resultCode);
-                }
-                break;
-            }
             case 10003: // Google Drive sign in
             {
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);

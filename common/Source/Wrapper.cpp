@@ -311,7 +311,6 @@ uString agk::m_sAdMobRewardAdCode;
 uString agk::m_sInneractiveCode;
 uString agk::m_sChartboostCode1;
 uString agk::m_sChartboostCode2;
-uString agk::m_sAmazonAdCode;
 uString agk::m_sAdClientID;
 uString agk::m_sInneractiveURL;
 uString agk::m_sInneractiveImage;
@@ -586,15 +585,13 @@ void agk::MasterReset()
 	SetShadowLightStepSize( 0 );
     
     SocialPluginsDestroy();
+	InAppPurchaseReset();
     
-	if ( m_sAdMobCode.GetLength() > 0 ) SetAdMobTesting( 0 );
-	if ( m_sAmazonAdCode.GetLength() > 0 ) SetAmazonAdTesting( 0 );
     m_sAdMobCode.SetStr("");
 	m_sAdMobRewardAdCode.SetStr("");
     m_sInneractiveCode.SetStr("");
 	m_sChartboostCode1.SetStr("");
 	m_sChartboostCode2.SetStr("");
-	m_sAmazonAdCode.SetStr("");
 	
 	m_bScissorUser = false;
 	SetVirtualResolution( 100, 100 );
@@ -6734,7 +6731,7 @@ UINT agk::GetChosenImage()
 
 //****f* Image/Capture/ShowImageCaptureScreen
 // FUNCTION
-//   <b>This function has been deprecated, use <i>SetDeviceCameraToImage</i> instead.</b></br></br>
+//   <b>This function has been deprecated, use <i>SetDeviceCameraToImage</i> instead.</b><br/><br/>
 //   Presents the user with an option to take a photo with the device camera, if available. If the device
 //   does not have a camera, or otherwise cannot be used, this will return 0 and your app will continue as
 //   normal. This does not immediately capture the image, depending on the platform your app may continue
@@ -6803,7 +6800,7 @@ void agk::CancelCapture()
 
 //****f* Image/Capture/IsCapturingImage
 // FUNCTION
-//   <b>This function has been deprecated, use <i>SetDeviceCameraToImage</i> instead.</b></br></br>
+//   <b>This function has been deprecated, use <i>SetDeviceCameraToImage</i> instead.</b><br/><br/>
 //   Returns 1 if AGK is currently displaying a camera feed and waiting for the user to capture an image.
 //   When this returns 0 the user has either cancelled or captured an image, check <i>GetCapturedImage</i>
 //   to see what the result was.
@@ -6816,7 +6813,7 @@ UINT agk::IsCapturingImage()
 
 //****f* Image/Capture/GetCapturedImage
 // FUNCTION
-//   <b>This function has been deprecated, use <i>SetDeviceCameraToImage</i> instead.</b></br></br>
+//   <b>This function has been deprecated, use <i>SetDeviceCameraToImage</i> instead.</b><br/><br/>
 //   Returns the ID of a newly captured image created using <i>ShowImageCaptureScreen</i>. If this returns
 //   0 then the user cancelled the process or you have not yet started it with <i>ShowImageCaptureScreen</i>.
 //   Once you have called this command to retrieve the image ID it will return 0 until <i>ShowImageCaptureScreen</i>
@@ -27811,6 +27808,10 @@ int agk::GetFileCount( int mode )
 //   devices as one device can send a broadcast packet containing its IP address and another device can pick 
 //   it up, read the IP and connect back to the first device to create a two-way connection.<br><br>
 //
+//   Warning, if the device listening for broadcasts is an iOS device then it may not be able to receive 
+//   broadcast packets without permission from Apple. As of writing receiving is still allowed but sending
+//   requires permission from Apple, this may change in future<br/><br/>
+//
 //   AGK networks are broadcast in this manner on port 45631 and send a packet containing the name of a network 
 //   that has been hosted by another AGK device. By using a broadcast listener you can pick these messages up, 
 //   extract the network names and display them to the user for them to choose which network they want to 
@@ -27851,6 +27852,10 @@ UINT agk::CreateBroadcastListener( UINT port )
 //   on the local area network, or more specifically the local subnet. This can be useful for discovering 
 //   devices as one device can send a broadcast packet containing its IP address and another device can pick 
 //   it up, read the IP and connect back to the first device to create a two-way connection.<br><br>
+//
+//   Warning, if the device listening for broadcasts is an iOS device then it may not be able to receive 
+//   broadcast packets without permission from Apple. As of writing receiving is still allowed but sending
+//   requires permission from Apple, this may change in future<br/><br/>
 //
 //   AGK networks are broadcast in this manner on port 45631 and send a packet containing the name of a network 
 //   that has been hosted by another AGK device. By using a broadcast listener you can pick these messages up, 
@@ -28501,6 +28506,11 @@ void agk::DeleteSocketListener( UINT listenerID )
 //   network, this port will need forwarding to the host through any intervening firewall. The port value must be between 
 //   1025 and 65535, and will fail if another application is already listening on that port.<br><br>
 //
+//   Warning, if the device hosting the network is an iOS device then the broadcasting part of this process will fail unless
+//   you get permission from Apple to send broadcast packets, see the following page to request permission 
+//   https://developer.apple.com/contact/request/networking-multicast. If you do not have the permission then devices should 
+//   still be able to join such a network if they have the IP address and port of the hosting device<br/><br/>
+//
 //   You must also specify a client name to use to identify your client, all client names must be unique. This name will 
 //   be visible to all other clients. Clients will be added to the network automatically and can be counted using 
 //   <i>GetNetworkNumClients</i>. You can call <i>IsNetworkActive</i> immediately after this command to check that the network
@@ -28542,6 +28552,11 @@ UINT agk::HostNetwork( const char *szNetworkName, const char *szMyName, int port
 //   allow them to choose one to join. AGK apps outside the LAN need the IP address and port of the hoster to join the 
 //   network, this port will need forwarding to the host through any intervening firewall. The port value must be between 
 //   1025 and 65535, and will fail if another application is already listening on that port.<br><br>
+//
+//   Warning, if the device hosting the network is an iOS device then the broadcasting part of this process will fail unless
+//   you get permission from Apple to send broadcast packets, see the following page to request permission 
+//   https://developer.apple.com/contact/request/networking-multicast. If you do not have the permission then devices should 
+//   still be able to join such a network if they have the IP address and port of the hosting device<br/><br/>
 //
 //   You must also specify a client name to use to identify your client, all client names must be unique. This name will 
 //   be visible to all other clients. Clients will be added to the network automatically and can be counted using 
@@ -28679,6 +28694,10 @@ void agk::SetNetworkAllowClients( UINT iNetID )
 //   listening for the broadcasts yourself, you could then display a list of discovered networks to the
 //   user to let them decide which one to connect to.<br><br>
 //
+//   Warning, if the device listening for broadcasts is an iOS device then it may not be able to receive 
+//   broadcast packets without permission from Apple. As of writing receiving is still allowed but sending
+//   requires permission from Apple, this may change in future.<br/><br/>
+//
 //   This function does not connect immediately, it returns a network ID and continues to attempt to connect
 //   in the background. You can detect when a connection is made by checking the <i>GetNetworkNumClients</i> is 
 //   greater than 1, indicating that at least the local client and server client have been detected.
@@ -28734,6 +28753,10 @@ UINT agk::JoinNetwork( const char *szNetworkName, const char *szMyName )
 //   You may detect all the networks available for connecting to by setting up a broadcast listener and
 //   listening for the broadcasts yourself, you could then display a list of discovered networks to the
 //   user to let them decide which one to connect to.<br><br>
+//
+//   Warning, if the device listening for broadcasts is an iOS device then it may not be able to receive 
+//   broadcast packets without permission from Apple. As of writing receiving is still allowed but sending
+//   requires permission from Apple, this may change in future.<br/><br/>
 //
 //   This function does not connect immediately, it returns a network ID and continues to attempt to connect
 //   in the background. You can detect when a connection is made by checking the <i>GetNetworkNumClients</i> is 
@@ -30028,7 +30051,11 @@ int agk::CreateUDPListener( UINT listenerID, const char* ip, int port )
 // FUNCTION
 //   Sends a network message created with <i>CreateNetworkMessage</i> to the specified remote IP and port.
 //   You must specify a UDP listener to use as the source IP and port. This function will delete the 
-//   specified message ID.
+//   specified message ID.<br/><br/>
+//
+//   Warning, if the IP address is a broadcast or multicast address, e.g. 255.255.255.255 then this will 
+//   fail to send on iOS devices. To send broadcast or multicast packets requires permission from Apple,
+//   use the following page to request it https://developer.apple.com/contact/request/networking-multicast
 // INPUTS
 //   listenerID -- The ID of the listener to use as the source ip and port
 //   messageID -- The ID of the network message to send
@@ -35834,38 +35861,26 @@ void agk::SetChartboostDetails ( const char* szKey1, const char* szKey2 )
 
 //****f* Advert/AdMob/SetAmazonAdDetails
 // FUNCTION
-//   Sets your Amazon Ads account details to be used by interstitial (fullscreen) ads. 
-//   After calling this command an attempt will be made to cache an interstitial so you can display it 
-//   immediately later. You can check the progress of this by using <i>GetFullscreenAdvertLoadedAmazon</i>.<br><br>
-//   Amazon ads are currently supported by iOS and Android.
+//   The Amazon Ads network no longer exists
 // INPUTS
 //   szKey -- Ad unit ID as provided by Amazon.
 // SOURCE
 void agk::SetAmazonAdDetails ( const char* szKey )
-//****    
+//****
 {
-    if ( !szKey || strlen(szKey) == 0 )
-	{
-		m_sAmazonAdCode.SetStr("");
-		return;
-	}
-	m_sAmazonAdCode.SetStr( szKey );
-
-	agk::PlatformAmazonAdSetup();
+    
 }
     
 //****f* Advert/AdMob/SetAmazonAdTesting
 // FUNCTION
-//   Sets whether the Amazon Ads will be test ads or paying ads. This should be called before <i>SetAmazonAdDetails</i>
-//   to ensure all ads are test ads.
-//   By default paying ads will be shown.
+//   The Amazon Ads network no longer exists
 // INPUTS
 //   mode -- 0=show paying ads, 1=show test ads
 // SOURCE
 void agk::SetAmazonAdTesting ( int mode )
 //****
 {
-    agk::PlatformAmazonAdSetTesting(mode);
+    
 }
 
 //****f* Advert/AdMob/SetAdMobTesting
@@ -35935,21 +35950,12 @@ void agk::ShowFullscreenAdvertChartboost()
 
 //****f* Advert/Amazon/ShowFullscreenAdvertAmazon
 // FUNCTION
-//   Creates a fullscreen (interstitial) advert for revenue generation using Amazon Ads. Before calling this function you must 
-//   have set your ad account details with <i>SetAmazonAdDetails</i>.
-//   Both iOS and Android use caching to preload ads before displaying them. If an ad has been loaded when you call this 
-//   command then it will be displayed immediately, otherwise it will attempt to load an ad for next time you call this command. 
-//   Failure to load an ad may be because the ad provider has run out of ads to show to users in a particular country. You can 
-//   check if an ad is waiting to be displayed with <i>GetFullscreenAdvertLoadedAmazon</i>.
-//   Your app will be paused when the advert is displayed, and will resume when the advert is dismissed.
+//   The Amazon Ads network no longer exists
 // SOURCE
 void agk::ShowFullscreenAdvertAmazon()
 //****
 {
-    if ( m_sAmazonAdCode.GetLength() > 0 )
-	{
-		agk::PlatformAmazonAdFullscreen();
-	}
+   
 }
 
 //****f* Advert/AdMob/GetFullscreenAdvertLoadedAdMob
@@ -35986,18 +35992,12 @@ int agk::GetFullscreenAdvertLoadedChartboost()
 
 //****f* Advert/AdMob/GetFullscreenAdvertLoadedAmazon
 // FUNCTION
-//   Returns 1 if there is an Amazon interstitial ad preloaded and ready to be displayed, otherwise 0. If so you can 
-//   display it with <i>ShowFullscreenAdvertAmazon</i>. Adverts are preloaded as soon as you set your Amazon details 
-//   and after every fullscreen advert is dismissed by the user. If this command continues to return 0 then ad 
-//   loading may have failed due to the provider running out of ads and AGK will stop trying to load them. In this
-//   case you should try your other ad providers instead. If you find all your ad providers are returning 0 then 
-//   you can try calling <i>ShowFullscreenAdvertAmazon</i> anyway, it will not display anything as there is nothing 
-//   loaded, but it will restart the loading process to see if any new adverts have become available. 
+//   The Amazon Ads network no longer exists
 // SOURCE
 int agk::GetFullscreenAdvertLoadedAmazon()
 //****
 {
-	return agk::PlatformAmazonGetFullscreenLoaded();
+    return 0;
 }
 
 //****f* Advert/AdMob/ShowRewardAdAdMob
@@ -36156,18 +36156,16 @@ void agk::ResetRewardChartboost()
 
 //****f* Advert/General/CreateFullscreenAdvert
 // FUNCTION
-//   <b>This command is deprecated, you should use <i>ShowFullscreenAdvertAdMob</i>, <i>ShowFullscreenAdvertChartboost</i>, 
-//   or <i>ShowFullscreenAdvertAmazon</i> instead.</b><br><br>
+//   <b>This command is deprecated, you should use <i>ShowFullscreenAdvertAdMob</i> or <i>ShowFullscreenAdvertChartboost</i> instead.</b><br><br>
 //   Creates a fullscreen (interstitial) advert for revenue generation. Before calling this function you must have set 
-//   your ad account details with one of the other commands such as <i>SetAdMobDetails</i>, <i>SetChartboostDetails</i>,
-//   or or <i>SetAmazonAdDetails</i>
+//   your ad account details with one of the other commands such as <i>SetAdMobDetails</i> or <i>SetChartboostDetails</i>
 //   Not all platforms support all ad providers so setting as many account details as possible will allow AGK to select 
 //   a suitable ad for this platform.<br><br>
 //   Both iOS and Android use caching to preload ads before displaying them. If an ad has been loaded when you call this 
 //   command then it will be displayed immediately, otherwise this command will do nothing. Failure to load an ad may be 
 //   because the ad provider has run out of ads to show to users in a particular country. You can check if an ad is waiting 
-//   to be displayed for a particular provider with <i>GetFullscreenAdvertLoadedAdMob</i>, 
-//   <i>GetFullscreenAdvertLoadedChartboost</i>, or <i>GetFullscreenAdvertLoadedAmazon</i>.
+//   to be displayed for a particular provider with <i>GetFullscreenAdvertLoadedAdMob</i> or
+//   <i>GetFullscreenAdvertLoadedChartboost</i>.
 //   Your app will be paused when the advert is displayed, and will resume when the advert is dismissed.
 // SOURCE
 void agk::CreateFullscreenAdvert()
@@ -36176,10 +36174,6 @@ void agk::CreateFullscreenAdvert()
     if ( agk::PlatformHasAdMob() && m_sAdMobCode.GetLength() > 0 )
 	{
 		agk::PlatformAdMobFullscreen();
-	}
-	else if ( m_sAmazonAdCode.GetLength() > 0 )
-	{
-		agk::PlatformAmazonAdFullscreen();
 	}
 	else if ( m_sChartboostCode1.GetLength() > 0 )
 	{
@@ -37100,14 +37094,17 @@ void agk::RequestAppReview()
 #endif
 }
 
+void agk::InAppPurchaseReset()
+{
+#if defined(AGK_ANDROID) || defined(AGK_IOS)
+	PlatformInAppPurchaseReset();
+#endif
+}
+
 //****f* Extras/In App Purchase/InAppPurchaseSetKeys
 // FUNCTION
-//   Sets any necessary internal data when setting up IAP for this platform. Currently this only 
-//   applies to Google Play and Ouya where you need to provide your public key in base64.
-//   This must be called before InAppPurchaseSetup.<br/>
-//   To find the public key for Google Play apps, open your application's details in the Google 
-//   PlayDeveloper Console, and click Services & APIs. The public key will be in the box titled 
-//   "Your license key for this application".
+//   This command is only used by Ouya where you need to provide your public key in base64.
+//   This must be called before <i>InAppPurchaseSetup</i>
 // INPUTS
 //   szData1 -- Public Key
 //   szData2 -- Developer UUID (Ouya only)
@@ -37136,19 +37133,30 @@ void agk::InAppPurchaseSetTitle ( const char* szTitle )
 // FUNCTION
 //   Use this command to add any product IDs into the list e.g. com.yourcompany.yourproduct.iap.
 //   The first product ID you add becomes 0, the second is 1 etc.
-//   You must also specify the type of product this is, consumable (1) or non-consumable(0). 
-//   Consumable products are like coins that can be bought again and again, they are called
-//   Unmanaged items by Google Play. Non-consumable products are one off purchases like unlocking
-//   the full version of an app, they are called managed items by Google Play.
+//   You must also specify the type of product this is, non-consumable(0), consumable(0), or 
+//   subscription(2). Previously consumable products were added as type=1 but they are now 
+//   added as type=0 and <i>InAppPurchaseResetPurchase</i> is used to reset a consumable to a
+//   purchasable state.
+//   Consumable products are like coins that can be bought again and again, whereas 
+//   non-consumable products are one off purchases like unlocking the full version of an app.
+//   In Google Play consumable and non-consumable products are added the same way.
 //   Currently this command is only supported on iOS, Google Play, and Amazon.
 //   This must be called before InAppPurchaseSetup, after that no further products can be added.
 // INPUTS
 //   szID -- The product ID as specified in iTunes Connect or the Google Play developer console
-//   type -- The type of product this is, consumable (1) or non consumable(0)
+//   type -- The type of product this is, non consumable(0), consumable(0), or subscription(2)
 // SOURCE
 void agk::InAppPurchaseAddProductID ( const char* szID, int type )
 //****
 {
+	if ( type == 1 )
+	{
+		static int warned = 0;
+		if ( !warned ) Message( "Using InAppPurchaseAddProductID with type=1 is no longer supported. Use type=0 for consumables and then call InAppPurchaseResetPurchase to consume it" );
+		warned = 1;
+		return;
+	}
+
     PlatformInAppPurchaseAddProductID(szID, type);
 }
 
@@ -37167,11 +37175,12 @@ void agk::InAppPurchaseSetup()
 //****f* Extras/In App Purchase/GetInAppPurchaseAvailable
 // FUNCTION
 //   Returns 1 if the extra content has been purchased and is therefore available. Returns 0
-//   if the content is not available.
+//   if the content is not available. It is recommended that you use the newer 
+//   <i>GetInAppPurchaseAvailable2</i> to get a more detailed response.
 //   Currently this command is only supported on iOS and Android.
 // INPUTS
 //   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
-//          ID is 0, your second is 1 etc.
+//         ID is 0, your second is 1 etc.
 // SOURCE
 int agk::GetInAppPurchaseAvailable ( int iID )
 //****
@@ -37179,9 +37188,33 @@ int agk::GetInAppPurchaseAvailable ( int iID )
     return PlatformGetInAppPurchaseAvailable(iID);
 }
 
+//****f* Extras/In App Purchase/GetInAppPurchaseAvailable2
+// FUNCTION
+//   A more detailed version of <i>GetInAppPurchaseAvailable</i> that gives the purchase state<br/>
+//   Returns 0 if the product is not purchased<br/>
+//   Returns 1 if the product is queued for purchased<br/>
+//   Returns 2 if the product purchase is in progress<br/>
+//   Returns 3 if the product purchase is pending (subject to payment clearance)<br/>
+//   Returns 4 if the product is purchased<br/>
+//   You should only reward the user once the product reaches state 4 (purchased).
+//   Currently this command is only supported on iOS and Android.
+// INPUTS
+//   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
+//         ID is 0, your second is 1 etc.
+// SOURCE
+int agk::GetInAppPurchaseAvailable2 ( int iID )
+//****
+{
+#if defined(AGK_ANDROID) || defined(AGK_IOS)
+    return PlatformGetInAppPurchaseAvailable2(iID);
+#else 
+	return 0;
+#endif
+}
+
 //****f* Extras/In App Purchase/InAppPurchaseActivate
 // FUNCTION
-//   Call this when you want to start the process of activating / unlocking extra content.
+//   Call this when you want to start the process of purchasing a product.
 //   Currently this command is only supported on iOS and Android.
 // INPUTS
 //   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
@@ -37191,6 +37224,27 @@ void agk::InAppPurchaseActivate ( int iID )
 //****
 {
     PlatformInAppPurchaseActivate(iID);
+}
+
+//****f* Extras/In App Purchase/InAppPurchaseResetPurchase
+// FUNCTION
+//   Call this command to reset the purchase state of an individual product. On Android this must be called 
+//   for consumable products after you have dealt with a purchase to allow it to be purchased again.
+//   If you call this command on a non-consumable purchase then that purchase will be reset to an unpurchased 
+//   state and the user will have to pay for it again, this should only be used during testing.<br/><br/>
+//   Subscriptions cannot be reset and must be cancelled by the user through their Google Play account
+//   Currently this command is only supported on Android. iOS automatically allows consumables to be 
+//   purchased multiple times so this command does nothing, but it won't do any harm to use this command on 
+//   both platforms.
+// INPUTS
+//   token -- The most recent token from GetInAppPurchaseToken for this product
+// SOURCE
+void agk::InAppPurchaseResetPurchase( const char* token )
+//****
+{
+#ifdef AGK_ANDROID
+    PlatformInAppPurchaseResetPurchase(token);
+#endif
 }
     
 //****f* Extras/In App Purchase/GetInAppPurchaseLocalPrice
@@ -37230,25 +37284,26 @@ char* agk::GetInAppPurchaseDescription ( int iID )
 
 //****f* Extras/In App Purchase/GetInAppPurchaseState
 // FUNCTION
-//   Return the current state of the attempt to activate content. A value of 0 indicates that
-//   the process is on going, while 1 confirms the process is complete.
-//   Currently this command is only supported on iOS and Android.
+//   This command is deprecated and always returns 1 since multiple purchases can now be ongoing at
+//   the same time. Use <i>GetInAppPurchaseAvailable2</i> to check the purchase state.
 // SOURCE
 int agk::GetInAppPurchaseState()
 //****
 {
-    return PlatformGetInAppPurchaseState();
+    return 1;
 }
 
 //****f* Extras/In App Purchase/InAppPurchaseRestore
 // FUNCTION
 //   Restores any managed purchases made on this platform. For example if a user purchased at item then
-//   reinstalled the app the app would return 0 for GetInAppPurchaseAvailable unless it was purchased again.
-//   Even though this wouldn't charge the user again for managed items, Apple require you to have a button
-//   that calls this function instead of making the user go through the purchase process again.
-//   After calling this command you can call GetInAppPurchaseAvailable. 
-//   Currently this command is only supported on iOS.
-//   This command is unnecessary on Android and Amazon as it automatically restores in <i>InAppPurchaseSetup</i>
+//   reinstalled the app the app would return 0 for GetInAppPurchaseAvailable unless it was purchased again
+//   or restored using this command.
+//   Even though purchasing again wouldn't charge the user again for managed items, using this restore 
+//   command is a better user experience. Apple require you to have a button that calls this function 
+//   somewhere in your app. 
+//   After calling this command you can call <i>GetInAppPurchaseAvailable2</i> to check for purchases, it 
+//   may take some time for the purchase state to update, so check <i>GetInAppPurchaseAvailable2</i> regularly.
+//   This command is supported by both iOS and Android
 // SOURCE
 void agk::InAppPurchaseRestore()
 //****
@@ -37268,6 +37323,29 @@ char* agk::GetInAppPurchaseSignature(int iID)
 //****
 {
 	return PlatformGetInAppPurchaseSignature(iID);
+}
+
+//****f* Extras/In App Purchase/GetInAppPurchaseToken
+// FUNCTION
+//   Returns the unique token for the last purchase of the given item, this can be sent to your server to check 
+//   the validity of the purchase with Google, and to distinguish between different instances of a consumable 
+//   purchase. You should only reward the user once per token for consumable purchases, it is recommended that
+//   you store a list of past tokens on a server so you can detect any token reuse, which could be used to 
+//   cheat your system. Once you have rewarded the user for a consumable purchase you must call 
+//   <i>InAppPurchaseResetPurchase</i> with the most recent token to allow it to be purchased again.<br/><br/>
+//   This only works on Android, other platforms will return an empty string
+// INPUTS
+//   iID -- The ID of the product to check. e.g. your first product ID is 0, your second is 1 etc.
+// SOURCE
+char* agk::GetInAppPurchaseToken(int iID)
+//****
+{
+#ifdef AGK_ANDROID
+	return PlatformGetInAppPurchaseToken(iID);
+#else
+	char* str = new char[1]; *str = 0;
+	return str;
+#endif
 }
 
 void agk::TwitterSetup ( const char* szKey, const char* szSecret )

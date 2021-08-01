@@ -17798,6 +17798,135 @@ void agk::SetTextBold( UINT iTextIndex, UINT bold )
 	pText->SetBold( bold );
 }
 
+//****f* Text/Properties/SetTextShader
+// FUNCTION
+//   Sets the shader used to draw this Text, loaded with <i>LoadTextShader</i> or <i>Loadshader</i>.
+//   By default Text objects are assigned an internal shader that can handle 1 texture and a color.
+//   If you use a shader ID of 0 the Text is assigned the internal shader.
+// INPUTS
+//   iTextIndex -- The ID of the text to modify.
+//   shaderID	-- The ID of the shader to use.
+// SOURCE
+void agk::SetTextShader(UINT iTextIndex, UINT shaderID)
+//****
+{
+	cText* pText = m_cTextList.GetItem(iTextIndex);
+	if (!pText)
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Failed to set shader for text ");
+		errStr.AppendUInt(iTextIndex).Append(" - text does not exist");
+		Error(errStr);
+#endif
+		return;
+	}
+
+	AGKShader* pShader = 0;
+	if (shaderID > 0)
+	{
+		pShader = m_cShaderList.GetItem(shaderID);
+		if (!pText)
+		{
+#ifdef _AGK_ERROR_CHECK
+			uString errStr("Failed to set shader for text ");
+			errStr.AppendUInt(iTextIndex).Append(" - shader ");
+			errStr.AppendUInt(shaderID).Append(" does not exist");
+			Error(errStr);
+#endif
+			return;
+		}
+	}
+
+	pText->SetShader(pShader);
+}
+
+//****f* Text/Properties/SetTextShaderConstantByName
+// FUNCTION
+//   Sets a shader constant for a text by name, the constant must be marked as "uniform" in the shader source.
+//   The Text will set the specified constant to this value for any shader that it is applied to it.
+//   All shader values have 1 to 4 components, this command accepts 4 values and discards any that are not used 
+//   by the named variable.
+// INPUTS
+//   textID	  -- The ID of the text to modify.
+//   szName   -- The name of the constant to change, as defined in the shader source file.
+//   value1   -- The X or R component of the new value, this value will always be used.
+//   value2   -- The Y or G component of the new value, if the constant only uses 1 component this value is discarded.
+//   value3   -- The Z or B component of the new value, if the constant only uses 2 components this value is discarded.
+//   value4   -- The W or A component of the new value, if the constant only uses 3 components this value is discarded.
+// SOURCE
+void agk::SetTextShaderConstantByName(UINT iTextIndex, const char* szName, float value1, float value2, float value3, float value4)
+//****
+{
+	cText* pText = m_cTextList.GetItem(iTextIndex);
+	if (!pText) {
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Failed to set shader constant for object ");
+		errStr.AppendUInt(iTextIndex).Append(" - text does not exist");
+		Error(errStr);
+#endif
+		return;
+	}
+
+	pText->SetShaderConstantByName(szName, value1, value2, value3, value4);
+}
+
+//****f* Text/Properties/SetTextShaderConstantArrayByName
+// FUNCTION
+//   Sets a shader constant array index by name, the constant must be marked as "uniform" in the shader source.
+//   Array indices start at 0, if the array index is out of bounds then it will be ignored and no changes will 
+//   be made.
+//   This will affect only the specified text this shader.
+//   All shader values have 1 to 4 components, this command accepts 4 values and discards any that are not used 
+//   by the named variable.
+// INPUTS
+//   textID     -- The ID of the text to modify.
+//   szName     -- The name of the constant to change, as defined in the shader source file.
+//   arrayIndex -- The element of the array to modify.
+//   value1     -- The X or R component of the new value, this value will always be used.
+//   value2     -- The Y or G component of the new value, if the constant only uses 1 component this value is discarded.
+//   value3     -- The Z or B component of the new value, if the constant only uses 2 components this value is discarded.
+//   value4     -- The W or A component of the new value, if the constant only uses 3 components this value is discarded.
+// SOURCE
+void agk::SetTextShaderConstantArrayByName(UINT iTextIndex, const char* szName, UINT arrayIndex, float value1, float value2, float value3, float value4)
+//****
+{
+	cText* pText = m_cTextList.GetItem(iTextIndex);
+	if (!pText) {
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Failed to set shader constant for object ");
+		errStr.AppendUInt(iTextIndex).Append(" - text does not exist");
+		Error(errStr);
+#endif
+		return;
+	}
+
+	pText->SetShaderConstantArrayByName(szName, arrayIndex, value1, value2, value3, value4);
+}
+
+//****f* Text/Properties/SetTextShaderConstantDefault
+// FUNCTION
+//   Stops a text setting the given constant name in its shaders and uses the shader's default value from now on.
+// INPUTS
+//   iTextIndex	-- The ID of the text to modify.
+//   szName     -- The name of the constant to stop changing.
+// SOURCE
+void agk::SetTextShaderConstantDefault(UINT iTextIndex, const char* szName)
+//****
+{
+	cText* pText = m_cTextList.GetItem(iTextIndex);
+	if (!pText) {
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Failed to set shader constant default for object ");
+		errStr.AppendUInt(iTextIndex).Append(" - text does not exist");
+		Error(errStr);
+#endif
+		return;
+	}
+
+	pText->SetShaderConstantDefault(szName);
+}
+
+
 //****f* Text/Properties/GetTextVisible
 // FUNCTION
 //   Returns 0 if the current text has been set as invisible using <i>SetTextVisible</i>, 1 if it is set as visible (default).

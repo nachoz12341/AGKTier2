@@ -127,6 +127,9 @@ cText::cText( int iLength )
 	pColor = UNDEF;
 	pIndices = UNDEF;
 
+	// shader variables
+	m_pShader = AGKShader::g_pShaderFont;
+
 	m_pFontImage = 0;
 	m_pLetterImages = 0;
 
@@ -1722,6 +1725,68 @@ void cText::SetCharBold( UINT iIndex, UINT bold )
 	}
 }
 
+void cText::InternalSetShader(AGKShader* shader)
+{
+	m_pShader = shader;
+	if (!m_pShader)
+	{
+		if (m_pFTSizedFont) m_pShader = AGKShader::g_pShaderFont;
+		else m_pShader = AGKShader::g_pShaderTexColor;
+	}
+	m_bFlags &= ~AGK_SPRITE_CUSTOM_SHADER;
+}
+
+void cText::SetShader(AGKShader* shader)
+{
+	InternalSetShader(shader);
+	m_bFlags |= AGK_SPRITE_CUSTOM_SHADER;
+}
+
+void cText::SetShaderConstantByName(const char* name, float v1, float v2, float v3, float v4)
+{
+	sTextUniform* pVar = m_cShaderVariables.GetItem(name);
+
+	if (!pVar) {
+		pVar = new sTextUniform();
+		m_cShaderVariables.AddItem(pVar, name);
+	}
+
+	pVar->m_sName.SetStr(name);
+	pVar->index = -1;
+	pVar->v1 = v1;
+	pVar->v2 = v2;
+	pVar->v3 = v3;
+	pVar->v4 = v4;
+	m_cShaderVariables.AddItem(pVar, name);
+}
+
+void cText::SetShaderConstantArrayByName(const char* name, UINT index, float v1, float v2, float v3, float v4)
+{
+	if (strlen(name) > 90) return;
+	char str[100];
+	sprintf(str, "%s_%d", name, index);
+
+	sTextUniform* pVar = m_cShaderVariables.GetItem(str);
+
+	if (!pVar) {
+		pVar = new sTextUniform();
+		m_cShaderVariables.AddItem(pVar, str);
+	}
+
+	pVar->m_sName.SetStr(name);
+	pVar->index = (int)index;
+	pVar->v1 = v1;
+	pVar->v2 = v2;
+	pVar->v3 = v3;
+	pVar->v4 = v4;
+}
+
+void cText::SetShaderConstantDefault(const char* name)
+{
+	sTextUniform* pVar = m_cShaderVariables.RemoveItem(name);
+	if (pVar) delete pVar;
+}
+
 // Get Char
 
 float cText::GetCharX( UINT iIndex )
@@ -2015,11 +2080,11 @@ void cText::PlatformDraw()
 {
 	if ( !m_bVisible ) return; 
 
+	AGKShader* pShader = m_pShader;
+
 	agk::PlatformBindBuffer( 0 );
 	agk::PlatformBindIndexBuffer( 0 );
 
-	AGKShader *pShader = AGKShader::g_pShaderTexColor; 
-	
 	if ( !pShader ) return;
 	pShader->MakeActive();
 	

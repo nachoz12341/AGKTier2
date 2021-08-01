@@ -1566,7 +1566,11 @@ namespace AGK
 			static void SetTextScissor( UINT iTextIndex, float x, float y, float x2, float y2 );
 			static void SetTextTransparency( UINT iTextIndex, int mode );
 			static void SetTextBold( UINT iTextIndex, UINT bold );
-			
+			static void SetTextShader(UINT iTextIndex, UINT shaderID);
+			static void SetTextShaderConstantByName(UINT iTextIndex, const char* szName, float value1, float value2, float value3, float value4);
+			static void SetTextShaderConstantArrayByName(UINT iTextIndex, const char* szName, UINT arrayIndex, float value1, float value2, float value3, float value4);
+			static void SetTextShaderConstantDefault(UINT iTextIndex, const char* szName);
+
 			static UINT GetTextColorRed( UINT iTextIndex );
 			static UINT GetTextColorGreen( UINT iTextIndex );
 			static UINT GetTextColorBlue( UINT iTextIndex );

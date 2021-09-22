@@ -5386,12 +5386,14 @@ void cSoundMgr::PlatformInit()
 				return;
 			}
 
+			/*
 			if ( FAILED(hr = pXAudio2->CreateMasteringVoice( &pMasterVoice, 2, 44100, 0, 0, NULL ) ) )
 			{
 				agk::Warning( "Failed to create XAudio2 Mastering Voice" );
 				pXAudio2 = NULL;
 				return;
 			}
+			*/
 		}
 		else
 		{

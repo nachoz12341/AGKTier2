@@ -1,0 +1,1037 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Platforms\x64\PlatformToolsets\v141_xp\Toolset.targets(39,5): warning MSB8051: Support for targeting Windows XP is deprecated and will not be present in future releases of Visual Studio. Please see https://go.microsoft.com/fwlink/?linkid=2023588 for more information.
+  b2MotorJoint.cpp
+  3DParticles.cpp
+  AGKFont.cpp
+  OpenGL2.cpp
+  sha2.cpp
+  Bitmap.cpp
+  BlenderBMesh.cpp
+  BlenderTessellator.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\sha2.cpp(163): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\sha2.cpp(316): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+  FBXAnimation.cpp
+  FBXBinaryTokenizer.cpp
+  FBXConverter.cpp
+  FBXDeformer.cpp
+  FBXDocument.cpp
+  FBXDocumentUtil.cpp
+  FBXImporter.cpp
+  FBXMaterial.cpp
+  FBXMeshGeometry.cpp
+  FBXModel.cpp
+  FBXNodeAttribute.cpp
+  FBXParser.cpp
+  FBXProperties.cpp
+  FBXTokenizer.cpp
+  FBXUtil.cpp
+  IFCBoolean.cpp
+  IFCOpenings.cpp
+  OgreBinarySerializer.cpp
+  OgreStructs.cpp
+  OgreXmlSerializer.cpp
+  STEPFileEncoding.cpp
+  AGKSkyBox.cpp
+  CharacterController.cpp
+  Ragdoll.cpp
+  RagdollBone.cpp
+  AGKMotionState.cpp
+  AGKToBullet.cpp
+  BaseItem.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\charactercontroller.cpp(19): warning C4244: '=': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\charactercontroller.cpp(102): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\charactercontroller.cpp(123): warning C4244: 'return': conversion from 'double' to 'btScalar', possible loss of data
+  CollisionShapes.cpp
+  ContactReport.cpp
+  DynamicsWorld.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\ragdoll.cpp(14): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\ragdoll.cpp(15): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\ragdoll.cpp(16): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\ragdoll.cpp(17): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\ragdoll.cpp(18): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\ragdoll.cpp(397): warning C4018: '<': signed/unsigned mismatch
+  GLDebugDrawer.cpp
+  Joint.cpp
+  Joints.cpp
+  Ray.cpp
+  RigidBodies.cpp
+  RigidBody.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\collisionshapes.cpp(45): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\collisionshapes.cpp(49): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\collisionshapes.cpp(53): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\collisionshapes.cpp(63): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\collisionshapes.cpp(67): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\collisionshapes.cpp(71): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+  StaticPlane.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\dynamicsworld.cpp(36): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\dynamicsworld.cpp(43): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\dynamicsworld.cpp(84): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\dynamicsworld.cpp(200): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\dynamicsworld.cpp(233): warning C4101: 'error': unreferenced local variable
+c:\users\bhoyn\documents\github\agktier2\common\source\dynamicsworld.cpp(259): warning C4101: 'error': unreferenced local variable
+  Vector.cpp
+  Skeleton3D.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(110): warning C4244: 'initializing': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(138): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(139): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(140): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(141): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(142): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(143): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(145): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(146): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(147): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(148): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(149): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\joints.cpp(150): warning C4305: 'argument': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\common\source\rigidbodies.cpp(69): warning C4244: 'return': conversion from 'double' to 'btScalar', possible loss of data
+  3DSConverter.cpp
+  3DSLoader.cpp
+  ACLoader.cpp
+  ASELoader.cpp
+  ASEParser.cpp
+  Assimp.cpp
+  AssimpCExport.cpp
+  AssimpPCH.cpp
+  B3DImporter.cpp
+  BaseImporter.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\skeleton3d.cpp(1153): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+  BaseProcess.cpp
+  BlenderDNA.cpp
+  BlenderLoader.cpp
+  BlenderModifier.cpp
+  BlenderScene.cpp
+  BVHLoader.cpp
+  CalcTangentsProcess.cpp
+  COBLoader.cpp
+  ColladaExporter.cpp
+  ColladaLoader.cpp
+  ColladaParser.cpp
+  ComputeUVMappingProcess.cpp
+  ConvertToLHProcess.cpp
+  CSMLoader.cpp
+  DeboneProcess.cpp
+  DefaultIOStream.cpp
+  DefaultIOSystem.cpp
+  DefaultLogger.cpp
+  DXFLoader.cpp
+  Exporter.cpp
+  FindDegenerates.cpp
+  FindInstancesProcess.cpp
+  FindInvalidDataProcess.cpp
+  FixNormalsStep.cpp
+  GenFaceNormalsProcess.cpp
+  GenVertexNormalsProcess.cpp
+  HMPLoader.cpp
+  IFCCurve.cpp
+  IFCGeometry.cpp
+  IFCLoader.cpp
+  IFCMaterial.cpp
+  IFCProfile.cpp
+  IFCReaderGen.cpp
+  IFCUtil.cpp
+  Importer.cpp
+  ImporterRegistry.cpp
+  ImproveCacheLocality.cpp
+  clipper.cpp
+  irrXML.cpp
+  shapes.cc
+  advancing_front.cc
+  cdt.cc
+  sweep.cc
+  sweep_context.cc
+  IRRLoader.cpp
+  IRRMeshLoader.cpp
+  IRRShared.cpp
+  JoinVerticesProcess.cpp
+  LimitBoneWeightsProcess.cpp
+  LWOAnimation.cpp
+  LWOBLoader.cpp
+  LWOLoader.cpp
+  LWOMaterial.cpp
+  LWSLoader.cpp
+  MakeVerboseFormat.cpp
+  MaterialSystem.cpp
+  MD2Loader.cpp
+  MD3Loader.cpp
+  MD5Loader.cpp
+  MD5Parser.cpp
+  MDCLoader.cpp
+  MDLLoader.cpp
+  MDLMaterialLoader.cpp
+  MS3DLoader.cpp
+  NDOLoader.cpp
+  NFFLoader.cpp
+  ObjExporter.cpp
+  ObjFileImporter.cpp
+  ObjFileMtlImporter.cpp
+  ObjFileParser.cpp
+  OFFLoader.cpp
+  OgreImporter.cpp
+  OgreMaterial.cpp
+  OptimizeGraph.cpp
+  OptimizeMeshes.cpp
+  PlyExporter.cpp
+  PlyLoader.cpp
+  PlyParser.cpp
+  PostStepRegistry.cpp
+  PretransformVertices.cpp
+  ProcessHelper.cpp
+  Q3BSPFileImporter.cpp
+  Q3BSPFileParser.cpp
+  Q3BSPZipArchive.cpp
+  Q3DLoader.cpp
+  RawLoader.cpp
+  RemoveComments.cpp
+  RemoveRedundantMaterials.cpp
+  RemoveVCProcess.cpp
+  SceneCombiner.cpp
+  ScenePreprocessor.cpp
+  SGSpatialSort.cpp
+  SkeletonMeshBuilder.cpp
+  SMDLoader.cpp
+  SortByPTypeProcess.cpp
+  SpatialSort.cpp
+  SplitByBoneCountProcess.cpp
+  SplitLargeMeshes.cpp
+  StandardShapes.cpp
+  STEPFileReader.cpp
+  STLExporter.cpp
+  STLLoader.cpp
+  Subdivision.cpp
+  TargetAnimation.cpp
+  TerragenLoader.cpp
+  TextureTransform.cpp
+  TriangulateProcess.cpp
+  UnrealLoader.cpp
+  ValidateDataStructure.cpp
+  VertexTriangleAdjacency.cpp
+  XFileImporter.cpp
+  XFileParser.cpp
+  XGLLoader.cpp
+  btAxisSweep3.cpp
+  btBroadphaseProxy.cpp
+  btCollisionAlgorithm.cpp
+  btDbvt.cpp
+  btDbvtBroadphase.cpp
+  btDispatcher.cpp
+  btMultiSapBroadphase.cpp
+  btOverlappingPairCache.cpp
+  btQuantizedBvh.cpp
+  btSimpleBroadphase.cpp
+  btActivatingCollisionAlgorithm.cpp
+  btBox2dBox2dCollisionAlgorithm.cpp
+  btBoxBoxCollisionAlgorithm.cpp
+  btBoxBoxDetector.cpp
+  btCollisionDispatcher.cpp
+  btCollisionObject.cpp
+  btCollisionWorld.cpp
+  btCompoundCollisionAlgorithm.cpp
+  btCompoundCompoundCollisionAlgorithm.cpp
+  btConvex2dConvex2dAlgorithm.cpp
+  btConvexConcaveCollisionAlgorithm.cpp
+  btConvexConvexAlgorithm.cpp
+  btConvexPlaneCollisionAlgorithm.cpp
+  btDefaultCollisionConfiguration.cpp
+  btEmptyCollisionAlgorithm.cpp
+  btGhostObject.cpp
+  btHashedSimplePairCache.cpp
+  btInternalEdgeUtility.cpp
+  btManifoldResult.cpp
+  btSimulationIslandManager.cpp
+  btSphereBoxCollisionAlgorithm.cpp
+  btSphereSphereCollisionAlgorithm.cpp
+  btSphereTriangleCollisionAlgorithm.cpp
+  btUnionFind.cpp
+  SphereTriangleDetector.cpp
+  btBox2dShape.cpp
+  btBoxShape.cpp
+  btBvhTriangleMeshShape.cpp
+  btCapsuleShape.cpp
+  btCollisionShape.cpp
+  btCompoundShape.cpp
+  btConcaveShape.cpp
+  btConeShape.cpp
+  btConvex2dShape.cpp
+  btConvexHullShape.cpp
+  btConvexInternalShape.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletcollision\collisionshapes\btcompoundshape.cpp(81): warning C4312: 'type cast': conversion from 'int' to 'void *' of greater size
+  btConvexPointCloudShape.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletcollision\collisionshapes\btcompoundshape.cpp(315): warning C4312: 'type cast': conversion from 'int' to 'void *' of greater size
+  btConvexPolyhedron.cpp
+  btConvexShape.cpp
+  btConvexTriangleMeshShape.cpp
+  btCylinderShape.cpp
+  btEmptyShape.cpp
+  btHeightfieldTerrainShape.cpp
+  btMinkowskiSumShape.cpp
+  btMultimaterialTriangleMeshShape.cpp
+  btMultiSphereShape.cpp
+  btOptimizedBvh.cpp
+  btPolyhedralConvexShape.cpp
+  btScaledBvhTriangleMeshShape.cpp
+  btShapeHull.cpp
+  btSphereShape.cpp
+  btStaticPlaneShape.cpp
+  btStridingMeshInterface.cpp
+  btTetrahedronShape.cpp
+  btTriangleBuffer.cpp
+  btTriangleCallback.cpp
+  btTriangleIndexVertexArray.cpp
+  btTriangleIndexVertexMaterialArray.cpp
+  btTriangleMesh.cpp
+  btTriangleMeshShape.cpp
+  btUniformScalingShape.cpp
+  btContactProcessing.cpp
+  btGenericPoolAllocator.cpp
+  btGImpactBvh.cpp
+  btGImpactCollisionAlgorithm.cpp
+  btGImpactQuantizedBvh.cpp
+  btGImpactShape.cpp
+  btTriangleShapeEx.cpp
+  gim_box_set.cpp
+  gim_contact.cpp
+  gim_memory.cpp
+  gim_tri_collision.cpp
+  btContinuousConvexCollision.cpp
+  btConvexCast.cpp
+  btGjkConvexCast.cpp
+  btGjkEpa2.cpp
+  btGjkEpaPenetrationDepthSolver.cpp
+  btGjkPairDetector.cpp
+  btMinkowskiPenetrationDepthSolver.cpp
+  btPersistentManifold.cpp
+  btPolyhedralContactClipping.cpp
+  btRaycastCallback.cpp
+  btSubSimplexConvexCast.cpp
+  btVoronoiSimplexSolver.cpp
+  btKinematicCharacterController.cpp
+  btConeTwistConstraint.cpp
+  btContactConstraint.cpp
+  btFixedConstraint.cpp
+  btGearConstraint.cpp
+  btGeneric6DofConstraint.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\constraintsolver\btconetwistconstraint.cpp(866): warning C4244: '=': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\constraintsolver\btconetwistconstraint.cpp(911): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\constraintsolver\btconetwistconstraint.cpp(971): warning C4244: '=': conversion from 'double' to 'btScalar', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\constraintsolver\btconetwistconstraint.cpp(973): warning C4244: '=': conversion from 'double' to 'btScalar', possible loss of data
+  btGeneric6DofSpringConstraint.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\constraintsolver\btcontactconstraint.h(25): warning C4359: 'btContactConstraint': Alignment specifier is less than actual alignment (128), and will be ignored. (compiling source file bullet\BulletDynamics\ConstraintSolver\btContactConstraint.cpp)
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\character\btkinematiccharactercontroller.cpp(137): warning C4305: '=': truncation from 'double' to 'btScalar'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\character\btkinematiccharactercontroller.cpp(148): warning C4305: '=': truncation from 'double' to 'btScalar'
+  btHinge2Constraint.cpp
+  btHingeConstraint.cpp
+  btPoint2PointConstraint.cpp
+  btSequentialImpulseConstraintSolver.cpp
+  btSliderConstraint.cpp
+  btSolve2LinearConstraint.cpp
+  btTypedConstraint.cpp
+  btUniversalConstraint.cpp
+  btDiscreteDynamicsWorld.cpp
+  btRigidBody.cpp
+  btSimpleDynamicsWorld.cpp
+  Bullet-C-API.cpp
+  btMultiBody.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\constraintsolver\btcontactconstraint.h(25): warning C4359: 'btContactConstraint': Alignment specifier is less than actual alignment (128), and will be ignored. (compiling source file bullet\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.cpp)
+  btMultiBodyConstraint.cpp
+  btMultiBodyConstraintSolver.cpp
+  btMultiBodyDynamicsWorld.cpp
+  btMultiBodyJointLimitConstraint.cpp
+  btMultiBodyJointMotor.cpp
+  btMultiBodyPoint2Point.cpp
+  btDantzigLCP.cpp
+  btMLCPSolver.cpp
+  btRaycastVehicle.cpp
+  btWheelInfo.cpp
+  bChunk.cpp
+  bDNA.cpp
+  bFile.cpp
+  btBulletFile.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bdna.cpp(393): warning C4311: 'type cast': pointer truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bdna.cpp(393): warning C4302: 'type cast': truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bdna.cpp(429): warning C4311: 'type cast': pointer truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bdna.cpp(429): warning C4302: 'type cast': truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bdna.cpp(526): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(36): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  btBulletWorldImporter.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(434): warning C4311: 'type cast': pointer truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(434): warning C4302: 'type cast': truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(471): warning C4311: 'type cast': pointer truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(471): warning C4302: 'type cast': truncation from 'char *' to 'long'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(1275): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'void *'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(1275): warning C4313: 'printf': '%d' in format string conflicts with argument 1 of type 'void *'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(1293): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'void *'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(1293): warning C4313: 'printf': '%d' in format string conflicts with argument 1 of type 'void *'
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(1474): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 2 has type 'void *const '
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletfileloader\bfile.cpp(1474): warning C4313: 'printf': '%d' in format string conflicts with argument 2 of type 'void *const '
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletdynamics\constraintsolver\btcontactconstraint.h(25): warning C4359: 'btContactConstraint': Alignment specifier is less than actual alignment (128), and will be ignored. (compiling source file bullet\BulletDynamics\Vehicle\btRaycastVehicle.cpp)
+  btWorldImporter.cpp
+  btAlignedAllocator.cpp
+  btConvexHull.cpp
+  btConvexHullComputer.cpp
+  btGeometryUtil.cpp
+  btPolarDecomposition.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\bulletworldimporter\btworldimporter.cpp(1179): warning C4244: 'argument': conversion from 'double' to 'btScalar', possible loss of data
+  btQuickprof.cpp
+  btSerializer.cpp
+  btVector3.cpp
+  AGO.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\linearmath\btvector3.cpp(179): warning C4267: '=': conversion from 'size_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\linearmath\btvector3.cpp(184): warning C4267: '-=': conversion from 'size_t' to 'unsigned long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\linearmath\btvector3.cpp(427): warning C4267: '=': conversion from 'size_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\linearmath\btvector3.cpp(564): warning C4267: '=': conversion from 'size_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\bullet\linearmath\btvector3.cpp(569): warning C4267: '-=': conversion from 'size_t' to 'unsigned long', possible loss of data
+  cMaterial.cpp
+c:\users\bhoyn\documents\github\agktier2\bullet\linearmath\btvector3.cpp(815): warning C4267: '=': conversion from 'size_t' to 'long', possible loss of data
+  cMesh.cpp
+  b2BroadPhase.cpp
+  b2CollideCircle.cpp
+  b2CollideEdge.cpp
+  b2CollidePolygon.cpp
+  b2Collision.cpp
+  b2Distance.cpp
+  b2DynamicTree.cpp
+  b2TimeOfImpact.cpp
+  b2ChainShape.cpp
+  b2CircleShape.cpp
+  b2EdgeShape.cpp
+  b2PolygonShape.cpp
+  b2BlockAllocator.cpp
+  b2Draw.cpp
+  b2Math.cpp
+  b2Settings.cpp
+  b2StackAllocator.cpp
+  b2Timer.cpp
+  b2Body.cpp
+  b2ContactManager.cpp
+  b2Fixture.cpp
+  b2Island.cpp
+  b2World.cpp
+  b2WorldCallbacks.cpp
+  b2ChainAndCircleContact.cpp
+  b2ChainAndPolygonContact.cpp
+  b2CircleContact.cpp
+  b2Contact.cpp
+  b2ContactSolver.cpp
+  b2EdgeAndCircleContact.cpp
+  b2EdgeAndPolygonContact.cpp
+  b2PolygonAndCircleContact.cpp
+  b2PolygonContact.cpp
+  b2DistanceJoint.cpp
+  b2FrictionJoint.cpp
+  b2GearJoint.cpp
+  b2Joint.cpp
+  b2MouseJoint.cpp
+  b2PrismaticJoint.cpp
+  b2PulleyJoint.cpp
+  b2RevoluteJoint.cpp
+  b2RopeJoint.cpp
+  b2WeldJoint.cpp
+  b2WheelJoint.cpp
+  b2Rope.cpp
+  Box.cpp
+  CollisionBox.cpp
+  CollisionPolygon.cpp
+  CollisionResults.cpp
+  CollisionSphere.cpp
+  CollisionTree.cpp
+  Face.cpp
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionpolygon.cpp(93): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  TreeNode.cpp
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionbox.cpp(79): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionbox.cpp(300): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionsphere.cpp(99): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionsphere.cpp(100): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionsphere.cpp(122): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionsphere.cpp(171): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisionsphere.cpp(202): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  3DMath.cpp
+  AGKLights.cpp
+c:\users\bhoyn\documents\github\agktier2\common\collision\collisiontree.cpp(65): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  AGKShader.cpp
+  cCamera.cpp
+  cEvent.cpp
+  cFile.cpp
+c:\users\bhoyn\documents\github\agktier2\common\collision\face.cpp(221): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  cForce.cpp
+  cImage.cpp
+  cNode.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\3dmath.cpp(1274): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  cObject3D.cpp
+  cObjectMgr.cpp
+  cSound.cpp
+  cSprite.cpp
+  cSpriteMgr.cpp
+  cText.cpp
+  cTextEntry.cpp
+  cTouch.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\csound.cpp(57): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+  DebugDraw.cpp
+  FrameBuffer.cpp
+  Joystick.cpp
+  JSONElement.cpp
+  Mouse.cpp
+  Network.cpp
+  Particles.cpp
+  Physics.cpp
+  sha1.cpp
+  Skeleton2D.cpp
+  Tween.cpp
+  uString.cpp
+  Wrapper.cpp
+  ZipFile.cpp
+  SocialPlugins.cpp
+  WindowsCore.cpp
+  WindowsNetwork.cpp
+  BarcodeFormat.cpp
+  Binarizer.cpp
+  BinaryBitmap.cpp
+c:\program files (x86)\microsoft sdks\windows\v7.1a\include\shlobj.h(1151): warning C4091: 'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared (compiling source file platform\windows\Source\WindowsCore.cpp)
+  Array.cpp
+  BitArray.cpp
+  BitMatrix.cpp
+  BitSource.cpp
+c:\users\bhoyn\documents\github\agktier2\common\source\wrapper.cpp(43196): warning C4018: '>': signed/unsigned mismatch
+  CharacterSetECI.cpp
+  Counted.cpp
+  DecoderResult.cpp
+  DetectorResult.cpp
+  MonochromeRectangleDetector.cpp
+  WhiteRectangleDetector.cpp
+  ECI.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(33): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(89): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(92): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(95): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(102): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(105): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\monochromerectangledetector.cpp(108): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  EdgeDetector.cpp
+c:\users\bhoyn\documents\github\agktier2\platform\windows\source\windowscore.cpp(954): warning C4838: conversion from 'DWORD' to 'int' requires a narrowing conversion
+c:\users\bhoyn\documents\github\agktier2\platform\windows\source\windowscore.cpp(1999): warning C4312: 'type cast': conversion from 'DWORD' to 'void *' of greater size
+  GlobalHistogramBinarizer.cpp
+c:\users\bhoyn\documents\github\agktier2\platform\windows\source\windowscore.cpp(4602): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\platform\windows\source\windowscore.cpp(4635): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  GreyscaleLuminanceSource.cpp
+c:\users\bhoyn\documents\github\agktier2\platform\windows\source\windowscore.cpp(9220): warning C4311: 'type cast': pointer truncation from 'void *' to 'int'
+c:\users\bhoyn\documents\github\agktier2\platform\windows\source\windowscore.cpp(9220): warning C4302: 'type cast': truncation from 'void *' to 'int'
+  GreyscaleRotatedLuminanceSource.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\whiterectangledetector.cpp(148): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\whiterectangledetector.cpp(161): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\whiterectangledetector.cpp(174): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\detector\whiterectangledetector.cpp(187): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\edgedetector.cpp(61): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\edgedetector.cpp(65): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\edgedetector.cpp(92): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\edgedetector.cpp(97): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\common\edgedetector.cpp(115): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  GridSampler.cpp
+  HybridBinarizer.cpp
+  IllegalArgumentException.cpp
+  PerspectiveTransform.cpp
+  GF256.cpp
+  GF256Poly.cpp
+  ReedSolomonDecoder.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\common\gridsampler.cpp(108): warning C4244: '=': conversion from 'int' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=float
+          ]
+c:\users\bhoyn\documents\github\agktier2\zxing\common\gridsampler.cpp(113): warning C4244: '=': conversion from 'int' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=float
+          ]
+  ReedSolomonException.cpp
+  Str.cpp
+  StringUtils.cpp
+  DataMatrixReader.cpp
+  BitMatrixParser2.cpp
+  DataBlock2.cpp
+  DecodedBitStreamParser2.cpp
+  Decoder2.cpp
+  CornerPoint.cpp
+  Detector2.cpp
+  DetectorException.cpp
+  MonochromeRectangleDetector2.cpp
+  Version2.cpp
+  DecodeHints.cpp
+  Exception.cpp
+  FormatException.cpp
+  LuminanceSource.cpp
+  MultiFormatReader.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(33): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(89): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(92): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(95): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(102): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(105): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\datamatrix\detector\monochromerectangledetector2.cpp(108): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  ByQuadrantReader.cpp
+  GenericMultipleBarcodeReader.cpp
+  MultipleBarcodeReader.cpp
+  MultiDetector.cpp
+  MultiFinderPatternFinder.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\multiformatreader.cpp(92): warning C4101: 're': unreferenced local variable
+  QRCodeMultiReader.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\multi\genericmultiplebarcodereader.cpp(70): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\multi\genericmultiplebarcodereader.cpp(71): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+  NotFoundException.cpp
+  Code128Reader.cpp
+  Code39Reader.cpp
+  EAN13Reader.cpp
+  EAN8Reader.cpp
+  ITFReader.cpp
+  MultiFormatOneDReader.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\code128reader.cpp(476): warning C4101: 're': unreferenced local variable
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\code39reader.cpp(140): warning C4267: '+=': conversion from 'size_t' to 'unsigned int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\code39reader.cpp(176): warning C4101: 're': unreferenced local variable
+  MultiFormatUPCEANReader.cpp
+  OneDReader.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\itfreader.cpp(95): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\itfreader.cpp(96): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\itfreader.cpp(104): warning C4101: 're': unreferenced local variable
+  OneDResultPoint.cpp
+  UPCAReader.cpp
+  UPCEANReader.cpp
+  UPCEReader.cpp
+  BitMatrixParser.cpp
+  DataBlock.cpp
+  DataMask.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\onedreader.cpp(93): warning C4101: 're': unreferenced local variable
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\onedreader.cpp(95): warning C4101: 're': unreferenced local variable
+  DecodedBitStreamParser.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\oned\upceanreader.cpp(107): warning C4101: 're': unreferenced local variable
+  Decoder.cpp
+  Mode.cpp
+  AlignmentPattern.cpp
+  AlignmentPatternFinder.cpp
+  Detector.cpp
+  FinderPattern.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\qrcode\decoder\decodedbitstreamparser.cpp(138): warning C4101: 're': unreferenced local variable
+c:\users\bhoyn\documents\github\agktier2\zxing\qrcode\decoder\decodedbitstreamparser.cpp(205): warning C4101: 're': unreferenced local variable
+  FinderPatternFinder.cpp
+  FinderPatternInfo.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\qrcode\detector\detector.cpp(91): warning C4101: 're': unreferenced local variable
+  QREdgeDetector.cpp
+  ErrorCorrectionLevel.cpp
+  FormatInformation.cpp
+  QRCodeReader.cpp
+  Version.cpp
+  QREncode.cpp
+  Reader.cpp
+c:\users\bhoyn\documents\github\agktier2\zxing\qrcode\detector\qredgedetector.cpp(103): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\qrcode\detector\qredgedetector.cpp(102): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\qrcode\detector\qredgedetector.cpp(154): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\zxing\qrcode\detector\qredgedetector.cpp(164): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+  ReaderException.cpp
+  Result.cpp
+  ResultPoint.cpp
+  ResultPointCallback.cpp
+  autofit.c
+  bdf.c
+  cff.c
+  ftbase.c
+  ftbitmap.c
+  ftcache.c
+  ftdebug.c
+  ftfstype.c
+  ftgasp.c
+  ftglyph.c
+  ftgzip.c
+  ftinit.c
+  ftlzw.c
+  ftstroke.c
+  ftsystem.c
+  smooth.c
+  ftbbox.c
+  ftfntfmt.c
+  ftgxval.c
+  ftlcdfil.c
+  ftmm.c
+  ftotval.c
+  ftpatent.c
+  ftpfr.c
+  ftsynth.c
+  fttype1.c
+  ftwinfnt.c
+  pcf.c
+  pfr.c
+  psaux.c
+  pshinter.c
+  psmodule.c
+  raster.c
+  sfnt.c
+c:\users\bhoyn\documents\github\agktier2\freetype\src\psaux\t1decode.c(1360): warning C4267: '=': conversion from 'size_t' to 'FT_Int', possible loss of data (compiling source file freetype\src\psaux\psaux.c)
+  truetype.c
+  type1.c
+  type1cid.c
+  type42.c
+c:\users\bhoyn\documents\github\agktier2\freetype\src\truetype\ttgload.c(1690): warning C4312: 'type cast': conversion from 'unsigned long' to 'void *' of greater size (compiling source file freetype\src\truetype\truetype.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\truetype\ttgload.c(1694): warning C4312: 'type cast': conversion from 'unsigned long' to 'void *' of greater size (compiling source file freetype\src\truetype\truetype.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\truetype\ttgload.c(1703): warning C4312: 'type cast': conversion from 'unsigned long' to 'void *' of greater size (compiling source file freetype\src\truetype\truetype.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\truetype\ttgload.c(1709): warning C4312: 'type cast': conversion from 'unsigned long' to 'void *' of greater size (compiling source file freetype\src\truetype\truetype.c)
+  winfnt.c
+  analysis.c
+  bitrate.c
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1load.c(1458): warning C4244: '=': conversion from '__int64' to 'FT_Int', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1load.c(1621): warning C4244: '=': conversion from '__int64' to 'FT_Int', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(264): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(284): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(316): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(346): warning C4267: '=': conversion from 'size_t' to 'FT_UInt', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(553): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(559): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(565): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(571): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type1\t1driver.c(577): warning C4267: '=': conversion from 'size_t' to 'FT_ULong', possible loss of data (compiling source file freetype\src\type1\type1.c)
+c:\users\bhoyn\documents\github\agktier2\freetype\src\type42\t42parse.c(821): warning C4244: '=': conversion from '__int64' to 'FT_Int', possible loss of data (compiling source file freetype\src\type42\type42.c)
+c:\users\bhoyn\documents\github\agktier2\libogg\src\bitrate.c(42): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\bitrate.c(43): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\bitrate.c(44): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\bitrate.c(51): warning C4244: 'initializing': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\bitrate.c(135): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\bitrate.c(83): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\bitrate.c(88): warning C4244: 'initializing': conversion from 'double' to 'long', possible loss of data
+  bitwise.c
+  block.c
+  codebook.c
+  envelope.c
+  floor0.c
+  floor1.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\floor1.c(210): warning C4244: '=': conversion from '__int64' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\floor1.c(275): warning C4244: 'initializing': conversion from 'const float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\floor1.c(499): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\floor1.c(500): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\block.c(864): warning C4244: 'initializing': conversion from 'ogg_int64_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\block.c(902): warning C4244: 'initializing': conversion from 'ogg_int64_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\codebook.c(183): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\codebook.c(192): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\codebook.c(214): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\envelope.c(48): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\envelope.c(65): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\envelope.c(68): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\floor0.c(126): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\floor0.c(136): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\envelope.c(145): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\envelope.c(127): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  framing.c
+  info.c
+  lookup.c
+  lpc.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\info.c(47): warning C4244: '=': conversion from 'long' to 'char', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\info.c(60): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\info.c(90): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\info.c(110): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\info.c(467): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  lsp.c
+  mapping0.c
+  mdct.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lpc.c(130): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lsp.c(252): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lsp.c(276): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lsp.c(259): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lsp.c(350): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lsp.c(397): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lsp.c(449): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\lsp.c(452): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  psy.c
+  registry.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mdct.c(58): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mdct.c(66): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mdct.c(67): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mdct.c(68): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mdct.c(69): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mdct.c(72): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mdct.c(73): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mapping0.c(266): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mapping0.c(312): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mapping0.c(329): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\mapping0.c(387): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  res0.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(137): warning C4244: 'function': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(139): warning C4244: 'function': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(173): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(174): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(175): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(254): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(259): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(192): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(193): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(217): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(218): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(239): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(274): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(276): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(277): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(290): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(291): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(301): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(325): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(327): warning C4244: 'function': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(348): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(296): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(312): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(336): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(402): warning C4244: '=': conversion from 'const float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(404): warning C4244: '=': conversion from 'const float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(571): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(739): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(801): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(807): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(814): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(818): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(922): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(953): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(955): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(976): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(978): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(992): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(990): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(1050): warning C4244: '=': conversion from 'const double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(1128): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(1157): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(1176): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(1178): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(1021): warning C4244: 'initializing': conversion from 'const double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\psy.c(1022): warning C4244: 'initializing': conversion from 'const double' to 'float', possible loss of data
+  sharedbook.c
+  smallft.c
+  synthesis.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\res0.c(443): warning C4244: '*=': conversion from 'float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\res0.c(423): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(53): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(54): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(65): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(161): warning C4244: 'initializing': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(220): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(240): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(219): warning C4244: 'initializing': conversion from 'long' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(239): warning C4244: 'initializing': conversion from 'long' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\sharedbook.c(353): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\smallft.c(99): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\smallft.c(100): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\smallft.c(283): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\smallft.c(284): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\smallft.c(853): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\smallft.c(854): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  vorbisenc.c
+  vorbisfile.c
+  window.c
+  jaricom.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(72): warning C4267: 'initializing': conversion from 'size_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(259): warning C4244: 'function': conversion from 'ogg_int64_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(273): warning C4244: '=': conversion from 'ogg_int64_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(545): warning C4244: 'return': conversion from 'ogg_int64_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(566): warning C4244: 'return': conversion from 'ogg_int64_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(569): warning C4244: 'return': conversion from 'ogg_int64_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(579): warning C4244: 'return': conversion from 'ogg_int64_t' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(641): warning C4244: 'return': conversion from 'ogg_int64_t' to 'int', possible loss of data
+  jcapimin.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(874): warning C4244: 'function': conversion from 'ogg_int64_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(1118): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(1119): warning C4244: 'return': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(1123): warning C4244: 'return': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(1151): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(1764): warning C4244: '=': conversion from 'ogg_int64_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(1801): warning C4244: 'initializing': conversion from 'double' to 'ogg_int64_t', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(1831): warning C4244: 'initializing': conversion from 'double' to 'ogg_int64_t', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisfile.c(2167): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  jcapistd.c
+  jcarith.c
+  jccoefct.c
+  jccolor.c
+  jcdctmgr.c
+  jchuff.c
+  jcinit.c
+c:\users\bhoyn\documents\github\agktier2\libogg\include\modes\psych_44.h(27): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data (compiling source file libogg\src\vorbisenc.c)
+c:\users\bhoyn\documents\github\agktier2\libogg\include\modes\psych_44.h(33): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data (compiling source file libogg\src\vorbisenc.c)
+c:\users\bhoyn\documents\github\agktier2\libogg\include\modes\psych_44.h(39): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data (compiling source file libogg\src\vorbisenc.c)
+c:\users\bhoyn\documents\github\agktier2\libogg\include\modes\psych_44.h(45): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data (compiling source file libogg\src\vorbisenc.c)
+c:\users\bhoyn\documents\github\agktier2\libogg\include\modes\psych_44.h(51): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data (compiling source file libogg\src\vorbisenc.c)
+  jcmainct.c
+  jcmarker.c
+  jcmaster.c
+  jcomapi.c
+  jcparam.c
+  jcprepct.c
+  jcsample.c
+  jdapimin.c
+  jdapistd.c
+  jdarith.c
+  jdatadst.c
+  jdatasrc.c
+  jdcoefct.c
+  jdcolor.c
+c:\users\bhoyn\documents\github\agktier2\libjpeg\jdatadst.c(185): warning C4267: '=': conversion from 'size_t' to 'unsigned long', possible loss of data
+  jddctmgr.c
+  jdhuff.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(248): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(249): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(251): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(231): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  jdinput.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(272): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(273): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(274): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(276): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(277): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(278): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(284): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(285): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(286): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(289): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(291): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(292): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(258): warning C4244: 'initializing': conversion from 'const double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(259): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(271): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(282): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(312): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(345): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(346): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(347): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(348): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(349): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(351): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(354): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(338): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(377): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(362): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(388): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(383): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(403): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  jdmainct.c
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(410): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(417): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(398): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(429): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(430): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(447): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(529): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(593): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(622): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(659): warning C4244: 'initializing': conversion from 'const double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(660): warning C4244: 'initializing': conversion from 'const double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(661): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(717): warning C4244: 'function': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(834): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(840): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(842): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(877): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(913): warning C4305: '+=': truncation from 'double' to 'float'
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(914): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(967): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(969): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(979): warning C4244: '=': conversion from 'long' to 'float', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(990): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(1074): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(1090): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libogg\src\vorbisenc.c(1093): warning C4244: '=': conversion from 'double' to 'long', possible loss of data
+  jdmarker.c
+  jdmaster.c
+  jdmerge.c
+  jdpostct.c
+  jdsample.c
+  jerror.c
+  jfdctflt.c
+  jfdctfst.c
+  jfdctint.c
+  jidctflt.c
+  jidctfst.c
+  jidctint.c
+  jmemansi.c
+  jmemmgr.c
+  jquant1.c
+  jquant2.c
+  jutils.c
+c:\users\bhoyn\documents\github\agktier2\libjpeg\jmemmgr.c(306): warning C4267: '+=': conversion from 'size_t' to 'long', possible loss of data
+  png.c
+c:\users\bhoyn\documents\github\agktier2\libjpeg\jmemmgr.c(366): warning C4267: '+=': conversion from 'size_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libjpeg\jmemmgr.c(976): warning C4267: '-=': conversion from 'size_t' to 'long', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\libjpeg\jmemmgr.c(990): warning C4267: '-=': conversion from 'size_t' to 'long', possible loss of data
+  pngerror.c
+  pngget.c
+  pngmem.c
+  pngpread.c
+  pngread.c
+  pngrio.c
+  pngrtran.c
+  pngrutil.c
+  pngset.c
+  pngtrans.c
+  pngwio.c
+  pngwrite.c
+  pngwtran.c
+  pngwutil.c
+  ConvertUTF.c
+  dev2gif.c
+  dgif_lib.c
+  egif_lib.c
+  getarg.c
+  gifalloc.c
+  gif_err.c
+c:\users\bhoyn\documents\github\agktier2\giflib\dgif_lib.c(71): warning C4996: 'open': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _open. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(514): note: see declaration of 'open'
+c:\users\bhoyn\documents\github\agktier2\giflib\dgif_lib.c(100): warning C4996: 'close': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _close. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(457): note: see declaration of 'close'
+c:\users\bhoyn\documents\github\agktier2\giflib\dgif_lib.c(109): warning C4996: 'close': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _close. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(457): note: see declaration of 'close'
+c:\users\bhoyn\documents\github\agktier2\giflib\dgif_lib.c(114): warning C4996: 'setmode': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _setmode. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(528): note: see declaration of 'setmode'
+c:\users\bhoyn\documents\github\agktier2\giflib\dgif_lib.c(117): warning C4996: 'fdopen': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fdopen. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2448): note: see declaration of 'fdopen'
+c:\users\bhoyn\documents\github\agktier2\giflib\egif_lib.c(100): warning C4996: 'open': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _open. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(514): note: see declaration of 'open'
+c:\users\bhoyn\documents\github\agktier2\giflib\egif_lib.c(106): warning C4996: 'open': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _open. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(514): note: see declaration of 'open'
+c:\users\bhoyn\documents\github\agktier2\giflib\egif_lib.c(118): warning C4996: 'close': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _close. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(457): note: see declaration of 'close'
+c:\users\bhoyn\documents\github\agktier2\giflib\egif_lib.c(157): warning C4996: 'setmode': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _setmode. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(528): note: see declaration of 'setmode'
+c:\users\bhoyn\documents\github\agktier2\giflib\egif_lib.c(160): warning C4996: 'fdopen': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fdopen. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2448): note: see declaration of 'fdopen'
+  gif_font.c
+  gif_hash.c
+  qprintf.c
+  quantize.c
+  adler32.c
+c:\users\bhoyn\documents\github\agktier2\giflib\gif_hash.c(72): warning C4013: 'malloc' undefined; assuming extern returning int
+  compress.c
+c:\users\bhoyn\documents\github\agktier2\giflib\gif_hash.c(72): warning C4312: 'type cast': conversion from 'int' to 'GifHashTableType *' of greater size
+c:\users\bhoyn\documents\github\agktier2\giflib\quantize.c(153): warning C4018: '<': signed/unsigned mismatch
+c:\users\bhoyn\documents\github\agktier2\giflib\quantize.c(162): warning C4018: '<': signed/unsigned mismatch
+c:\users\bhoyn\documents\github\agktier2\giflib\quantize.c(173): warning C4244: '=': conversion from 'long' to 'GifByteType', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\giflib\quantize.c(174): warning C4244: '=': conversion from 'long' to 'GifByteType', possible loss of data
+c:\users\bhoyn\documents\github\agktier2\giflib\quantize.c(175): warning C4244: '=': conversion from 'long' to 'GifByteType', possible loss of data
+  crc32.c
+  deflate.c
+  gzclose.c
+  gzlib.c
+  gzread.c
+  gzwrite.c
+c:\users\bhoyn\documents\github\agktier2\zlib\gzread.c(30): warning C4996: 'read': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _read. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(521): note: see declaration of 'read'
+c:\users\bhoyn\documents\github\agktier2\zlib\gzlib.c(180): warning C4996: 'open': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _open. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(514): note: see declaration of 'open'
+c:\users\bhoyn\documents\github\agktier2\zlib\gzread.c(581): warning C4996: 'close': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _close. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(457): note: see declaration of 'close'
+  infback.c
+  inffast.c
+  inflate.c
+  inftrees.c
+c:\users\bhoyn\documents\github\agktier2\zlib\gzwrite.c(84): warning C4996: 'write': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _write. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(556): note: see declaration of 'write'
+c:\users\bhoyn\documents\github\agktier2\zlib\gzwrite.c(101): warning C4996: 'write': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _write. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(556): note: see declaration of 'write'
+c:\users\bhoyn\documents\github\agktier2\zlib\gzwrite.c(558): warning C4996: 'close': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _close. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\corecrt_io.h(457): note: see declaration of 'close'
+  ioapi.c
+  iowin32.c
+  trees.c
+  uncompr.c
+  unzip.c
+  zip.c
+  zutil.c
+LINK : fatal error LNK1181: cannot open input file 'dxguid.lib'

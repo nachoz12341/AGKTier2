@@ -4072,5 +4072,6 @@
     <None Include="assimp\include\assimp\vector3.inl">
       <Filter>assimp</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

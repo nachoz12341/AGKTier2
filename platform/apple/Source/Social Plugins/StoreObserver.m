@@ -26,7 +26,7 @@
 			
 			
 				NSString *rawReceiptData = [[NSString alloc] initWithData:transaction.transactionReceipt encoding:NSUTF8StringEncoding];
-				[[StoreManager sharedManager] provideContent: transaction.payment.productIdentifier signature:rawReceiptData ];
+                [[StoreManager sharedManager] provideContent: transaction.payment.productIdentifier signature:rawReceiptData token:transaction.transactionIdentifier ];
 				[[SKPaymentQueue defaultQueue] finishTransaction: transaction];		
 				[rawReceiptData release]; 
 			}
@@ -65,7 +65,7 @@
 				// restored when something went wrong for example, user got a phone call when attempting to purchase
 			
 				NSString *rawReceiptData = [[NSString alloc] initWithData:transaction.originalTransaction.transactionReceipt encoding:NSUTF8StringEncoding];
-				[[StoreManager sharedManager] provideContent: transaction.originalTransaction.payment.productIdentifier signature:rawReceiptData];
+				[[StoreManager sharedManager] provideContent: transaction.originalTransaction.payment.productIdentifier signature:rawReceiptData token:transaction.transactionIdentifier ];
 				
 				[[SKPaymentQueue defaultQueue] finishTransaction: transaction];
 			}
@@ -84,20 +84,20 @@
         NSString *productID = transaction.payment.productIdentifier;
         
         NSString *rawReceiptData = [[NSString alloc] initWithData:transaction.transactionReceipt encoding:NSUTF8StringEncoding];
-        [[StoreManager sharedManager] provideContent: productID signature:rawReceiptData];
+        [[StoreManager sharedManager] provideContent: productID signature:rawReceiptData token:transaction.transactionIdentifier];
     }
     
-    [[StoreManager sharedManager] finishedRestore:1];
+    NSLog(@"Restore Finished");
 }
 
 - ( void ) paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError: (NSError*) error
 {
-    [[StoreManager sharedManager] finishedRestore:0];
+    NSLog(@"Restore Failed: %@", [error localizedDescription]);
 }
 
 - (void)paymentQueue:(SKPaymentQueue *)queue removedTransactions:(NSArray *)transactions
 {
-	[[StoreManager sharedManager] finishedRestore:0];
+	
 }
 
 - (BOOL)paymentQueue:(SKPaymentQueue *)queue shouldAddStorePayment:(SKPayment *)payment forProduct:(SKProduct *)product

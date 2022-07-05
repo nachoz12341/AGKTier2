@@ -1291,20 +1291,18 @@ void agk::SetWindowSize( int width, int height, int fullscreen, int allowOverSiz
 		if ( g_iIsAGKFullscreen ) return;
 		g_iIsAGKFullscreen = 1;
 
-		RECT rc;
-		GetWindowRect(GetDesktopWindow(), &rc);
-
 		RECT currRect;
 		GetWindowRect(g_hWnd, &currRect);
 
 		oldX = currRect.left;
 		oldY = currRect.top;
 
-		RECT WindowRect;							
-		WindowRect.left=(long)0;					
-		WindowRect.right=(long)rc.right-rc.left;				
-		WindowRect.top=(long)0;						
-		WindowRect.bottom=(long)rc.bottom-rc.top;
+		HMONITOR monitor = MonitorFromRect( &currRect, MONITOR_DEFAULTTONEAREST );
+
+		MONITORINFO monitorInfo;
+		monitorInfo.cbSize = sizeof( MONITORINFO );
+		GetMonitorInfo( monitor, &monitorInfo );
+		RECT monitorRect = monitorInfo.rcMonitor;
 
 		int changed = 0;
 		if ( !(GetWindowLong( g_hWnd, GWL_STYLE ) & WS_POPUP) )
@@ -1317,17 +1315,15 @@ void agk::SetWindowSize( int width, int height, int fullscreen, int allowOverSiz
 		}
 
 		if ( changed 
-		  && WindowRect.right-WindowRect.left == currRect.right-currRect.left
-		  && WindowRect.bottom-WindowRect.top == currRect.bottom-currRect.top )
+		  && monitorRect.right-monitorRect.left == currRect.right-currRect.left
+		  && monitorRect.bottom-monitorRect.top == currRect.bottom-currRect.top )
 		{
 			// force resize message
-			::SetWindowPos( g_hWnd, 0, WindowRect.left, WindowRect.top, WindowRect.right-WindowRect.left-1, WindowRect.bottom-WindowRect.top-1, SWP_NOZORDER | SWP_FRAMECHANGED );
-			::SetWindowPos( g_hWnd, 0, WindowRect.left, WindowRect.top, WindowRect.right-WindowRect.left, WindowRect.bottom-WindowRect.top, SWP_NOZORDER | SWP_FRAMECHANGED );
+			::SetWindowPos( g_hWnd, 0, monitorRect.left, monitorRect.top, monitorRect.right-monitorRect.left-1, monitorRect.bottom-monitorRect.top-1, SWP_NOZORDER | SWP_FRAMECHANGED );
 		}
-		else
-		{
-			::SetWindowPos( g_hWnd, 0, WindowRect.left, WindowRect.top, WindowRect.right-WindowRect.left, WindowRect.bottom-WindowRect.top, SWP_NOZORDER | SWP_FRAMECHANGED );
-		}
+
+		::SetWindowPos( g_hWnd, 0, monitorRect.left, monitorRect.top, monitorRect.right-monitorRect.left, monitorRect.bottom-monitorRect.top, SWP_NOZORDER | SWP_FRAMECHANGED );
+
 
 		if ( m_bUsingVSync ) agk::SetVSync( 1 );
 	}
@@ -7508,11 +7504,13 @@ void agk::StopSpeaking()
 
 int uString::ToInt() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	return atoi(m_pData);
 }
 
 float uString::ToFloat() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	return (float)atof(m_pData);
 }
 

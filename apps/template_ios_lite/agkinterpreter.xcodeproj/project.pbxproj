@@ -35,7 +35,7 @@
 		4AF8AEB022F2168F00CC735F /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEAD22F2168F00CC735F /* nanopb.framework */; };
 		4AF8AEB122F2168F00CC735F /* GoogleAppMeasurement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEAE22F2168F00CC735F /* GoogleAppMeasurement.framework */; };
 		67098DA52670382E00F8BD74 /* UserMessagingPlatform.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA42670382E00F8BD74 /* UserMessagingPlatform.framework */; };
-		67098DA72670392F00F8BD74 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA62670392F00F8BD74 /* AppTrackingTransparency.framework */; };
+		67098DA72670392F00F8BD74 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA62670392F00F8BD74 /* AppTrackingTransparency.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		67098DA92670396200F8BD74 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA82670396200F8BD74 /* JavaScriptCore.framework */; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };

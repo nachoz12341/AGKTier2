@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="DebugCompatible|x64">
@@ -80,8 +80,8 @@
     <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);E:\C++ APIs\dxsdk %28June2010%29\Lib\x64</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);$(DIRECTX_SDK_PATH)\Lib\x64</LibraryPath>
     <TargetName>AGKWindows64</TargetName>
     <OutDir>platform\windows\Lib\VS2015\Debug64\</OutDir>
     <IntDir>platform\windows\Lib\VS2015\Debug64\</IntDir>
@@ -89,8 +89,8 @@
     <ExcludePath>$(VC_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x64);</ExcludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);E:\C++ APIs\dxsdk %28June2010%29\Lib\x64</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);$(DIRECTX_SDK_PATH)\Lib\x64</LibraryPath>
     <TargetName>AGKWindows64</TargetName>
     <OutDir>platform\windows\Lib\VS2015\Release64\</OutDir>
     <IntDir>platform\windows\Lib\VS2015\Release64\</IntDir>
@@ -98,8 +98,8 @@
     <ExcludePath>$(VC_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x64);</ExcludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);E:\C++ APIs\dxsdk %28June2010%29\Lib\x64</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);$(DIRECTX_SDK_PATH)\Lib\x64</LibraryPath>
     <TargetName>AGKWindows64</TargetName>
     <OutDir>platform\windows\Lib\VS2015\Free64\</OutDir>
     <IntDir>platform\windows\Lib\VS2015\Free64\</IntDir>
@@ -107,8 +107,8 @@
     <ExcludePath>$(VC_IncludePath);$(MSBuild_ExecutablePath);$(VC_LibraryPath_x64);</ExcludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCompatible|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);E:\C++ APIs\dxsdk %28June2010%29\Lib\x64</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSdk_71A_LibraryPath_x64);$(DIRECTX_SDK_PATH)\Lib\x64</LibraryPath>
     <TargetName>AGKWindows64</TargetName>
     <OutDir>platform\windows\Lib\VS2015\Debug64\</OutDir>
     <IntDir>platform\windows\Lib\VS2015\Debug64\</IntDir>
@@ -985,6 +985,7 @@
     <ClCompile Include="common\Box2D\Dynamics\Joints\b2MotorJoint.cpp" />
     <ClCompile Include="common\Source\3DParticles.cpp" />
     <ClCompile Include="common\Source\AGKFont.cpp" />
+    <ClCompile Include="common\Source\SimplexNoise.cpp" />
     <ClCompile Include="renderer\OpenGL2\OpenGL2.cpp" />
     <ClCompile Include="freetype\src\autofit\autofit.c" />
     <ClCompile Include="freetype\src\bdf\bdf.c" />

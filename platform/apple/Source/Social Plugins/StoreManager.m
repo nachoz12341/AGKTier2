@@ -19,7 +19,8 @@ static char				productID [ MAX_PRODUCTS ] [ 128 ];
 static char				productPrice [ MAX_PRODUCTS ] [ 15 ];
 static char				productDesc [ MAX_PRODUCTS ] [ 256 ];
 static int				productState [ MAX_PRODUCTS ];
-static char*			productSig [ MAX_PRODUCTS ];
+static char*			productSig [ MAX_PRODUCTS ] = {0};
+static char*            productToken [ MAX_PRODUCTS ] = {0};
 static StoreManager*	_sharedStoreManager;
 static char				title [ 128 ];
 
@@ -29,12 +30,20 @@ static char				title [ 128 ];
 
 	for ( int i = 0; i < MAX_PRODUCTS; i++ )
     {
-		productState[ i ] = 0;
+        productState [ i ] = 0;
         productPrice[ i ][ 0 ] = 0;
         productDesc[ i ][ 0 ] = 0;
 		productID[ i ][ 0 ] = 0;
+        if ( productSig[ i ] ) delete [] productSig[ i ];
 		productSig[i] = 0;
+        if ( productToken[ i ] ) delete [] productToken[ i ];
+        productToken[i] = 0;
     }
+    
+    if ( _sharedStoreManager.storeObserver ) [ _sharedStoreManager.storeObserver release ];
+    _sharedStoreManager.storeObserver = nil;
+    if ( _sharedStoreManager ) [_sharedStoreManager release];
+    _sharedStoreManager = nil;
 }
 
 + ( void ) addProductID: ( const char* ) ID
@@ -98,10 +107,11 @@ static char				title [ 128 ];
 		{
 			for ( int i = 0; i < MAX_PRODUCTS; i++ )
             {
-				productState [ i ] = 0;
+                productState [ i ] = 0;
                 memset( productPrice[ i ], 0, 15 );
                 memset( productDesc[ i ], 0, 256 );
 				productSig[i] = 0;
+                productToken[i] = 0;
             }
 			
 			[ [ self alloc ] init ];
@@ -375,10 +385,10 @@ static char				title [ 128 ];
 
 - ( void ) finishedRestore: (int) success
 {
-    NSLog(@"Restore Finished");
+    
 }
 
-- ( void ) provideContent: ( NSString* ) productIdentifier signature:(NSString*) signature
+- ( void ) provideContent: ( NSString* ) productIdentifier signature:(NSString*) signature token:(NSString*) token
 {
 	for ( int i = 0; i < productCount; i++ )
 	{
@@ -396,6 +406,11 @@ static char				title [ 128 ];
 					if ( productSig[ i ] ) delete [] productSig[ i ];
 					productSig[ i ] = new char[ strlen(szSig) + 1 ];
 					strcpy( productSig[i], szSig );
+                    
+                    const char* szToken = [token UTF8String];
+                    if ( productToken[ i ] ) delete [] productToken[ i ];
+                    productToken[ i ] = new char[ strlen(szToken) + 1 ];
+                    strcpy( productToken[i], szToken );
 				}
 			}
 		}
@@ -430,5 +445,41 @@ static char				title [ 128 ];
 		[ userDefaults setBool: (productState [ i ] == 4) forKey: pString ];
         [pString release];
 	}
+}
+
+- ( char* ) getToken: (int) iID
+{
+    if ( _sharedStoreManager == nil || iID < 0 || iID >= productCount || !productToken[iID] )
+    {
+        char *str = new char[1];
+        *str = 0;
+        return str;
+    }
+    else
+    {
+        @synchronized ( _sharedStoreManager )
+        {
+            char *str = new char[ strlen(productToken[iID]) + 1 ];
+            strcpy( str, productToken[iID] );
+            return str;
+        }
+    }
+}
+
+- ( void ) resetPurchase: (const char*) token
+{
+    for ( int i = 0; i < productCount; i++ )
+    {
+        if ( productToken[i] && strcmp(productToken[i], token) == 0 )
+        {
+            NSUserDefaults* userDefaults = [ NSUserDefaults standardUserDefaults ];
+            NSString* pString = [ [ NSString alloc ] initWithUTF8String: productID[i] ];
+            [ userDefaults removeObjectForKey:pString ];
+            
+            delete [] productToken[i];
+            productToken[ i ] = 0;
+            productState [ i ] = 0;
+        }
+    }
 }
 @end

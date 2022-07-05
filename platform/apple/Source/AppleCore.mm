@@ -423,6 +423,9 @@ void SetSystemTextBox( const char* text )
     imagePickerController.delegate = self;
     imagePickerController.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     imagePickerController.allowsEditing = NO;
+	
+	// mike - 250322 - alter this so it's displayed over the full screen. without this you can tap off the control and the app gets stuck
+    imagePickerController.modalPresentationStyle = UIModalPresentationCurrentContext;
     
     // New way
     [g_pViewController presentViewController:imagePickerController animated:YES completion:nil];
@@ -4820,6 +4823,7 @@ void agk::StopSpeaking()
 
 int uString::ToInt() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	//NSString* pString = [ [ NSString alloc ] initWithCString: m_pData.GetStr() length: m_pData.GetLength() * sizeof ( char ) ];
 	//return [string intValue];
 	return atoi(m_pData);
@@ -4827,6 +4831,7 @@ int uString::ToInt() const
 
 float uString::ToFloat() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	return (float)atof(m_pData);
 }
 

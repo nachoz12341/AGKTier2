@@ -164,6 +164,17 @@ btVector3 AGKToBullet::GetObjectSize( UINT objID )
 		pFace = pFace->GetNextFace();
     }
 
+	// mike - 011221 - this list never got deleted and ended up causing a bad memory leak
+	// have added this to loop through all elements and wipe them out
+	pFace = pAllFaces;
+
+	while ( pFace )
+	{
+		Face* p = pFace;
+		pFace = pFace->GetNextFace ( );
+		delete p;
+	}
+
 	return maxVector - minVector;
 }
 

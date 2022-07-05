@@ -5,6 +5,7 @@
     <item name="android:windowIsFloating">false</item>
     <item name="android:windowFullscreen">true</item>
     <item name="android:windowIsTranslucent">false</item>
+    <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
   </style>
   
   <style name="AGKTheme.Transparent" parent="android:Theme">
@@ -15,5 +16,6 @@
     <item name="android:windowNoTitle">true</item>
     <item name="android:windowIsFloating">false</item>
     <item name="android:windowFullscreen">true</item>
+    <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
   </style>
 </resources>

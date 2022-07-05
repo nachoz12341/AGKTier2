@@ -111,6 +111,33 @@ struct stArray
 	int GetTypeType() { return m_iDataType >> 9; }
 	void SetDataType( UINT currType, UINT typetype, UINT dimensions, UINT endtype ) { m_iDataType = (typetype << 9) | ((endtype & 0x07) << 6) | ((dimensions & 0x07) << 3) | (currType & 0x07); }
 
+	int IndexOfInt ( int value )
+	{
+		if ( m_iLength == 0 ) return -1;
+
+		int varType = GetCurrType ( );
+		if ( varType != AGK_DATA_TYPE_INT && varType != AGK_DATA_TYPE_TYPE )
+		{
+			return -1;
+		}
+
+		for ( unsigned int i = 0; i < m_iLength; i++ )
+		{
+			if ( varType == AGK_DATA_TYPE_TYPE )
+			{
+				if ( ( *( int* ) ( m_pT [ i ]->m_pData ) ) == value )
+					return i;
+			}
+			else
+			{
+				if ( m_pI [ i ] == value )
+					return i;
+			}
+		}
+
+		return -1;
+	}
+
 	int FindInt( int offset, int value, int closest=0 )
 	{
 		if ( m_iLength == 0 ) return closest ? 0 : -1;
@@ -170,6 +197,35 @@ struct stArray
 		}
 	}
 
+	int IndexOfFloat ( float value )
+	{
+		if ( m_iLength == 0 ) return -1;
+
+		int varType = GetCurrType ( );
+		if ( varType != AGK_DATA_TYPE_FLOAT && varType != AGK_DATA_TYPE_TYPE )
+		{
+			return -1;
+		}
+
+		// mike - 060921 - the code beneath may be more efficient, however, it does not work correctly
+		// dependent on how the data is ordered, therefore for the time being I've changed it
+		for ( unsigned int i = 0; i < m_iLength; i++ )
+		{
+			if ( varType == AGK_DATA_TYPE_TYPE )
+			{
+				if ( ( *( float* ) ( m_pT [ i ]->m_pData ) ) == value )
+					return i;
+			}
+			else
+			{
+				if ( m_pF [ i ] == value )
+					return i;
+			}
+		}
+
+		return -1;
+	}
+
 	int FindFloat( int offset, float value, int closest=0 )
 	{
 		if ( m_iLength == 0 ) return closest ? 0 : -1;
@@ -227,6 +283,38 @@ struct stArray
 				return mid;
 			}
 		}
+	}
+
+	int IndexOfString ( const char* value )
+	{
+		if ( m_iLength == 0 ) return -1;
+
+		int varType = GetCurrType ( );
+		if ( varType != AGK_DATA_TYPE_STRING && varType != AGK_DATA_TYPE_TYPE )
+		{
+			return -1;
+		}
+
+		// mike - 060921 - the code beneath may be more efficient, however, it does not work correctly
+		// dependent on how the data is ordered, therefore for the time being I've changed it
+		for ( unsigned int i = 0; i < m_iLength; i++ )
+		{
+			if ( varType == AGK_DATA_TYPE_TYPE )
+			{
+				uString *pString = ( uString* ) ( m_pT [ i ]->m_pData );
+
+				if ( pString->CompareTo ( value ) == 0 )
+					return i;
+			}
+			else
+			{
+
+				if ( m_pS [ i ]->CompareTo ( value ) == 0 )
+					return i;
+			}
+		}
+
+		return -1;
 	}
 
 	int FindString( int offset, const char* value, int closest=0 )

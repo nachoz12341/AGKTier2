@@ -47,6 +47,8 @@
 #define AGK_FILE_TYPE_WRITE			0x02
 
 
+class SimplexNoise;
+
 // GDK Class
 namespace AGK
 {
@@ -690,7 +692,7 @@ namespace AGK
 			static int m_iPrintSizeChanged;
 			static cText *m_pPrintText;
 			static uString m_cPrintStr;
-			static char m_szConvStr[ 20 ]; // string used to temporarily hold floats and ints converted to strings
+			static char m_szConvStr[ 256 ]; // string used to temporarily hold floats and ints converted to strings
 			static bool m_bGenerateMipmaps;
 			static cSprite *m_pLastColCheck;
 			static cSprite *m_pLastColCheck2;
@@ -743,6 +745,9 @@ namespace AGK
 			static float m_fDrawingTime;
 
 			static int m_iNumProcessors;
+
+			// noise
+			static SimplexNoise* m_pNoise;
 
 		public:
 
@@ -1072,6 +1077,7 @@ namespace AGK
 			static void Error( const uString &sMsg );
 			static void Warning( const uString &sMsg );
 			static void SetErrorMode( int mode );
+			static int GetErrorMode ( );
 			static int GetLastError( uString &sOut );
 			static char* GetLastError();
 			static int GetErrorOccurred();
@@ -1353,6 +1359,14 @@ namespace AGK
 			static float GetSpritePhysicsVelocityY( UINT iSpriteIndex );
 			static float GetSpritePhysicsAngularVelocity( UINT iSpriteIndex );
 			static float GetSpritePhysicsMass( UINT iSpriteIndex );
+
+			static void SetSpritePhysicsGravityScale ( UINT iSpriteIndex, float scale );
+			static float GetSpritePhysicsGravityScale ( UINT iSpriteIndex );
+			static void SetSpritePhysicsInitiallyAwake ( UINT iSpriteIndex, int awake );
+			static void SetSpritePhysicsAllowSleep ( UINT iSpriteIndex, int sleep );
+			static float GetSpritePhysicsInertia ( UINT iSpriteIndex );
+			static int GetSpritePhysicsIsBullet ( UINT iSpriteIndex );
+			static int GetSpritePhysicsIsAwake ( UINT iSpriteIndex );
 
 			// joints
 			static void DeleteJoint( UINT iJointIndex );
@@ -1705,6 +1719,9 @@ namespace AGK
 			static void StopTweenCustom( UINT tweenID );
 			static int GetTweenCustomPlaying( UINT tweenID );
 
+			static float GetTweenCustomTime ( UINT tweenID );
+			static float GetTweenCustomEndTime ( UINT tweenID );
+
 			// sprite tweening
 			static void CreateTweenSprite( UINT tweenID, float duration );
 			static UINT CreateTweenSprite( float duration );
@@ -1728,6 +1745,9 @@ namespace AGK
 			static void StopTweenSprite( UINT tweenID, UINT spriteID );
 			static int GetTweenSpritePlaying( UINT tweenID, UINT spriteID );
 
+			static float GetTweenSpriteTime ( UINT tweenID, UINT spriteID );
+			static float GetTweenSpriteEndTime ( UINT tweenID, UINT spriteID );
+
 			// text tweening
 			static void CreateTweenText( UINT tweenID, float duration );
 			static UINT CreateTweenText( float duration );
@@ -1750,6 +1770,9 @@ namespace AGK
 			static void StopTweenText( UINT tweenID, UINT textID );
 			static int GetTweenTextPlaying( UINT tweenID, UINT textID );
 
+			static float GetTweenTextTime ( UINT tweenID, UINT textID );
+			static float GetTweenTextEndTime ( UINT tweenID, UINT textID );
+
 			// text char tweening
 			static void CreateTweenChar( UINT tweenID, float duration );
 			static UINT CreateTweenChar( float duration );
@@ -1768,6 +1791,9 @@ namespace AGK
 			static void UpdateTweenChar( UINT tweenID, UINT textID, UINT charID, float time );
 			static void StopTweenChar( UINT tweenID, UINT textID, UINT charID );
 			static int GetTweenCharPlaying( UINT tweenID, UINT textID, UINT charID );
+
+			static float GetTweenCharTime ( UINT tweenID, UINT textID, UINT charID );
+			static float GetTweenCharEndTime ( UINT tweenID, UINT textID, UINT charID );
 
 			// object tweening
 			static void CreateTweenObject( UINT tweenID, float duration );
@@ -1793,6 +1819,9 @@ namespace AGK
 			static void UpdateTweenObject( UINT tweenID, UINT objectID, float time );
 			static void StopTweenObject( UINT tweenID, UINT objectID );
 			static int GetTweenObjectPlaying( UINT tweenID, UINT objectID );
+
+			static float GetTweenObjectTime ( UINT tweenID, UINT objectID );
+			static float GetTweenObjectEndTime ( UINT tweenID, UINT objectID );
 
 			// camera tweening
 			static void CreateTweenCamera( UINT tweenID, float duration );
@@ -1835,6 +1864,12 @@ namespace AGK
 			static void UpdateAllTweens( float time );
 			static void UpdateTweenChain( UINT chainID, float time );
 		
+			static void ClearTweenSprite ( UINT tweenID );
+			static void ClearTweenCustom ( UINT tweenID );
+			static void ClearTweenText ( UINT tweenID );
+			static void ClearTweenChar ( UINT tweenID );
+			static void ClearTweenObject ( UINT tweenID );
+			static void ClearTweenCamera ( UINT tweenID );
 
 			// print commands
 			static void Print( const uString &string );
@@ -2899,6 +2934,7 @@ namespace AGK
 
 			static void FixObjectToObject( UINT objID, UINT toObjID );
 			static void FixObjectToBone( UINT objID, UINT toObjID, UINT toBoneIndex );
+			static void FixObjectToCamera( uint32_t objID, uint32_t camID );
 
 			// animation
 			static int GetObjectNumAnimations( UINT objID );
@@ -3130,9 +3166,6 @@ namespace AGK
 			static float GetCameraX( UINT cameraID );
 			static float GetCameraY( UINT cameraID );
 			static float GetCameraZ( UINT cameraID );
-			static float GetCameraWorldX( UINT cameraID );
-			static float GetCameraWorldY( UINT cameraID );
-			static float GetCameraWorldZ( UINT cameraID );
 			static float GetCameraAngleX( UINT cameraID );
 			static float GetCameraAngleY( UINT cameraID );
 			static float GetCameraAngleZ( UINT cameraID );
@@ -3140,6 +3173,17 @@ namespace AGK
 			static float GetCameraQuatX( UINT cameraID );
 			static float GetCameraQuatY( UINT cameraID );
 			static float GetCameraQuatZ( UINT cameraID );
+
+			static float GetCameraWorldX( UINT cameraID );
+			static float GetCameraWorldY( UINT cameraID );
+			static float GetCameraWorldZ( UINT cameraID );
+			static float GetCameraWorldAngleX( UINT cameraID );
+			static float GetCameraWorldAngleY( UINT cameraID );
+			static float GetCameraWorldAngleZ( UINT cameraID );
+			static float GetCameraWorldQuatW( UINT cameraID );
+			static float GetCameraWorldQuatX( UINT cameraID );
+			static float GetCameraWorldQuatY( UINT cameraID );
+			static float GetCameraWorldQuatZ( UINT cameraID );
 
 			static void SetCameraLookAt( UINT cameraID, float x, float y, float z, float roll );
 			static void SetCameraRange( UINT cameraID, float fNear, float fFar );
@@ -3502,6 +3546,15 @@ namespace AGK
 			// SnapChat
 			static void SetSnapChatStickerSettings( float x, float y, int width, int height, float angle );
 			static void ShareSnapChatImage( const char* imageFile, const char* stickerFile, const char* caption, const char* url );
+
+			// noise functions
+			static void SetupNoise ( float frequency, float amplitude, float lacunarity, float persistence );
+			static float GetNoiseX ( float x );
+			static float GetNoiseXY ( float x, float y );
+			static float GetNoiseXYZ ( float x, float y, float z );
+			static float GetFractalX ( uint32_t octaves, float x );
+			static float GetFractalXY ( uint32_t octaves, float x, float y );
+			static float GetFractalXZ ( uint32_t octaves, float x, float y, float z );
 	};
 }
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Headers">
@@ -4042,6 +4042,9 @@
     </ClCompile>
     <ClCompile Include="common\Box2D\Dynamics\Joints\b2MotorJoint.cpp">
       <Filter>Box2D</Filter>
+    </ClCompile>
+    <ClCompile Include="common\Source\SimplexNoise.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

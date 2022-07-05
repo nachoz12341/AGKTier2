@@ -1,6 +1,6 @@
 @echo off
 
-set NDKBUILDCMD="E:\Data\NDK\android-ndk-r20\ndk-build"
+set NDKBUILDCMD="%NDK_PATH%\ndk-build"
 
 cd ..\android_bullet
 call %NDKBUILDCMD% -j16 2> log.txt

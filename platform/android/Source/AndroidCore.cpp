@@ -5650,11 +5650,13 @@ void agk::StopSpeaking()
 
 int uString::ToInt() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	return atoi(m_pData);
 }
 
 float uString::ToFloat() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	return (float)atof(m_pData);
 }
 

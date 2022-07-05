@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
     sourceSets.main.jni.srcDirs = []
 
     defaultConfig {
         applicationId "com.mycompany.mytemplate"
         minSdkVersion 16
-        targetSdkVersion 29
+        targetSdkVersion 30
         ndk{
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
@@ -55,7 +55,7 @@ dependencies {
     implementation 'com.google.api-client:google-api-client:1.25.0'
     implementation 'com.google.api-client:google-api-client-android:1.23.0'
     implementation 'com.google.apis:google-api-services-drive:v3-rev110-1.23.0'
-    implementation files('libs/YouTubeAndroidPlayerAPI.jar')
+    implementation files('libs/YouTubeAndroidPlayerApi.jar')
     implementation([
             'com.snapchat.kit.sdk:creative:1.4.4',
             'com.snapchat.kit.sdk:core:1.4.4',

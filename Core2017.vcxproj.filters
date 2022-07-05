@@ -3848,6 +3848,9 @@
     <ClCompile Include="common\Box2D\Dynamics\Joints\b2MotorJoint.cpp">
       <Filter>Box2D</Filter>
     </ClCompile>
+    <ClCompile Include="common\Source\SimplexNoise.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="assimp\BlenderDNA.inl">

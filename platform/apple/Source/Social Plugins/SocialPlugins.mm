@@ -742,6 +742,13 @@ char* agk::PlatformGetInAppPurchaseLocalPrice ( int iID )
 
 char* agk::PlatformGetInAppPurchaseDescription ( int iID )
 {
+    if ( iID < 0 )
+    {
+        char* str = new char[1];
+        *str = 0;
+        return str;
+    }
+    
     return [ [ StoreManager sharedManager ] getDescription: iID ];
 }
 
@@ -758,6 +765,16 @@ void agk::PlatformInAppPurchaseRestore()
 char* agk::PlatformGetInAppPurchaseSignature( int iID )
 {
 	return [[StoreManager sharedManager] getSignature: iID];
+}
+
+void agk::PlatformInAppPurchaseResetPurchase( const char* token )
+{
+    [[StoreManager sharedManager] resetPurchase: token];
+}
+
+char* agk::PlatformGetInAppPurchaseToken( int iID )
+{
+    return [[StoreManager sharedManager] getToken: iID];
 }
 
 #pragma mark -
@@ -887,6 +904,10 @@ void agk::RequestConsentAdMob()
             }
         ];
     }
+	else
+	{
+		g_iAdMobConsentStatus = 2;
+	}
 }
 
 void agk::OverrideConsentAdMob( int consent )
@@ -898,7 +919,7 @@ void agk::OverrideConsentChartboost( int consent )
 //****
 {
 #ifndef LITEVERSION
-    g_iChartboostConsentStatus = 1;
+	g_iChartboostConsentStatus = 1;
     if ( consent == 2 ) g_iChartboostConsentStatus = 2;
     
     UpdateChartboostConsent();
@@ -1198,7 +1219,7 @@ int  agk::PlatformAdMobGetFullscreenLoaded ()
 {
 	if ( !g_pInterstitialListener ) return 0;
 	
-    return g_pInterstitialListener->pInterstitial ? 1 : 0;
+	return g_pInterstitialListener->pInterstitial ? 1 : 0;
 }
 
 void agk::PlatformAdMobRewardAd()
@@ -1274,7 +1295,7 @@ void  agk::PlatformChartboostSetup ()
     [Chartboost startWithAppId:[ NSString stringWithUTF8String:m_sChartboostCode1.GetStr() ]
                   appSignature:[ NSString stringWithUTF8String:m_sChartboostCode2.GetStr() ]
                   delegate:g_pChartboostListener];
-    
+        
     [g_pChartboostListener reset];
     [g_pChartboostListener load];
 #else
@@ -1349,6 +1370,7 @@ void agk::PlatformChartboostResetRewardAd()
     g_pChartboostListener->rewarded = 0;
 #endif
 }
+
 
 #pragma mark -
 #pragma mark Twitter Commands

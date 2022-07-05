@@ -3390,6 +3390,7 @@ void agk::StopSpeaking()
 
 int uString::ToInt() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	//NSString* pString = [ [ NSString alloc ] initWithCString: m_pData.GetStr() length: m_pData.GetLength() * sizeof ( char ) ];
 	//return [string intValue];
 	return atoi(m_pData);
@@ -3397,6 +3398,7 @@ int uString::ToInt() const
 
 float uString::ToFloat() const
 {
+	if ( !m_pData || !*m_pData ) return 0;
 	return atof(m_pData);
 }
 

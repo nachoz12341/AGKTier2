@@ -878,6 +878,8 @@ void AGKMusicOGG::Update()
 			if (remaining / (float) m_fmt.nSamplesPerSec / stride > diff )
 			{
 				remaining = (int) (diff * m_fmt.nSamplesPerSec * stride);
+				remaining /= stride; // round to nearest stride value
+				remaining *= stride;
 				ending = 1;
 			}
 		}
@@ -895,7 +897,7 @@ void AGKMusicOGG::Update()
 		{
 			// reached end of stream, but haven't triggered ov_read to return 0
 			int dump, bitstream;
-			bytes = ov_read( m_pOggFile, (char*)&dump, 1, 0, 2, 1, &bitstream );
+			bytes = ov_read( m_pOggFile, (char*)&dump, 4, 0, 2, 1, &bitstream );
 			if ( bytes > 0 )
 			{
 				agk::Warning( "Something went wrong trying to trigger end of OGG file" );

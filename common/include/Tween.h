@@ -64,6 +64,7 @@ namespace AGK
 			TweenCustom();
 			~TweenCustom() {}
 
+			void Reset ( void );
 			int GetType() { return AGK_TWEEN_TYPE_CUSTOM; }
 			void Update( float fTime, void *target, int subtarget );
 	};
@@ -87,6 +88,7 @@ namespace AGK
 			TweenSprite();
 			~TweenSprite() {}
 
+			void Reset ( void );
 			int GetType() { return AGK_TWEEN_TYPE_SPRITE; }
 			void Update( float fTime, void *target, int subtarget );
 	};
@@ -109,6 +111,7 @@ namespace AGK
 			TweenText();
 			~TweenText() {}
 
+			void Reset ( void );
 			int GetType() { return AGK_TWEEN_TYPE_TEXT; }
 			void Update( float fTime, void *target, int subtarget );
 	};
@@ -128,6 +131,7 @@ namespace AGK
 			TweenChar();
 			~TweenChar() {}
 
+			void Reset ( void );
 			int GetType() { return AGK_TWEEN_TYPE_CHAR; }
 			void Update( float fTime, void *target, int subtarget );
 	};
@@ -153,6 +157,7 @@ namespace AGK
 			TweenObject();
 			~TweenObject() {}
 
+			void Reset ( void );
 			int GetType() { return AGK_TWEEN_TYPE_OBJECT; }
 			void Update( float fTime, void *target, int subtarget );
 	};
@@ -172,6 +177,7 @@ namespace AGK
 			TweenCamera();
 			~TweenCamera() {}
 
+			void Reset ( void );
 			int GetType() { return AGK_TWEEN_TYPE_CAMERA; }
 			void Update( float fTime, void *target, int subtarget );
 	};

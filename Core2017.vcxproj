@@ -82,29 +82,29 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>platform\windows\Lib\VS2017\Debug\</OutDir>
     <IntDir>platform\windows\Lib\VS2017\Debug\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);E:\C++ APIs\dxsdk %28June2010%29\Lib\x86</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);$(DIRECTX_SDK_PATH)\Lib\x86</LibraryPath>
     <TargetName>AGKWindows</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>platform\windows\Lib\VS2017\Release\</OutDir>
     <IntDir>platform\windows\Lib\VS2017\Release\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);E:\C++ APIs\dxsdk %28June2010%29\Lib\x86</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);$(DIRECTX_SDK_PATH)\Lib\x86</LibraryPath>
     <TargetName>AGKWindows</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseFREE|Win32'">
     <OutDir>platform\windows\Lib\VS2017\Free\</OutDir>
     <IntDir>platform\windows\Lib\VS2017\Free\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);E:\C++ APIs\dxsdk %28June2010%29\Lib\x86</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);$(DIRECTX_SDK_PATH)\Lib\x86</LibraryPath>
     <TargetName>AGKWindows</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugCompatible|Win32'">
     <OutDir>platform\windows\Lib\VS2017\Debug\</OutDir>
     <IntDir>platform\windows\Lib\VS2017\Debug\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);E:\C++ APIs\dxsdk %28June2010%29\Include</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);E:\C++ APIs\dxsdk %28June2010%29\Lib\x86</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);$(DIRECTX_SDK_PATH)\Include</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSdk_71A_LibraryPath_x86);$(DIRECTX_SDK_PATH)\Lib\x86</LibraryPath>
     <TargetName>AGKWindows</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -1058,6 +1058,7 @@
     <ClCompile Include="assimp\XGLLoader.cpp" />
     <ClCompile Include="common\Source\3DParticles.cpp" />
     <ClCompile Include="common\Source\AGKFont.cpp" />
+    <ClCompile Include="common\Source\SimplexNoise.cpp" />
     <ClCompile Include="renderer\OpenGL2\OpenGL2.cpp" />
     <ClCompile Include="freetype\src\autofit\autofit.c" />
     <ClCompile Include="freetype\src\bdf\bdf.c" />

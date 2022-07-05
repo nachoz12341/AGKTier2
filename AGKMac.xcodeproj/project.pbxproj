@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2D1E50EC286AF8A400178A91 /* SimplexNoise.h in Headers */ = {isa = PBXBuildFile; fileRef = 2D1E50EB286AF8A400178A91 /* SimplexNoise.h */; };
+		2D1E50EE286AF8AF00178A91 /* SimplexNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2D1E50ED286AF8AF00178A91 /* SimplexNoise.cpp */; };
 		4A104FD61DA555DF00343096 /* sha2.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A104FD51DA555DF00343096 /* sha2.h */; };
 		4A104FD81DA555F200343096 /* sha2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4A104FD71DA555F200343096 /* sha2.cpp */; };
 		4A12DDA91DFA627900BD53CA /* smooth.c in Sources */ = {isa = PBXBuildFile; fileRef = 4A12DDA81DFA627900BD53CA /* smooth.c */; };
@@ -1435,6 +1437,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2D1E50EB286AF8A400178A91 /* SimplexNoise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SimplexNoise.h; path = common/include/SimplexNoise.h; sourceTree = "<group>"; };
+		2D1E50ED286AF8AF00178A91 /* SimplexNoise.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = SimplexNoise.cpp; path = common/Source/SimplexNoise.cpp; sourceTree = "<group>"; };
 		4A104FD51DA555DF00343096 /* sha2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sha2.h; path = common/include/sha2.h; sourceTree = "<group>"; };
 		4A104FD71DA555F200343096 /* sha2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sha2.cpp; path = common/Source/sha2.cpp; sourceTree = "<group>"; };
 		4A12DDA81DFA627900BD53CA /* smooth.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = smooth.c; path = freetype/src/smooth/smooth.c; sourceTree = "<group>"; };
@@ -2940,6 +2944,7 @@
 				4AF7CA751BD725170021ED1E /* Joints.cpp */,
 				4AF7CA761BD725170021ED1E /* Ray.cpp */,
 				4AF7CA771BD725170021ED1E /* RigidBodies.cpp */,
+				2D1E50ED286AF8AF00178A91 /* SimplexNoise.cpp */,
 				4AF7CA781BD725170021ED1E /* RigidBody.cpp */,
 				4AF7CA791BD725170021ED1E /* Skeleton3D.cpp */,
 				4AF7CA7A1BD725170021ED1E /* StaticPlane.cpp */,
@@ -4384,6 +4389,7 @@
 				4AF7CA541BD724F20021ED1E /* StaticPlane.h */,
 				4AF7CA551BD724F20021ED1E /* Vector.h */,
 				4A94903D18D8806F002FD5F3 /* FrameBuffer.h */,
+				2D1E50EB286AF8A400178A91 /* SimplexNoise.h */,
 				4A94903E18D8806F002FD5F3 /* JSONElement.h */,
 				4A94903F18D8806F002FD5F3 /* Skeleton2D.h */,
 				4A94904018D8806F002FD5F3 /* Tween.h */,
@@ -5151,6 +5157,7 @@
 				4AF7CEEC1BD7254A0021ED1E /* btDbvt.h in Headers */,
 				4AF7CF3D1BD7254A0021ED1E /* btConcaveShape.h in Headers */,
 				D899CAA6140D21CF005A5A3A /* b2Timer.h in Headers */,
+				2D1E50EC286AF8A400178A91 /* SimplexNoise.h in Headers */,
 				4AF7CC7D1BD7253F0021ED1E /* cfileio.h in Headers */,
 				4A45ABC81D01A2EC00CF29C4 /* os.h in Headers */,
 				D899CAB5140D21DD005A5A3A /* b2Body.h in Headers */,
@@ -6016,6 +6023,7 @@
 				4AF7CFD71BD7254B0021ED1E /* btSequentialImpulseConstraintSolver.cpp in Sources */,
 				4A8D1D321C480A6700C6EAFD /* FBXConverter.cpp in Sources */,
 				4AF7CD3A1BD7253F0021ED1E /* STEPFileReader.cpp in Sources */,
+				2D1E50EE286AF8AF00178A91 /* SimplexNoise.cpp in Sources */,
 				D8BC8AE7152121470042EDA1 /* gzclose.c in Sources */,
 				4AF7CF191BD7254A0021ED1E /* btEmptyCollisionAlgorithm.cpp in Sources */,
 				4A35AD5D1DEF43D500A51946 /* ftlcdfil.c in Sources */,

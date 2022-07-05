@@ -140,6 +140,10 @@ void cSprite::Reset ( void )
 	m_colResult = UNDEF;
 	m_lastContact = UNDEF;
 	m_pContactIter = UNDEF;
+
+	m_fGravityScale = 1.0f;
+	m_bAwake = true;
+	m_bSleep = true;
 }
 
 //****if* cSprite/Sprite
@@ -5371,8 +5375,14 @@ void cSprite::SetPhysicsOn( ePhysicsMode mode )
 	bodyDef.position.Set( agk::WorldToPhyX(m_fX), agk::WorldToPhyY(m_fY) );
 	bodyDef.angle = m_fAngle;
 	bodyDef.userData = (void*) this;
+
+	bodyDef.gravityScale = m_fGravityScale;
+	bodyDef.awake = m_bAwake;
+	bodyDef.allowSleep = m_bSleep;
+
 	//bodyDef.linearVelocity.x = 10.0f;
 	//bodyDef.angularVelocity = 4.0f;
+
 	m_phyBody = agk::m_phyWorld->CreateBody( &bodyDef );
 		
 	if ( m_phyShape )
@@ -5401,6 +5411,54 @@ void cSprite::SetPhysicsOn( ePhysicsMode mode )
 	mass.mass = m_phyBody->GetMass();
 	mass.I = m_phyBody->GetInertia();
 	m_phyBody->SetMassData( &mass );
+}
+
+void cSprite::SetPhysicsGravityScale ( float scale )
+{
+	// can set it before or after creation
+	m_fGravityScale = scale;
+
+	if ( !m_phyBody )
+		return;
+
+	m_phyBody->SetGravityScale ( scale );
+}
+
+float cSprite::GetPhysicsGravityScale ( void )
+{
+	return m_fGravityScale;
+}
+
+void cSprite::SetPhysicsInitiallyAwake ( bool awake )
+{
+	m_bAwake = true;
+}
+
+void cSprite::SetPhysicsAllowSleep ( bool sleep )
+{
+	// can set it before or after creation
+	m_bSleep = sleep;
+
+	if ( !m_phyBody )
+		return;
+
+	m_phyBody->SetSleepingAllowed ( sleep );
+}
+
+float cSprite::GetInertia ( void )
+{
+	if ( !m_phyBody )
+		return 0.0f;
+
+	return m_phyBody->GetInertia ( );
+}
+
+bool cSprite::GetIsAwake ( void )
+{
+	if ( !m_phyBody )
+		return false;
+
+	return m_phyBody->IsAwake ( );
 }
 
 void cSprite::PrepareToClearPhysicsContacts()
@@ -5578,6 +5636,13 @@ void cSprite::SetPhysicsIsBullet( bool bullet )
 	if ( !m_phyBody ) return;
 
 	m_phyBody->SetBullet( bullet );
+}
+
+bool cSprite::GetIsBullet ( void )
+{
+	if ( !m_phyBody ) return false;
+
+	return m_phyBody->IsBullet ( );
 }
 
 void cSprite::SetPhysicsMass( float mass )

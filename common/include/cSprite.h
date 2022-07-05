@@ -188,6 +188,10 @@ namespace AGK
 			b2Contact *m_lastContact;
 			b2ContactEdge *m_pContactIter;
 
+			float m_fGravityScale;
+			bool m_bAwake;
+			bool m_bSleep;
+
 			void ReplacePhysicsShape( b2Shape *pOldShape, b2Shape *pNewShape );
 
 			// internal
@@ -424,6 +428,14 @@ namespace AGK
 			void SetPhysicsIsBullet			( bool bullet );
 			void SetPhysicsMass				( float mass );
 			void SetPhysicsIsSensor			( bool sensor, int shapeID=-1 );
+			
+			void SetPhysicsGravityScale		( float scale );
+			float GetPhysicsGravityScale	( void );
+			void SetPhysicsInitiallyAwake	( bool awake );
+			void SetPhysicsAllowSleep		( bool sleep );
+			float GetInertia				( void );
+			bool GetIsBullet				( void );
+			bool GetIsAwake					( void );
 
 			float GetPhysicsVelocityX();
 			float GetPhysicsVelocityY();

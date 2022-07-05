@@ -91,6 +91,7 @@ LOCAL_SRC_FILES := ../../../common/Source/AGKMotionState.cpp \
     ../../../common/Source/Tween.cpp \
     ../../../common/Source/AGKSkyBox.cpp \
     ../../../common/Source/3DParticles.cpp \
+	../../../common/Source/SimplexNoise.cpp \
     ../../../common/Collision/Box.cpp \
     ../../../common/Collision/CollisionBox.cpp \
     ../../../common/Collision/CollisionPolygon.cpp \

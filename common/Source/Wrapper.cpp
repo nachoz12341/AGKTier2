@@ -3,6 +3,7 @@
 #include "agk.h"
 #include "DebugDraw.h"
 #include "Box2D/Box2D.h"
+#include "SimplexNoise.h"
 
 #ifdef AGK_HTML5
 	#include "emscripten.h"
@@ -267,7 +268,7 @@ void(*agk::m_fDebugCallback)(const char*, const char*) = 0;
 int agk::m_iPrintSizeChanged = 0;
 cText* agk::m_pPrintText = UNDEF;
 uString agk::m_cPrintStr( "", 100 );
-char agk::m_szConvStr[ 20 ];
+char agk::m_szConvStr[ 256 ];
 bool agk::m_bGenerateMipmaps = false;
 cSprite* agk::m_pLastColCheck = UNDEF;
 cSprite* agk::m_pLastColCheck2 = UNDEF;
@@ -506,6 +507,10 @@ int agk::m_iGPSSensorExists = 0;
 
 int agk::m_iNumProcessors = 0;
 
+
+// noise
+SimplexNoise* agk::m_pNoise = NULL;
+
 // ************************************
 // Internal public functions (should only be called by automated processes)
 // ************************************
@@ -569,6 +574,7 @@ void agk::MasterReset()
 	agk::RestoreWriteDir();
 
 	SetWindowTitle( "AppGameKit Player" );
+	SetWindowSize( 1024, 768, 0 );
 	SetSyncRate( 60, 0 );
 	SetErrorMode( 1 );
 	agk::SetScreenResolution( 0,0 );
@@ -10822,6 +10828,163 @@ void agk::SetSpritePhysicsOff( UINT iSpriteIndex )
 	pSprite->SetPhysicsOff();
 }
 
+//****f* Sprite/Physics/SetSpritePhysicsGravityScale
+// FUNCTION
+//   Sets the gravity scale for the sprite.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite to modify.
+//	 scale -- scaling value for the gravity.
+// SOURCE
+void agk::SetSpritePhysicsGravityScale ( UINT iSpriteIndex, float scale )
+//****
+{
+	cSprite *pSprite = ( cSprite* ) m_cSpriteList.GetItem ( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr ( "Sprite ", 50 );  errStr.AppendUInt ( iSpriteIndex );  errStr.Append ( " does not exist" );
+		Error ( errStr );
+#endif
+		return;
+	}
+
+	pSprite->SetPhysicsGravityScale ( scale );
+}
+
+//****f* Sprite/Physics/GetSpritePhysicsGravityScale
+// FUNCTION
+//   Returns the gravity scale for the sprite.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite to modify.
+// SOURCE
+float agk::GetSpritePhysicsGravityScale ( UINT iSpriteIndex )
+//****
+{
+	cSprite *pSprite = ( cSprite* ) m_cSpriteList.GetItem ( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr ( "Sprite ", 50 );  errStr.AppendUInt ( iSpriteIndex );  errStr.Append ( " does not exist" );
+		Error ( errStr );
+#endif
+		return 0.0f;
+	}
+
+	return pSprite->GetPhysicsGravityScale ( );
+}
+
+//****f* Sprite/Physics/SetSpritePhysicsInitiallyAwake
+// FUNCTION
+//   Sets whether the sprite is awake upon creation.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite to modify.
+//	 awake -- 0 for sleep, 1 for awake.
+// SOURCE
+void agk::SetSpritePhysicsInitiallyAwake ( UINT iSpriteIndex, int awake )
+//****
+{
+	cSprite *pSprite = ( cSprite* ) m_cSpriteList.GetItem ( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr ( "Sprite ", 50 );  errStr.AppendUInt ( iSpriteIndex );  errStr.Append ( " does not exist" );
+		Error ( errStr );
+#endif
+		return;
+	}
+
+	pSprite->SetPhysicsInitiallyAwake ( awake );
+}
+
+//****f* Sprite/Physics/SetSpritePhysicsAllowSleep
+// FUNCTION
+//   Sets whether the sprite is allowed to sleep.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite to modify.
+//	 sleep -- 0 to disable sleeping, 1 to allow it.
+// SOURCE
+void agk::SetSpritePhysicsAllowSleep ( UINT iSpriteIndex, int sleep )
+//****
+{
+	cSprite *pSprite = ( cSprite* ) m_cSpriteList.GetItem ( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr ( "Sprite ", 50 );  errStr.AppendUInt ( iSpriteIndex );  errStr.Append ( " does not exist" );
+		Error ( errStr );
+#endif
+		return;
+	}
+
+	pSprite->SetPhysicsAllowSleep ( sleep );
+}
+
+//****f* Sprite/Physics/GetSpritePhysicsInertia
+// FUNCTION
+//   Returns the current inertia of the sprite.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite.
+// SOURCE
+float agk::GetSpritePhysicsInertia ( UINT iSpriteIndex )
+//****
+{
+	cSprite *pSprite = ( cSprite* ) m_cSpriteList.GetItem ( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr ( "Sprite ", 50 );  errStr.AppendUInt ( iSpriteIndex );  errStr.Append ( " does not exist" );
+		Error ( errStr );
+#endif
+		return 0.0f;
+	}
+
+	return pSprite->GetInertia ( );
+}
+
+//****f* Sprite/Physics/GetSpritePhysicsIsBullet
+// FUNCTION
+//   Returns whether the sprite is set to be a bullet or not.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite.
+// SOURCE
+int agk::GetSpritePhysicsIsBullet ( UINT iSpriteIndex )
+//****
+{
+	cSprite *pSprite = ( cSprite* ) m_cSpriteList.GetItem ( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr ( "Sprite ", 50 );  errStr.AppendUInt ( iSpriteIndex );  errStr.Append ( " does not exist" );
+		Error ( errStr );
+#endif
+		return 0;
+	}
+
+	return pSprite->GetIsBullet ( );
+}
+
+//****f* Sprite/Physics/GetSpritePhysicsIsAwake
+// FUNCTION
+//   Returns whether the sprite is awake or not.
+// INPUTS
+//   iSpriteIndex -- The ID of the sprite.
+// SOURCE
+int agk::GetSpritePhysicsIsAwake ( UINT iSpriteIndex )
+//****
+{
+	cSprite *pSprite = ( cSprite* ) m_cSpriteList.GetItem ( iSpriteIndex );
+	if ( pSprite == UNDEF )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr ( "Sprite ", 50 );  errStr.AppendUInt ( iSpriteIndex );  errStr.Append ( " does not exist" );
+		Error ( errStr );
+#endif
+		return 0;
+	}
+
+	return pSprite->GetIsAwake ( );
+}
+
 //****f* Sprite/Physics/SetSpritePhysicsDelete
 // FUNCTION
 //   Turns off physics for this sprite and deletes all associated physics settings for this sprite. You can use this to
@@ -19644,6 +19807,44 @@ int agk::GetTweenCustomExists( UINT tweenID )
 	else return 1;
 }
 
+//****f* Tweening/Custom/GetTweenCustomTime
+// FUNCTION
+//   Returns the current time of the custom tween
+// INPUTS
+//   tweenID -- ID of the tween
+// SOURCE
+float agk::GetTweenCustomTime ( UINT tweenID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_CUSTOM ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, 0 );
+
+	if ( pInstance ) return pInstance->m_fCurrentTime;
+
+	return 0.0f;
+}
+
+//****f* Tweening/Custom/GetTweenCustomEndTime
+// FUNCTION
+//   Returns the end time of the custom tween
+// INPUTS
+//   tweenID -- ID of the tween
+float agk::GetTweenCustomEndTime ( UINT tweenID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_CUSTOM ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, 0 );
+
+	if ( pInstance ) return pInstance->m_pTween->m_fDuration;
+
+	return 0.0f;
+}
+
+
 //****f* Tweening/Custom/SetTweenCustomFloat1
 // FUNCTION
 //   Sets the first float value of the given custom tween ID. A Tween can modify several parameters at 
@@ -20245,6 +20446,156 @@ int agk::GetTweenSpriteExists( UINT tweenID )
 	else return 1;
 }
 
+//****f* Tweening/Sprites/ClearTweenSprite
+// FUNCTION
+//   Clears all tweens for the sprite tween
+// INPUTS
+//   tweenID -- ID of the tween
+// SOURCE
+void agk::ClearTweenSprite ( UINT tweenID )
+//****
+{
+	TweenSprite *pTween = ( TweenSprite* ) m_cTweenList.GetItem ( tweenID );
+	if ( !pTween )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear tween sprite ID %d, ID does not exist", tweenID ); Error ( errStr );
+		return;
+	}
+
+	if ( pTween->GetType ( ) != AGK_TWEEN_TYPE_SPRITE )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear sprite tween for ID %d, tween ID is not a sprite tween", tweenID ); Error ( errStr );
+		return;
+	}
+
+	pTween->Reset ( );
+}
+
+//****f* Tweening/Custom/ClearTweenCustom
+// FUNCTION
+//   Clears all tweens for the custom tween
+// INPUTS
+//   tweenID -- ID of the tween
+// SOURCE
+void agk::ClearTweenCustom ( UINT tweenID )
+//****
+{
+	TweenCustom *pTween = ( TweenCustom* ) m_cTweenList.GetItem ( tweenID );
+	if ( !pTween )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear tween custom ID %d, ID does not exist", tweenID ); Error ( errStr );
+		return;
+	}
+
+	if ( pTween->GetType ( ) != AGK_TWEEN_TYPE_CUSTOM )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear custom tween for ID %d, tween ID is not a custom tween", tweenID ); Error ( errStr );
+		return;
+	}
+
+	pTween->Reset ( );
+}
+
+//****f* Tweening/Text/ClearTweenText
+// FUNCTION
+//   Clears all tweens for the text tween
+// INPUTS
+//   tweenID -- ID of the tween
+// SOURCE
+void agk::ClearTweenText ( UINT tweenID )
+//****
+{
+	TweenText *pTween = ( TweenText* ) m_cTweenList.GetItem ( tweenID );
+	if ( !pTween )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear tween text ID %d, ID does not exist", tweenID ); Error ( errStr );
+		return;
+	}
+
+	if ( pTween->GetType ( ) != AGK_TWEEN_TYPE_TEXT )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear text tween for ID %d, tween ID is not a text tween", tweenID ); Error ( errStr );
+		return;
+	}
+
+	pTween->Reset ( );
+}
+
+//****f* Tweening/Char/ClearTweenChar
+// FUNCTION
+//   Clears all tweens for the char tween
+// INPUTS
+//   tweenID -- ID of the tween
+// SOURCE
+void agk::ClearTweenChar ( UINT tweenID )
+//****
+{
+	TweenChar *pTween = ( TweenChar* ) m_cTweenList.GetItem ( tweenID );
+	if ( !pTween )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear tween char ID %d, ID does not exist", tweenID ); Error ( errStr );
+		return;
+	}
+
+	if ( pTween->GetType ( ) != AGK_TWEEN_TYPE_CHAR )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear char tween for ID %d, tween ID is not a char tween", tweenID ); Error ( errStr );
+		return;
+	}
+
+	pTween->Reset ( );
+}
+
+//****f* Tweening/Object/ClearTweenObject
+// FUNCTION
+//   Clears all tweens for the object tween
+// INPUTS
+//   tweenID -- ID of the tween
+// SOURCE
+void agk::ClearTweenObject ( UINT tweenID )
+//****
+{
+	TweenObject *pTween = ( TweenObject* ) m_cTweenList.GetItem ( tweenID );
+	if ( !pTween )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear tween object ID %d, ID does not exist", tweenID ); Error ( errStr );
+		return;
+	}
+
+	if ( pTween->GetType ( ) != AGK_TWEEN_TYPE_OBJECT )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear object tween for ID %d, tween ID is not an object tween", tweenID ); Error ( errStr );
+		return;
+	}
+
+	pTween->Reset ( );
+}
+
+//****f* Tweening/Camera/ClearTweenCamera
+// FUNCTION
+//   Clears all tweens for the camera tween
+// INPUTS
+//   tweenID -- ID of the tween
+// SOURCE
+void agk::ClearTweenCamera ( UINT tweenID )
+//****
+{
+	TweenCamera *pTween = ( TweenCamera* ) m_cTweenList.GetItem ( tweenID );
+	if ( !pTween )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear tween camera ID %d, ID does not exist", tweenID ); Error ( errStr );
+		return;
+	}
+
+	if ( pTween->GetType ( ) != AGK_TWEEN_TYPE_CAMERA )
+	{
+		uString errStr ( "", 100 ); errStr.Format ( "Failed to clear camera tween for ID %d, tween ID is not a camera tween", tweenID ); Error ( errStr );
+		return;
+	}
+
+	pTween->Reset ( );
+}
+
 //****f* Tweening/Sprites/SetTweenSpriteX
 // FUNCTION
 //   Sets the X parameter of the given tween ID. A Tween can modify several parameters of a sprite 
@@ -20429,7 +20780,6 @@ void agk::SetTweenSpriteAngle( UINT tweenID, float beginA, float endA, int inter
 	pTween->m_fBeginAngle = beginA;
 	pTween->m_fEndAngle = endA;
 	pTween->m_iInterpAngle = interpolation;
-	
 }
 
 //****f* Tweening/Sprites/SetTweenSpriteSizeX
@@ -20719,6 +21069,50 @@ void agk::PauseTweenSprite( UINT tweenID, UINT spriteID )
 
 	TweenInstance *pInstance = TweenInstance::GetInstance( pTween, pSprite );
 	if ( pInstance ) pInstance->Pause();
+}
+
+//****f* Tweening/Sprites/GetTweenSpriteTime
+// FUNCTION
+//   Returns the current time of the tween sprite
+// INPUTS
+//   tweenID -- ID of the tween
+//   spriteID -- ID of the sprite
+// SOURCE
+float agk::GetTweenSpriteTime ( UINT tweenID, UINT spriteID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_SPRITE ) return 0.0f;
+
+	cSprite *pSprite = m_cSpriteList.GetItem ( spriteID );
+	if ( !pSprite ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pSprite );
+	if ( pInstance ) return pInstance->m_fCurrentTime;
+
+	return 0.0f;
+}
+
+//****f* Tweening/Sprites/GetTweenSpriteEndTime
+// FUNCTION
+//   Returns the end time of the tween sprite
+// INPUTS
+//   tweenID -- ID of the tween
+//   spriteID -- ID of the sprite
+// SOURCE
+float agk::GetTweenSpriteEndTime ( UINT tweenID, UINT spriteID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_SPRITE ) return 0.0f;
+
+	cSprite *pSprite = m_cSpriteList.GetItem ( spriteID );
+	if ( !pSprite ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pSprite );
+	if ( pInstance ) return pInstance->m_pTween->m_fDuration;
+
+	return 0.0f;
 }
 
 //****f* Tweening/Sprites/ResumeTweenSprite
@@ -21397,6 +21791,50 @@ int agk::GetTweenTextPlaying( UINT tweenID, UINT textID )
 	return 0;
 }
 
+//****f* Tweening/Text/GetTweenTextTime
+// FUNCTION
+//   Returns the current time of the tween text
+// INPUTS
+//   tweenID -- ID of the tween
+//   textID -- ID of the text
+// SOURCE
+float agk::GetTweenTextTime ( UINT tweenID, UINT textID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_TEXT ) return 0.0f;
+
+	cText *pText = m_cTextList.GetItem ( textID );
+	if ( !pText ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pText );
+	if ( pInstance ) return pInstance->m_fCurrentTime;
+
+	return 0.0f;
+}
+
+//****f* Tweening/Text/GetTweenTextEndTime
+// FUNCTION
+//   Returns the end time of the tween text
+// INPUTS
+//   tweenID -- ID of the tween
+//   textID -- ID of the text
+// SOURCE
+float agk::GetTweenTextEndTime ( UINT tweenID, UINT textID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_TEXT ) return 0.0f;
+
+	cText *pText = m_cTextList.GetItem ( textID );
+	if ( !pText ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pText );
+	if ( pInstance ) return pInstance->m_pTween->m_fDuration;
+
+	return 0.0f;
+}
+
 
 // text char tweening
 
@@ -21903,6 +22341,51 @@ int agk::GetTweenCharPlaying( UINT tweenID, UINT textID, UINT charID )
 	return 0;
 }
 
+//****f* Tweening/Char/GetTweenCharTime
+// FUNCTION
+//   Returns the current time of the tween char
+// INPUTS
+//   tweenID -- ID of the tween
+//   textID -- ID of the text
+//   charID -- Index of the character to check, indices start at 0, if out of range it is ignored
+// SOURCE
+float agk::GetTweenCharTime ( UINT tweenID, UINT textID, UINT charID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_CHAR ) return 0.0f;
+
+	cText *pText = m_cTextList.GetItem ( textID );
+	if ( !pText ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pText, charID );
+	if ( pInstance ) return pInstance->m_fCurrentTime;
+
+	return 0.0f;
+}
+
+//****f* Tweening/Char/GetTweenCharEndTime
+// FUNCTION
+//   Returns the end time of the tween char
+// INPUTS
+//   tweenID -- ID of the tween
+//   textID -- ID of the text
+//   charID -- Index of the character to check, indices start at 0, if out of range it is ignored
+// SOURCE
+float agk::GetTweenCharEndTime ( UINT tweenID, UINT textID, UINT charID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_CHAR ) return 0.0f;
+
+	cText *pText = m_cTextList.GetItem ( textID );
+	if ( !pText ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pText, charID );
+	if ( pInstance ) return pInstance->m_pTween->m_fDuration;
+
+	return 0.0f;
+}
 
 // object tweening
 
@@ -22621,6 +23104,49 @@ int agk::GetTweenObjectPlaying( UINT tweenID, UINT objectID )
 	return 0;
 }
 
+//****f* Tweening/Objects/GetTweenObjectTime
+// FUNCTION
+//   Returns the current time of the tween object
+// INPUTS
+//   tweenID -- ID of the tween
+//   objectID -- ID of the object
+// SOURCE
+float agk::GetTweenObjectTime ( UINT tweenID, UINT objectID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_OBJECT ) return 0.0f;
+
+	cObject3D *pObject = m_cObject3DList.GetItem ( objectID );
+	if ( !pObject ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pObject );
+	if ( pInstance ) return pInstance->m_fCurrentTime;
+
+	return 0.0f;
+}
+
+//****f* Tweening/Objects/GetTweenObjectEndTime
+// FUNCTION
+//   Returns the current end of the tween object
+// INPUTS
+//   tweenID -- ID of the tween
+//   objectID -- ID of the object
+// SOURCE
+float agk::GetTweenObjectEndTime ( UINT tweenID, UINT objectID )
+//****
+{
+	Tween *pTween = m_cTweenList.GetItem ( tweenID );
+	if ( !pTween || pTween->GetType ( ) != AGK_TWEEN_TYPE_OBJECT ) return 0.0f;
+
+	cObject3D *pObject = m_cObject3DList.GetItem ( objectID );
+	if ( !pObject ) return 0.0f;
+
+	TweenInstance *pInstance = TweenInstance::GetInstance ( pTween, pObject );
+	if ( pInstance ) return pInstance->m_pTween->m_fDuration;
+
+	return 0.0f;
+}
 
 // camera tweening
 
@@ -27011,7 +27537,6 @@ UINT agk::Asc( const char* strin )
 // FUNCTION
 //   Returns the number of characters in the given string. Note that for strings encoded in UTF-8 this
 //   may not be equal to the number of bytes in the string, as each character can use up to 4 bytes.
-//   To determine the length in bytes use the <i>ByteLen</i> command.
 // INPUTS
 //   strin -- The string to measure the length of
 // SOURCE
@@ -27026,7 +27551,6 @@ UINT agk::Len( const char* strin )
 // FUNCTION
 //   Returns the number of bytes in the given string. Note that for strings encoded in UTF-8 this may
 //   not be equal to the number of characters in the string, as each character can use up to 4 bytes.
-//   To determine the number of characters in a string use the <i>Len</i> command.
 // INPUTS
 //   strin -- The string to measure the length of
 // SOURCE
@@ -27095,6 +27619,14 @@ char* agk::Upper( const char* strin )
 char* agk::Spaces( UINT length )
 //****
 {
+	if ( length <= 0 )
+	{
+#ifdef _AGK_ERROR_CHECK
+		agk::Error ( "Negative valued passed into the Spaces command" );
+#endif
+		return 0;
+	}
+
 	char *str = new char[ length+1 ];
 	UINT n = 0;
 	for ( n=0; n<length; n++ ) str[n]=32;
@@ -30694,6 +31226,17 @@ void agk::SetErrorMode( int mode )
 {
 	m_iErrorMode = mode;
 }
+
+//****f* Error/General/GetErrorMode
+// FUNCTION
+//   Returns the current error mode for AGK. 0=ignore, 1=report, 2=stop
+// SOURCE
+int agk::GetErrorMode ( )
+//****
+{
+	return m_iErrorMode;
+}
+
 
 int agk::GetLastError( uString &sOut )
 {
@@ -34393,6 +34936,7 @@ void agk::SetEditBoxFont( UINT index, UINT fontID )
 //****f* Input/Edit Box/SetEditBoxTextSize
 // FUNCTION
 //   Sets the height in world coordinates of the text in this edit box. By default it is set to the edit box's height minus 2.
+//   SetEditBoxTextSize will not allow the text height to be set greater than the height of the edit box.
 // INPUTS
 //   index -- The ID of the edit box to modify.
 //   size -- The new size of font to use.
@@ -37136,7 +37680,7 @@ void agk::InAppPurchaseSetTitle ( const char* szTitle )
 //   You must also specify the type of product this is, non-consumable(0), consumable(0), or 
 //   subscription(2). Previously consumable products were added as type=1 but they are now 
 //   added as type=0 and <i>InAppPurchaseResetPurchase</i> is used to reset a consumable to a
-//   purchasable state.
+//   purchasable state.<br/><br/>
 //   Consumable products are like coins that can be bought again and again, whereas 
 //   non-consumable products are one off purchases like unlocking the full version of an app.
 //   In Google Play consumable and non-consumable products are added the same way.
@@ -37231,18 +37775,23 @@ void agk::InAppPurchaseActivate ( int iID )
 //   Call this command to reset the purchase state of an individual product. On Android this must be called 
 //   for consumable products after you have dealt with a purchase to allow it to be purchased again.
 //   If you call this command on a non-consumable purchase then that purchase will be reset to an unpurchased 
-//   state and the user will have to pay for it again, this should only be used during testing.<br/><br/>
-//   Subscriptions cannot be reset and must be cancelled by the user through their Google Play account
-//   Currently this command is only supported on Android. iOS automatically allows consumables to be 
-//   purchased multiple times so this command does nothing, but it won't do any harm to use this command on 
-//   both platforms.
+//   state and the user will have to pay for it again, this should only be used during testing.
+//   Subscriptions cannot be reset and must be cancelled by the user through their Google Play account<br/>
+//   <br/>
+//   On iOS this command is not necessary as it automatically allows consumable items to be purchased multiple 
+//   times, however this command could still be useful to reset the <i>GetInAppPurchaseAvailable2</i> state to 0 
+//   so you know it has been dealt with. Reseting a non-consumable purchase on iOS will reset the state to 0
+//   but iOS will still remember the purchase and not charge the user again.<br/>
+//   <br/>
+//   Use <i>GetInAppPurchaseToken</i> to get the token required to reset a purchase. Currently this command is 
+//   only supported on Android and iOS.
 // INPUTS
 //   token -- The most recent token from GetInAppPurchaseToken for this product
 // SOURCE
 void agk::InAppPurchaseResetPurchase( const char* token )
 //****
 {
-#ifdef AGK_ANDROID
+#if defined(AGK_ANDROID) || defined(AGK_IOS)
     PlatformInAppPurchaseResetPurchase(token);
 #endif
 }
@@ -37297,10 +37846,12 @@ int agk::GetInAppPurchaseState()
 // FUNCTION
 //   Restores any managed purchases made on this platform. For example if a user purchased at item then
 //   reinstalled the app the app would return 0 for GetInAppPurchaseAvailable unless it was purchased again
-//   or restored using this command.
-//   Even though purchasing again wouldn't charge the user again for managed items, using this restore 
+//   or restored using this command.<br/>
+//   <br/>
+//   Even though purchasing again wouldn't charge the user again for non-consumable items, using this restore 
 //   command is a better user experience. Apple require you to have a button that calls this function 
-//   somewhere in your app. 
+//   somewhere in your app.<br/>
+//   <br/>
 //   After calling this command you can call <i>GetInAppPurchaseAvailable2</i> to check for purchases, it 
 //   may take some time for the purchase state to update, so check <i>GetInAppPurchaseAvailable2</i> regularly.
 //   This command is supported by both iOS and Android
@@ -37327,20 +37878,26 @@ char* agk::GetInAppPurchaseSignature(int iID)
 
 //****f* Extras/In App Purchase/GetInAppPurchaseToken
 // FUNCTION
-//   Returns the unique token for the last purchase of the given item, this can be sent to your server to check 
-//   the validity of the purchase with Google, and to distinguish between different instances of a consumable 
-//   purchase. You should only reward the user once per token for consumable purchases, it is recommended that
-//   you store a list of past tokens on a server so you can detect any token reuse, which could be used to 
-//   cheat your system. Once you have rewarded the user for a consumable purchase you must call 
-//   <i>InAppPurchaseResetPurchase</i> with the most recent token to allow it to be purchased again.<br/><br/>
-//   This only works on Android, other platforms will return an empty string
+//   On Android this returns a unique token for the last purchase of the given item, this can be sent to your 
+//   server to check the validity of the purchase with Google, and to distinguish between different instances 
+//   of a consumable purchase. You should only reward the user once per token for consumable purchases, it is 
+//   recommended that you store a list of past tokens on a server so you can detect any token reuse, which 
+//   could be used to cheat your system. Once you have rewarded the user for a consumable purchase you must call 
+//   <i>InAppPurchaseResetPurchase</i> with the most recent token to allow it to be purchased again.<br/>
+//   <br/>
+//   On iOS this returns a transaction ID that changes with every purchase the user makes. It can't be used 
+//   to check with Apple if a transaction was genuine but it can be used to distinguish between multiple 
+//   purchases of a consumable item. You can pass this token to <i>InAppPurchaseResetPurchase</i> to reset
+//   the purchase state to 0 but on iOS this is not required.<br/>
+//   <br/>
+//   This only works on Android and iOS, other platforms will return an empty string
 // INPUTS
 //   iID -- The ID of the product to check. e.g. your first product ID is 0, your second is 1 etc.
 // SOURCE
 char* agk::GetInAppPurchaseToken(int iID)
 //****
 {
-#ifdef AGK_ANDROID
+#if defined(AGK_ANDROID) || defined(AGK_IOS)
 	return PlatformGetInAppPurchaseToken(iID);
 #else
 	char* str = new char[1]; *str = 0;
@@ -37572,7 +38129,7 @@ char* agk::GetFacebookDownloadFile()
 void agk::NotificationCreate ( const char* szDateTime, const char* szMessage, const char* szData )
 //****
 {
-	agk::Error("NotificationCreate has been removed, use SetLocalNotification instead");
+	//agk::Error("NotificationCreate has been removed, use SetLocalNotification instead");
 }
 
 int agk::GetNotification()
@@ -38421,8 +38978,7 @@ void agk::DrawEllipse( float x, float y, float radiusx, float radiusy, UINT colo
 
 //****f* Memblock/General/CreateMemblock
 // FUNCTION
-//   Creates a section of memory of the given size for read or write access. The contents of the memory is undefined 
-//   until you write to it. Returns an ID that you can use to reference this memblock in other commands.
+//   Creates a section of memory of the given size for read or write access. Returns an ID that you can use to reference this memblock in other commands.
 // INPUTS
 //   size -- The size of the memblock in bytes.
 // SOURCE
@@ -38445,8 +39001,7 @@ UINT agk::CreateMemblock( UINT size )
 
 //****f* Memblock/General/CreateMemblock
 // FUNCTION
-//   Creates a section of memory of the given size for read or write access. The contents of the memory is undefined 
-//   until you write to it. A memblock must not already exist with your chosen memID.
+//   Creates a section of memory of the given size for read or write access. A memblock must not already exist with your chosen memID.
 // INPUTS
 //   memID -- The ID of the memblock you want to use.
 //   size -- The size of the memblock in bytes. max 100,000,000.
@@ -43958,7 +44513,9 @@ float agk::GetObjectMeshSizeMaxZ( UINT objID, UINT meshIndex )
 //   There is no limit to the number of objects an object can have fixed to it, nor is there a 
 //   limit to objects being fixed to objects which are fixed to other objects, just don't 
 //   create any loops.
-//   To stop an object being fixed to anything set toObjID to 0 and it will become independent 
+//   An object can only be fixed to one thing at a time, fixing it to something else will remove
+//   it from its current attachment (if any). To stop an object being fixed to anything set toObjID 
+//   to 0 and it will become independent 
 //   again.
 // INPUTS
 //   objID -- The ID of the object to fix.
@@ -44053,6 +44610,64 @@ void agk::FixObjectToBone( UINT objID, UINT toObjID, UINT toBoneIndex )
 	}
 
 	pToObject->m_pSkeleton->m_pBones[ toBoneIndex-1 ]->AddChild( pObject );
+}
+
+//****f* 3D/Objects/FixObjectToCamera
+// FUNCTION
+//   Fixes an object to a camera so that any movement of the parent also affects the child.
+//   The object being fixed uses its current position, rotation, and scale as an offset to the 
+//   parent. For example if the camera was placed at 10,5,0 and an object was fixed to it with
+//   the current position 0,10,0 then the object would now inherit the position of the camera, 
+//   combine it with its own, and the object would be placed at 10,15,0. The same applies to 
+//   rotation and scaling, so if the camera was rotated around the Y axis then the object would 
+//   rotate by the same amount.  <br/><br/>
+//   Note that using <i>GetObjectY</i> on the child would only show its local position relative to 
+//   its parent (in this case it would return 10). To get the final world position of the child
+//   use <i>GetObjectWorldY</i> on it, which in this case would return 15.
+//   There is no limit to the number of objects a camera can have fixed to it, nor is there a 
+//   limit to objects being fixed to objects which are fixed to cameras, just don't 
+//   create any loops. <br/><br/>
+//   An object can only be fixed to one thing at a time, fixing it to something else will remove
+//   it from its current attachment (if any). To stop an object being fixed to anything set toObjID 
+//   to 0 and it will become independent 
+//   again.
+// INPUTS
+//   objID -- The ID of the object to fix.
+//   toCameraID -- The ID of the camera to fix it to.
+// SOURCE
+void agk::FixObjectToCamera( UINT objID, UINT toCameraID )
+//****
+{
+	cObject3D *pObject = m_cObject3DList.GetItem( objID );
+	if ( !pObject )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr;
+		errStr.Format( "Failed to fix object %d - object does not exist", objID );
+		Error( errStr );
+#endif
+		return;
+	}
+
+	if ( toCameraID == 0 )
+	{
+		pObject->RemoveFromParent();
+	}
+	else
+	{
+		cCamera *pCamera = m_cCameraList.GetItem( toCameraID );
+		if ( !pCamera )
+		{
+	#ifdef _AGK_ERROR_CHECK
+			uString errStr;
+			errStr.Format( "Failed to fix to camera %d - camera does not exist", toCameraID );
+			Error( errStr );
+	#endif
+			return;
+		}
+
+		pCamera->AddChild( pObject );
+	}
 }
 
 // animation
@@ -49966,75 +50581,6 @@ float agk::GetCameraZ( UINT cameraID )
 	return pCamera->GetZ();
 }
 
-//****f* 3D/Cameras/GetCameraWorldX
-// FUNCTION
-//   Returns the current X position of the camera after all transformations due to <i>FixCameraToObject</i>.
-// INPUTS
-//   cameraID -- The ID of the camera to check, the main camera is ID 1.
-// SOURCE
-float agk::GetCameraWorldX( UINT cameraID )
-//****
-{
-	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
-	if ( !pCamera )
-	{
-#ifdef _AGK_ERROR_CHECK
-		uString errStr( "Failed to get world x for camera " );
-		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
-		Error( errStr );
-#endif
-		return 0;
-	}
-
-	return pCamera->GetWorldX();
-}
-
-//****f* 3D/Cameras/GetCameraWorldY
-// FUNCTION
-//   Returns the current Y position of the camera after all transformations due to <i>FixCameraToObject</i>.
-// INPUTS
-//   cameraID -- The ID of the camera to check, the main camera is ID 1.
-// SOURCE
-float agk::GetCameraWorldY( UINT cameraID )
-//****
-{
-	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
-	if ( !pCamera )
-	{
-#ifdef _AGK_ERROR_CHECK
-		uString errStr( "Failed to get world y for camera " );
-		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
-		Error( errStr );
-#endif
-		return 0;
-	}
-
-	return pCamera->GetWorldY();
-}
-
-//****f* 3D/Cameras/GetCameraWorldZ
-// FUNCTION
-//   Returns the current Z position of the camera after all transformations due to <i>FixCameraToObject</i>.
-// INPUTS
-//   cameraID -- The ID of the camera to check, the main camera is ID 1.
-// SOURCE
-float agk::GetCameraWorldZ( UINT cameraID )
-//****
-{
-	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
-	if ( !pCamera )
-	{
-#ifdef _AGK_ERROR_CHECK
-		uString errStr( "Failed to get world z for camera " );
-		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
-		Error( errStr );
-#endif
-		return 0;
-	}
-
-	return pCamera->GetWorldZ();
-}
-
 //****f* 3D/Cameras/GetCameraAngleX
 // FUNCTION
 //   Returns the X component of the camera's current rotation converted to Euler angles.
@@ -50194,6 +50740,236 @@ float agk::GetCameraQuatZ( UINT cameraID )
 	}
 
 	return pCamera->rot().z;
+}
+
+//****f* 3D/Cameras/GetCameraWorldX
+// FUNCTION
+//   Returns the current X position of the camera after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldX( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world x for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldX();
+}
+
+//****f* 3D/Cameras/GetCameraWorldY
+// FUNCTION
+//   Returns the current Y position of the camera after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldY( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world y for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldY();
+}
+
+//****f* 3D/Cameras/GetCameraWorldZ
+// FUNCTION
+//   Returns the current Z position of the camera after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldZ( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world z for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldZ();
+}
+
+//****f* 3D/Cameras/GetCameraWorldAngleX
+// FUNCTION
+//   Returns the X component of the camera's current rotation converted to Euler angles after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldAngleX( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world angle x for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldEulerX();
+}
+
+//****f* 3D/Cameras/GetCameraWorldAngleY
+// FUNCTION
+//   Returns the Y component of the camera's current rotation converted to Euler angles after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldAngleY( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world angle y for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldEulerY();
+}
+
+//****f* 3D/Cameras/GetCameraWorldAngleZ
+// FUNCTION
+//   Returns the Z component of the camera's current rotation converted to Euler angles after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldAngleZ( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world angle z for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->GetWorldEulerZ();
+}
+
+//****f* 3D/Cameras/GetCameraWorldQuatW
+// FUNCTION
+//   Returns the W component of the camera's current rotation converted to a quaternion after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldQuatW( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world quat w for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->rotFinal().w;
+}
+
+//****f* 3D/Cameras/GetCameraWorldQuatX
+// FUNCTION
+//   Returns the X component of the camera's current rotation converted to a quaternion after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldQuatX( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world quat x for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->rotFinal().x;
+}
+
+//****f* 3D/Cameras/GetCameraWorldQuatY
+// FUNCTION
+//   Returns the Y component of the camera's current rotation converted to a quaternion after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldQuatY( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world quat y for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->rotFinal().y;
+}
+
+//****f* 3D/Cameras/GetCameraWorldQuatZ
+// FUNCTION
+//   Returns the Z component of the camera's current rotation converted to a quaternion after all transformations due to <i>FixCameraToObject</i>.
+// INPUTS
+//   cameraID -- The ID of the camera to check, the main camera is ID 1.
+// SOURCE
+float agk::GetCameraWorldQuatZ( UINT cameraID )
+//****
+{
+	cCamera *pCamera = m_cCameraList.GetItem( cameraID );
+	if ( !pCamera )
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr( "Failed to get world quat z for camera " );
+		errStr.AppendUInt( cameraID ).Append( " - camera does not exist" );
+		Error( errStr );
+#endif
+		return 0;
+	}
+
+	return pCamera->rotFinal().z;
 }
 
 //****f* 3D/Cameras/SetCameraLookAt
@@ -56326,6 +57102,124 @@ void agk::Set3DPhysicsCharacterControllerPosition( UINT objID, float posX, float
 		pos /= GetCurrentDynamicsWorld()->m_scaleFactor;
 		controller->SetPosition( pos );
 	}
+}
+
+
+//****f* Core/Noise/SetupNoise
+// FUNCTION
+//  Initialises Open Simplex noise generation.
+// INPUTS
+//  frequency -- Frequency (width) of the first octave of noise e.g. 1.0
+//  amplitude -- Amplitude (height) of the first octave of noise e.g. 1.0
+//  lacunarity --  Lacunarity specifies the frequency multiplier between successive octaves e.g. 2.0.
+//  persistence -- Persistence is the loss of amplitude between successive octaves (usually 1/lacunarity)
+// SOURCE
+void agk::SetupNoise ( float frequency, float amplitude, float lacunarity, float persistence )
+//****
+{
+	if ( m_pNoise )
+		delete m_pNoise;
+
+	m_pNoise = new SimplexNoise ( frequency, amplitude, lacunarity, persistence );
+}
+
+//****f* Core/Noise/GetNoiseX
+// FUNCTION
+//  Returns 1D Perlin simplex noise
+// INPUTS
+//  x -- x float coordinate
+// SOURCE
+float agk::GetNoiseX ( float x )
+//****
+{
+if ( !m_pNoise )
+		return 0.0f;
+
+	return m_pNoise->noise ( x );
+}
+
+//****f* Core/Noise/GetNoiseXY
+// FUNCTION
+//  Returns 2D Perlin simplex noise
+// INPUTS
+//  x -- x float coordinate
+//  y -- y float coordinate
+// SOURCE
+float agk::GetNoiseXY ( float x, float y )
+//****
+{
+	if ( !m_pNoise )
+		return 0.0f;
+
+	return m_pNoise->noise ( x, y );
+}
+
+//****f* Core/Noise/GetNoiseXYZ
+// FUNCTION
+//  Returns 3D Perlin simplex noise
+// INPUTS
+//  x -- x float coordinate
+//  y -- y float coordinate
+//  z -- z float coordinate
+// SOURCE
+float agk::GetNoiseXYZ ( float x, float y, float z  )
+//****
+{
+	if ( !m_pNoise )
+		return 0.0f;
+
+	return m_pNoise->noise ( x, y, z );
+}
+
+//****f* Core/Noise/GetFractalX
+// FUNCTION
+//  Returns Fractal/Fractional Brownian Motion
+// INPUTS
+//  octaves -- number of fraction of noise to sum
+//  x -- x float coordinate
+// SOURCE
+float agk::GetFractalX ( uint32_t octaves, float x )
+//****
+{
+	if ( !m_pNoise )
+		return 0.0f;
+
+	return m_pNoise->fractal ( octaves, x );
+}
+
+//****f* Core/Noise/GetFractalXY
+// FUNCTION
+//  Returns Fractal/Fractional Brownian Motion
+// INPUTS
+//  octaves -- number of fraction of noise to sum
+//  x -- x float coordinate
+//  y -- y float coordinate
+// SOURCE
+float agk::GetFractalXY ( uint32_t octaves, float x, float y )
+//****
+{
+	if ( !m_pNoise )
+		return 0.0f;
+
+	return m_pNoise->fractal ( octaves, x, y );
+}
+
+//****f* Core/Noise/GetFractalXYZ
+// FUNCTION
+//  Returns Fractal/Fractional Brownian Motion
+// INPUTS
+//  octaves -- number of fraction of noise to sum
+//  x -- x float coordinate
+//  y -- y float coordinate
+//  z -- z float coordinate
+// SOURCE
+float agk::GetFractalXZ ( uint32_t octaves, float x, float y, float z )
+//****
+{
+	if ( !m_pNoise )
+		return 0.0f;
+
+	return m_pNoise->fractal ( octaves, x, y, z );
 }
 
 

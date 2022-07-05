@@ -61,6 +61,11 @@ float Tween::InterpOvershoot( float start, float end, float t )
 
 TweenCustom::TweenCustom()
 {
+	Reset ( );
+}
+
+void TweenCustom::Reset ( void )
+{
 	m_fValue1 = 0; m_fBegin1 = 0; m_fEnd1 = 0; m_iInterp1 = -1;
 	m_fValue2 = 0; m_fBegin2 = 0; m_fEnd2 = 0; m_iInterp2 = -1;
 	m_fValue3 = 0; m_fBegin3 = 0; m_fEnd3 = 0; m_iInterp3 = -1;
@@ -72,6 +77,11 @@ TweenCustom::TweenCustom()
 }
 
 TweenSprite::TweenSprite()
+{
+	Reset ( );
+}
+
+void TweenSprite::Reset ( void )
 {
 	m_fBeginX = 0; m_fEndX = 0; m_iInterpX = -1;
 	m_fBeginY = 0; m_fEndY = 0; m_iInterpY = -1;
@@ -86,7 +96,7 @@ TweenSprite::TweenSprite()
 	m_iBeginAlpha = 0; m_iEndAlpha = 0; m_iInterpAlpha = -1;
 }
 
-TweenText::TweenText()
+void TweenText::Reset ( void )
 {
 	m_fBeginX = 0; m_fEndX = 0; m_iInterpX = -1;
 	m_fBeginY = 0; m_fEndY = 0; m_iInterpY = -1;
@@ -100,7 +110,12 @@ TweenText::TweenText()
 	m_iBeginAlpha = 0; m_iEndAlpha = 0; m_iInterpAlpha = -1;
 }
 
-TweenChar::TweenChar()
+TweenText::TweenText()
+{
+	Reset ( );
+}
+
+void TweenChar::Reset ( void )
 {
 	m_fBeginX = 0; m_fEndX = 0; m_iInterpX = -1;
 	m_fBeginY = 0; m_fEndY = 0; m_iInterpY = -1;
@@ -111,7 +126,12 @@ TweenChar::TweenChar()
 	m_iBeginAlpha = 0; m_iEndAlpha = 0; m_iInterpAlpha = -1;
 }
 
-TweenObject::TweenObject()
+TweenChar::TweenChar()
+{
+	Reset ( );	
+}
+
+void TweenObject::Reset ( void )
 {
 	m_fBeginX = 0; m_fEndX = 0; m_iInterpX = -1;
 	m_fBeginY = 0; m_fEndY = 0; m_iInterpY = -1;
@@ -128,7 +148,12 @@ TweenObject::TweenObject()
 	m_iBeginAlpha = 0; m_iEndAlpha = 0; m_iInterpAlpha = -1;
 }
 
-TweenCamera::TweenCamera()
+TweenObject::TweenObject()
+{
+	Reset ( );
+}
+
+void TweenCamera::Reset ( void )
 {
 	m_fBeginX = 0; m_fEndX = 0; m_iInterpX = -1;
 	m_fBeginY = 0; m_fEndY = 0; m_iInterpY = -1;
@@ -137,6 +162,11 @@ TweenCamera::TweenCamera()
 	m_fBeginAngleY = 0; m_fEndAngleY = 0; m_iInterpAngleY = -1;
 	m_fBeginAngleZ = 0; m_fEndAngleZ = 0; m_iInterpAngleZ = -1;
 	m_fBeginFOV = 0; m_fEndFOV = 0; m_iInterpFOV = -1;
+}
+
+TweenCamera::TweenCamera()
+{
+	Reset ( );
 }
 
 void TweenCustom::Update( float fTime, void* target, int subtarget )

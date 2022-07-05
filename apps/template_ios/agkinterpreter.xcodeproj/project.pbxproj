@@ -50,7 +50,7 @@
 		4AF8AEAA22F2162D00CC735F /* nanopb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEA722F2162D00CC735F /* nanopb.framework */; };
 		4AF8AEAB22F2162D00CC735F /* GoogleAppMeasurement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AF8AEA822F2162D00CC735F /* GoogleAppMeasurement.framework */; };
 		67098DA1267037A000F8BD74 /* UserMessagingPlatform.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA0267037A000F8BD74 /* UserMessagingPlatform.framework */; };
-		67098DA3267037B900F8BD74 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA2267037B900F8BD74 /* AppTrackingTransparency.framework */; };
+		67098DA3267037B900F8BD74 /* AppTrackingTransparency.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67098DA2267037B900F8BD74 /* AppTrackingTransparency.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		726A37B315B8DA0D002F8919 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 726A37B215B8DA0D002F8919 /* StoreKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		72EF411914632D6400C96B0A /* UntitledViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 72EF411814632D6400C96B0A /* UntitledViewController.xib */; };
 		D80B81BE16FD2615009D21D8 /* libAGKiOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D80B81BD16FD2615009D21D8 /* libAGKiOS.a */; };

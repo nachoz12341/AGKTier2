@@ -62,7 +62,7 @@ namespace AGK
 						"dmb \n\t"
 						: 
 						: "r"(&iLock)
-						: "r0", "r1", "cc" );
+						: "r0", "r1", "cc", "memory" );
 						
 				return true;
 			}
@@ -87,17 +87,28 @@ namespace AGK
 
 			bool Acquire()
 			{
-				asm volatile ( "mov w1, #0x1 \n\t"
-					 "1: ldaxr w0, [%0] \n\t"
-						"cbnz w0, 1b \n\t"
-						"stlxr w0, w1, [%0] \n\t"
-						"cbnz w0, 1b \n\t"
-						"dmb SY \n\t"
-						: 
-						: "r"(&iLock)
-						: "w0", "w1", "cc" );
-						
-				return true;
+				int count = 1000;
+				while( 1 )
+				{
+					asm volatile ( 
+							"mov w1, #0x1 \n"
+						 "1: subs %w0, %w0, #0x1 \n"
+							"cbz %w0, 2f \n"
+							"ldaxr w0, [%1] \n"
+							"cbnz w0, 1b \n"
+							"stlxr w0, w1, [%1] \n"
+							"cbnz w0, 1b \n"
+							"dmb SY \n"
+						 "2: nop \n"
+							: "+r"(count)
+							: "r"(&iLock) 
+							: "w0", "w1", "cc", "memory" );
+
+					if ( count == 0 ) usleep(10);
+					else return true;
+
+					count = 4;
+				}
 			}
 
 			void Release()

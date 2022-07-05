@@ -1332,6 +1332,83 @@ case AGKI_NOP: // do nothing
 		break;
 	}
 
+	case AGKI_ARRAY_INDEXOF:
+	{
+		stArray *pArray = ( stArray* ) ( m_pStack [ m_iStackPtr - 2 ].p );
+
+		if ( pArray->m_iLength == 0 )
+		{
+			m_pStack [ m_iStackPtr - 2 ].i = -1;
+			m_iStackPtr--;
+		}
+		else
+		{
+			switch ( pArray->GetCurrType ( ) )
+			{
+			case AGK_DATA_TYPE_INT:
+			{
+				int value = m_pStack [ --m_iStackPtr ].i;
+				m_pStack [ m_iStackPtr - 1 ].i = pArray->IndexOfInt ( value );
+				break;
+			}
+			case AGK_DATA_TYPE_FLOAT:
+			{
+				float value = m_pStack [ --m_iStackPtr ].f;
+				m_pStack [ m_iStackPtr - 1 ].i = pArray->IndexOfFloat ( value );
+				break;
+			}
+			case AGK_DATA_TYPE_STRING:
+			{
+				RuntimeError ( "Invalid instruction for searching string array" );
+				return 1;
+			}
+			case AGK_DATA_TYPE_TYPE:
+			{
+				stTypeDec *pTypeStruct = &( m_pTypeStructs [ pArray->GetTypeType ( ) ] );
+				int offset = pTypeStruct->m_pVarTypes [ pTypeStruct->m_iFirstIndex ].varOffset;
+				int varType = pTypeStruct->m_pVarTypes [ pTypeStruct->m_iFirstIndex ].varType;
+				switch ( varType )
+				{
+				case AGK_DATA_TYPE_INT:
+				{
+					int value = m_pStack [ --m_iStackPtr ].i;
+					m_pStack [ m_iStackPtr - 1 ].i = pArray->IndexOfInt ( value );
+					break;
+				}
+				case AGK_DATA_TYPE_FLOAT:
+				{
+					float value = m_pStack [ --m_iStackPtr ].f;
+					m_pStack [ m_iStackPtr - 1 ].i = pArray->IndexOfFloat ( value );
+					break;
+				}
+				case AGK_DATA_TYPE_STRING:
+				{
+					RuntimeError ( "Invalid instruction for searching type array string" );
+					return 1;
+				}
+				case AGK_DATA_TYPE_TYPE:
+				{
+					RuntimeError ( "Cannot search array of types as the first variable of the type is another type" );
+					return 1;
+				}
+				case AGK_DATA_TYPE_ARRAY:
+				{
+					RuntimeError ( "Cannot search array of types as the first variable of the type is an array" );
+					return 1;
+				}
+				}
+				break;
+			}
+			case AGK_DATA_TYPE_ARRAY:
+			{
+				RuntimeError ( "Cannot search array of arrays, use more dimensions to search a sub array" );
+				return 1;
+			}
+			}
+		}
+		break;
+	}
+
 	case AGKI_ARRAY_FIND_STRING:
 	{
 		stArray *pArray = (stArray*) (m_pStack[ --m_iStackPtr ].p);
@@ -1403,6 +1480,81 @@ case AGKI_NOP: // do nothing
 					return 1;
 				}
 			}					
+		}
+		break;
+	}
+
+	case AGKI_ARRAY_INDEXOF_STRING:
+	{
+		stArray *pArray = ( stArray* ) ( m_pStack [ --m_iStackPtr ].p );
+
+		if ( pArray->m_iLength == 0 )
+		{
+			m_pStack [ m_iStackPtr++ ].i = -1;
+			m_iStrStackPtr--;
+		}
+		else
+		{
+			uString *pFind = &( m_pStrStack [ --m_iStrStackPtr ] );
+
+			switch ( pArray->GetCurrType ( ) )
+			{
+			case AGK_DATA_TYPE_INT:
+			{
+				RuntimeError ( "Invalid instruction for searching integer array" );
+				return 1;
+			}
+			case AGK_DATA_TYPE_FLOAT:
+			{
+				RuntimeError ( "Invalid instruction for searching float array" );
+				return 1;
+			}
+			case AGK_DATA_TYPE_STRING:
+			{
+				m_pStack [ m_iStackPtr++ ].i = pArray->IndexOfString ( pFind->GetStr ( ) );
+				break;
+			}
+			case AGK_DATA_TYPE_TYPE:
+			{
+				stTypeDec *pTypeStruct = &( m_pTypeStructs [ pArray->GetTypeType ( ) ] );
+				int offset = pTypeStruct->m_pVarTypes [ pTypeStruct->m_iFirstIndex ].varOffset;
+				int varType = pTypeStruct->m_pVarTypes [ pTypeStruct->m_iFirstIndex ].varType;
+				switch ( varType )
+				{
+				case AGK_DATA_TYPE_INT:
+				{
+					RuntimeError ( "Invalid instruction for searching type array integer" );
+					return 1;
+				}
+				case AGK_DATA_TYPE_FLOAT:
+				{
+					RuntimeError ( "Invalid instruction for searching type array float" );
+					return 1;
+				}
+				case AGK_DATA_TYPE_STRING:
+				{
+					m_pStack [ m_iStackPtr++ ].i = pArray->IndexOfString ( pFind->GetStr ( ) );
+					break;
+				}
+				case AGK_DATA_TYPE_TYPE:
+				{
+					RuntimeError ( "Cannot search array of types as the first variable of the type is another type" );
+					return 1;
+				}
+				case AGK_DATA_TYPE_ARRAY:
+				{
+					RuntimeError ( "Cannot search array of types as the first variable of the type is an array" );
+					return 1;
+				}
+				}
+				break;
+			}
+			case AGK_DATA_TYPE_ARRAY:
+			{
+				RuntimeError ( "Cannot search array of arrays, use more dimensions to search a sub array" );
+				return 1;
+			}
+			}
 		}
 		break;
 	}
@@ -1910,6 +2062,7 @@ case AGKI_NOP: // do nothing
 		JSONElement *json = JSONElement::LoadJSONFromFile( m_pStrStack[ --m_iStrStackPtr ] );
 		if ( json ) ArrayFromJSON( pArray, json );
 		else FreeArray( pArray );
+		delete json;
 		break;
 	}
 	case AGKI_ARRAY_SAVE_TO_FILE:
@@ -1931,6 +2084,7 @@ case AGKI_NOP: // do nothing
 		JSONElement *json = JSONElement::LoadJSONFromData( m_pStrStack[ --m_iStrStackPtr ] );
 		if ( json ) ArrayFromJSON( pArray, json );
 		else FreeArray( pArray );
+		delete json;
 		break;
 	}
 	case AGKI_ARRAY_TO_JSON:
@@ -1948,6 +2102,7 @@ case AGKI_NOP: // do nothing
 		JSONElement *json = JSONElement::LoadJSONFromData( m_pStrStack[ --m_iStrStackPtr ] );
 		if ( json ) TypeFromJSON( pType, json );
 		else ZeroType( pType );
+		delete json;
 		break;
 	}
 	case AGKI_TYPE_TO_JSON:

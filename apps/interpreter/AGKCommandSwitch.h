@@ -14079,5 +14079,264 @@ case AGKI_GETINAPPPURCHASETOKEN_S_L:
     delete [] szReturnStr;
     break;
 }
+case AGKI_FIXOBJECTTOCAMERA_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::FixObjectToCamera( param0, param1 );
+    break;
+}
+case AGKI_GETCAMERAWORLDANGLEX_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldAngleX( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDANGLEY_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldAngleY( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDANGLEZ_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldAngleZ( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDQUATW_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldQuatW( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDQUATX_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldQuatX( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDQUATY_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldQuatY( param0 );
+    break;
+}
+case AGKI_GETCAMERAWORLDQUATZ_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetCameraWorldQuatZ( param0 );
+    break;
+}
+case AGKI_GETERRORMODE_L_0:
+{
+    m_pStack[ m_iStackPtr++ ].i = agk::GetErrorMode( );
+    break;
+}
+case AGKI_SETSPRITEPHYSICSGRAVITYSCALE_0_L_F:
+{
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetSpritePhysicsGravityScale( param0, param1 );
+    break;
+}
+case AGKI_GETSPRITEPHYSICSGRAVITYSCALE_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetSpritePhysicsGravityScale( param0 );
+    break;
+}
+case AGKI_SETSPRITEPHYSICSINITIALLYAWAKE_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetSpritePhysicsInitiallyAwake( param0, param1 );
+    break;
+}
+case AGKI_SETSPRITEPHYSICSALLOWSLEEP_0_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::SetSpritePhysicsAllowSleep( param0, param1 );
+    break;
+}
+case AGKI_GETSPRITEPHYSICSINERTIA_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetSpritePhysicsInertia( param0 );
+    break;
+}
+case AGKI_GETSPRITEPHYSICSISBULLET_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSpritePhysicsIsBullet( param0 );
+    break;
+}
+case AGKI_GETSPRITEPHYSICSISAWAKE_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetSpritePhysicsIsAwake( param0 );
+    break;
+}
+case AGKI_GETTWEENCUSTOMTIME_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenCustomTime( param0 );
+    break;
+}
+case AGKI_GETTWEENCUSTOMENDTIME_F_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenCustomEndTime( param0 );
+    break;
+}
+case AGKI_CLEARTWEENSPRITE_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::ClearTweenSprite( param0 );
+    break;
+}
+case AGKI_CLEARTWEENCUSTOM_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::ClearTweenCustom( param0 );
+    break;
+}
+case AGKI_CLEARTWEENTEXT_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::ClearTweenText( param0 );
+    break;
+}
+case AGKI_CLEARTWEENCHAR_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::ClearTweenChar( param0 );
+    break;
+}
+case AGKI_CLEARTWEENOBJECT_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::ClearTweenObject( param0 );
+    break;
+}
+case AGKI_CLEARTWEENCAMERA_0_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    agk::ClearTweenCamera( param0 );
+    break;
+}
+case AGKI_GETTWEENSPRITETIME_F_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenSpriteTime( param0, param1 );
+    break;
+}
+case AGKI_GETTWEENSPRITEENDTIME_F_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenSpriteEndTime( param0, param1 );
+    break;
+}
+case AGKI_GETTWEENTEXTTIME_F_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenTextTime( param0, param1 );
+    break;
+}
+case AGKI_GETTWEENTEXTENDTIME_F_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenTextEndTime( param0, param1 );
+    break;
+}
+case AGKI_GETTWEENCHARTIME_F_L_L_L:
+{
+    int param2 = m_pStack[ --m_iStackPtr ].i;
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenCharTime( param0, param1, param2 );
+    break;
+}
+case AGKI_GETTWEENCHARENDTIME_F_L_L_L:
+{
+    int param2 = m_pStack[ --m_iStackPtr ].i;
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenCharEndTime( param0, param1, param2 );
+    break;
+}
+case AGKI_GETTWEENOBJECTTIME_F_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenObjectTime( param0, param1 );
+    break;
+}
+case AGKI_GETTWEENOBJECTENDTIME_F_L_L:
+{
+    int param1 = m_pStack[ --m_iStackPtr ].i;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetTweenObjectEndTime( param0, param1 );
+    break;
+}
+case AGKI_SETUPNOISE_0_F_F_F_F:
+{
+    float param3 = m_pStack[ --m_iStackPtr ].f;
+    float param2 = m_pStack[ --m_iStackPtr ].f;
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    float param0 = m_pStack[ --m_iStackPtr ].f;
+    agk::SetupNoise( param0, param1, param2, param3 );
+    break;
+}
+case AGKI_GETNOISEX_F_F:
+{
+    float param0 = m_pStack[ --m_iStackPtr ].f;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetNoiseX( param0 );
+    break;
+}
+case AGKI_GETNOISEXY_F_F_F:
+{
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    float param0 = m_pStack[ --m_iStackPtr ].f;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetNoiseXY( param0, param1 );
+    break;
+}
+case AGKI_GETNOISEXYZ_F_F_F_F:
+{
+    float param2 = m_pStack[ --m_iStackPtr ].f;
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    float param0 = m_pStack[ --m_iStackPtr ].f;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetNoiseXYZ( param0, param1, param2 );
+    break;
+}
+case AGKI_GETFRACTALX_F_L_F:
+{
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetFractalX( param0, param1 );
+    break;
+}
+case AGKI_GETFRACTALXY_F_L_F_F:
+{
+    float param2 = m_pStack[ --m_iStackPtr ].f;
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetFractalXY( param0, param1, param2 );
+    break;
+}
+case AGKI_GETFRACTALXZ_F_L_F_F_F:
+{
+    float param3 = m_pStack[ --m_iStackPtr ].f;
+    float param2 = m_pStack[ --m_iStackPtr ].f;
+    float param1 = m_pStack[ --m_iStackPtr ].f;
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].f = agk::GetFractalXZ( param0, param1, param2, param3 );
+    break;
+}
 
 

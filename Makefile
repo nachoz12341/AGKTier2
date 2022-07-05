@@ -66,6 +66,7 @@ _OBJS = AGKMotionState.o \
         ZipFile.o \
         AGKSkyBox.o \
         3DParticles.o \
+		SimplexNoise.o \
         Collision/Box.o \
         Collision/CollisionBox.o \
         Collision/CollisionPolygon.o \

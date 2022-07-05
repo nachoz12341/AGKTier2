@@ -27,20 +27,6 @@ namespace AGK
 			
 			friend class agk;
 
-			struct sTextUniform
-			{
-				uString m_sName;
-				int index;
-				float v1;
-				float v2;
-				float v3;
-				float v4;
-
-				sTextUniform() { index = -1; v1 = 0; v2 = 0; v3 = 0; v4 = 0; };
-				sTextUniform(const sTextUniform* pOther) { m_sName.SetStr(pOther->m_sName); index = pOther->index; v1 = pOther->v1; v2 = pOther->v2; v3 = pOther->v3; v4 = pOther->v4; };
-				~sTextUniform() {}
-			};
-
 			static UINT g_iCreated;
 
 			UINT m_iCreated;
@@ -76,10 +62,6 @@ namespace AGK
 			float m_fMaxWidth;
 			UINT m_iLines;
 			UINT m_bFlags;
-
-			// shader variables
-			AGKShader* m_pShader;
-			cHashedList<sTextUniform> m_cShaderVariables;
 
 			float		m_fClipX;
 			float		m_fClipY;
@@ -125,7 +107,6 @@ namespace AGK
 			void PlatformDrawFT(); // FreeType
 			void UpdateManager();
 			void InternalRefresh();
-			void InternalSetShader(AGKShader* shader);
 
 		public:
 
@@ -222,12 +203,6 @@ namespace AGK
 			float GetSpacing() { return m_fSpacing; }
 			float GetLineSpacing() { return m_fVSpacing; }
 			int GetAlignment() { return m_iAlign; }
-
-			AGKShader* GetShader() { return m_pShader; }
-			void SetShader(AGKShader* shader);
-			void SetShaderConstantByName(const char* name, float v1, float v2, float v3, float v4);
-			void SetShaderConstantArrayByName(const char* name, UINT index, float v1, float v2, float v3, float v4);
-			void SetShaderConstantDefault(const char* name);
 
 			bool CheckDepthChanged() 
 			{

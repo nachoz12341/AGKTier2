@@ -15,6 +15,8 @@
 			{
 				// being processed by Apple
 				NSLog ( @"SKPaymentTransactionStatePurchasing processed" );
+                
+                [[StoreManager sharedManager] processingTransaction: transaction];
 			}
 			break;
 		
@@ -68,6 +70,7 @@
 				[[StoreManager sharedManager] provideContent: transaction.originalTransaction.payment.productIdentifier signature:rawReceiptData token:transaction.transactionIdentifier ];
 				
 				[[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+                [rawReceiptData release];
 			}
 			break;
 			

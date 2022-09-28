@@ -5431,7 +5431,7 @@ float cSprite::GetPhysicsGravityScale ( void )
 
 void cSprite::SetPhysicsInitiallyAwake ( bool awake )
 {
-	m_bAwake = true;
+	m_bAwake = awake;
 }
 
 void cSprite::SetPhysicsAllowSleep ( bool sleep )

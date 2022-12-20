@@ -21,16 +21,12 @@ import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.QueryProductDetailsParams;
 import com.android.billingclient.api.QueryPurchasesParams;
-import com.android.billingclient.api.SkuDetails;
-import com.android.billingclient.api.SkuDetailsParams;
-import com.android.billingclient.api.SkuDetailsResponseListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.thegamecreators.agk_player.AGKHelper;
-
 
 public class InAppPurchase
 {
@@ -324,17 +320,28 @@ public class InAppPurchase
             }
         }
 
-        synchronized (iapLock) { g_iapCallbackCount = 0; }
+        synchronized (iapLock)
+        {
+            g_iapCallbackCount = 0;
+            if ( products.size() == 0 ) g_iapCallbackCount++;
+            if ( subscriptions.size() == 0 ) g_iapCallbackCount++;
+        }
 
-        // query products
-        QueryProductDetailsParams.Builder params = QueryProductDetailsParams.newBuilder();
-        params.setProductList( products );
-        billingClient.queryProductDetailsAsync( params.build(), billingProductListener );
+        if ( products.size() > 0 )
+        {
+            // query products
+            QueryProductDetailsParams.Builder params = QueryProductDetailsParams.newBuilder();
+            params.setProductList( products );
+            billingClient.queryProductDetailsAsync( params.build(), billingProductListener );
+        }
 
-        // query subscriptions
-        params = QueryProductDetailsParams.newBuilder();
-        params.setProductList( subscriptions );
-        billingClient.queryProductDetailsAsync( params.build(), billingProductListener );
+        if ( subscriptions.size() > 0 )
+        {
+            // query subscriptions
+            QueryProductDetailsParams.Builder params = QueryProductDetailsParams.newBuilder();
+            params.setProductList( subscriptions );
+            billingClient.queryProductDetailsAsync( params.build(), billingProductListener );
+        }
     }
 
     public static void iapSetup( Activity act )

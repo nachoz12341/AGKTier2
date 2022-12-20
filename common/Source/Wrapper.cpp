@@ -582,7 +582,11 @@ void agk::MasterReset()
 	agk::SetScreenResolution( 0,0 );
 	agk::SetVirtualResolution( 100, 100 );
 	SetAntialiasMode( 0 );
-	SetPrintFont( 0 );
+	if ( m_pPrintText )
+	{
+		m_pPrintText->SetFontImage( 0 );
+		m_pPrintText->SetExtendedFontImage( 0 );
+	}
 	SetImmersiveMode( 0 );
 
 	SetShadowMappingMode( 0 );
@@ -43952,7 +43956,7 @@ void agk::SetObjectMeshCollisionMode(UINT objID,int meshIndex, int mode)
 #endif
 		return;
 	}
-	if (meshIndex == 0 || meshIndex > pObject->GetNumMeshes())
+	if (meshIndex == 0 || meshIndex > (int)pObject->GetNumMeshes())
 	{
 #ifdef _AGK_ERROR_CHECK
 		uString errStr;

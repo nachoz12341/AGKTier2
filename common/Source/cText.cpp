@@ -187,6 +187,8 @@ cText::cText( int iLength )
 		m_bFlags |= AGK_TEXT_SNAP_TO_PIXELS;
 	}
 
+	InternalSetShader( 0 );
+
 	if ( iLength > 0 )
 	{
 		// assign arrays
@@ -1551,15 +1553,20 @@ void cText::SetFontImage( cImage *pImage )
 	{
 		m_pFontImage = 0;
 		m_iImageID = 0;
-		Refresh();
-		return;
+	}
+	else
+	{	
+		m_pFontImage = pImage;
+		m_iImageID = m_pFontImage->GetID();
+		m_pLetterImages = m_pFontImage->GetFontImages();
 	}
 	
-	m_pFontImage = pImage;
-	m_iImageID = m_pFontImage->GetID();
-	m_pLetterImages = m_pFontImage->GetFontImages();
-	
 	Refresh();
+
+	if ( !(m_bFlags & AGK_TEXT_CUSTOM_SHADER) ) 
+	{
+		InternalSetShader(0);
+	}
 }
 
 void cText::SetExtendedFontImage( cImage *pImage )
@@ -1575,13 +1582,13 @@ void cText::SetExtendedFontImage( cImage *pImage )
 	if ( !pImage )
 	{
 		m_pFontImageExt = 0;
-		Refresh();
-		return;
+	}
+	else
+	{
+		m_pFontImageExt = pImage;
+		m_pLetterImagesExt = m_pFontImageExt->GetExtendedFontImages();
 	}
 
-	m_pFontImageExt = pImage;
-	m_pLetterImagesExt = m_pFontImageExt->GetExtendedFontImages();
-	
 	Refresh();
 }
 
@@ -1620,6 +1627,11 @@ void cText::SetFont( AGKFont *pFont )
 	if ( m_pFTFont )
 	{
 		SetSize( m_fOrigSize ); // this regenerates the font for all sprites
+	}
+
+	if ( !(m_bFlags & AGK_TEXT_CUSTOM_SHADER) ) 
+	{
+		InternalSetShader(0);
 	}
 }
 
@@ -1730,16 +1742,19 @@ void cText::InternalSetShader(AGKShader* shader)
 	m_pShader = shader;
 	if (!m_pShader)
 	{
+		m_bFlags &= ~AGK_TEXT_CUSTOM_SHADER;
 		if (m_pFTSizedFont) m_pShader = AGKShader::g_pShaderFont;
 		else m_pShader = AGKShader::g_pShaderTexColor;
 	}
-	m_bFlags &= ~AGK_SPRITE_CUSTOM_SHADER;
+	else
+	{
+		m_bFlags |= AGK_TEXT_CUSTOM_SHADER;
+	}
 }
 
 void cText::SetShader(AGKShader* shader)
 {
 	InternalSetShader(shader);
-	m_bFlags |= AGK_SPRITE_CUSTOM_SHADER;
 }
 
 void cText::SetShaderConstantByName(const char* name, float v1, float v2, float v3, float v4)
@@ -2096,6 +2111,14 @@ void cText::PlatformDraw()
 	if ( locColor >= 0 ) pShader->SetAttribUByte( locColor, 4, 0, true, pColor );
 	if ( locTex >= 0 ) pShader->SetAttribFloat( locTex, 2, 0, pUV );
 
+	sTextUniform *pVar = m_cShaderVariables.GetFirst();
+	while ( pVar )
+	{
+		if ( pVar->index < 0 ) AGKShader::GetCurrentShader()->SetTempConstantByName( pVar->m_sName, pVar->v1, pVar->v2, pVar->v3, pVar->v4 );
+		else AGKShader::GetCurrentShader()->SetTempConstantArrayByName( pVar->m_sName, pVar->index, pVar->v1, pVar->v2, pVar->v3, pVar->v4 );
+		pVar = m_cShaderVariables.GetNext();
+	}
+
 	agk::PlatformSetBlendMode( m_iTransparency );
 	agk::PlatformSetCullMode( 0 );
 	agk::PlatformSetDepthRange( 0, 1 );
@@ -2188,6 +2211,14 @@ void cText::PlatformDrawFT()
 	if ( locPos >= 0 ) pShader->SetAttribFloat( locPos, 3, 0, pVertices );
 	if ( locColor >= 0 ) pShader->SetAttribUByte( locColor, 4, 0, true, pColor );
 	if ( locTex >= 0 ) pShader->SetAttribFloat( locTex, 2, 0, pUV );
+
+	sTextUniform *pVar = m_cShaderVariables.GetFirst();
+	while ( pVar )
+	{
+		if ( pVar->index < 0 ) AGKShader::GetCurrentShader()->SetTempConstantByName( pVar->m_sName, pVar->v1, pVar->v2, pVar->v3, pVar->v4 );
+		else AGKShader::GetCurrentShader()->SetTempConstantArrayByName( pVar->m_sName, pVar->index, pVar->v1, pVar->v2, pVar->v3, pVar->v4 );
+		pVar = m_cShaderVariables.GetNext();
+	}
 
 	agk::PlatformSetBlendMode( m_iTransparency );
 	agk::PlatformSetCullMode( 0 );

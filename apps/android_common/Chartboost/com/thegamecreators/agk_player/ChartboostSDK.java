@@ -11,6 +11,7 @@ import com.chartboost.sdk.Chartboost;
 import com.chartboost.sdk.ChartboostDelegate;
 import com.chartboost.sdk.Model.CBError;
 import com.chartboost.sdk.Privacy.model.CCPA;
+import com.chartboost.sdk.Privacy.model.COPPA;
 import com.chartboost.sdk.Privacy.model.DataUseConsent;
 import com.chartboost.sdk.Privacy.model.GDPR;
 
@@ -156,6 +157,12 @@ class RunnableChartboost implements Runnable
         Chartboost.addDataUseConsent(act, dataUseConsent);
         dataUseConsent = new CCPA( (ChartboostSDK.m_iConsentStatus == 1) ? CCPA.CCPA_CONSENT.OPT_IN_SALE : CCPA.CCPA_CONSENT.OPT_OUT_SALE );
         Chartboost.addDataUseConsent(act, dataUseConsent);
+
+        if ( AdConsentSDK.m_iChildRating == 1 )
+        {
+            dataUseConsent = new COPPA( true );
+            Chartboost.addDataUseConsent( act, dataUseConsent );
+        }
 
         cached = 0;
         rewardCached = 0;

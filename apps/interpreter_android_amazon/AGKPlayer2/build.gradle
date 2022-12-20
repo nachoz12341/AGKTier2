@@ -31,6 +31,7 @@ android {
         main.java.srcDirs += '../../android_common/TextEntry'
         main.java.srcDirs += '../../android_common/GooglePermissions' // can be replaced with AlwaysPermissions
         main.java.srcDirs += '../../android_common/ImmersiveMode'
+        main.java.srcDirs += '../../android_common/AdConsent'
     }
 }
 
@@ -38,4 +39,5 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation files('libs/in-app-purchasing-2.0.76.jar')
     implementation 'com.chartboost:chartboost-sdk:8.4.3' // Chartboost
+    implementation 'com.google.android.ump:user-messaging-platform:2.0.0' // AdConsent
 }

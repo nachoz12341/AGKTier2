@@ -2109,6 +2109,7 @@ void cSprite::InternalSetShader( AGKShader* shader )
 		if ( m_pImage ) m_pShader = AGKShader::g_pShaderTexColor;
 		else m_pShader = AGKShader::g_pShaderColor;
 	}
+
 	m_bFlags &= ~AGK_SPRITE_CUSTOM_SHADER;
 }
 

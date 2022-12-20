@@ -1,6 +1,8 @@
 package com.thegamecreators.agk_player;
 
+import static com.google.android.gms.ads.RequestConfiguration.MAX_AD_CONTENT_RATING_G;
 import static com.google.android.gms.ads.RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE;
+import static com.google.android.gms.ads.RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE;
 
 import android.app.Activity;
 import android.content.Context;
@@ -415,9 +417,10 @@ public class AdMobSDK
         m_iAdMobInitialized = 1;
         if ( AdConsentSDK.m_iChildRating == 1 )
         {
-            RequestConfiguration conf= new RequestConfiguration.Builder()
-                    .setTagForChildDirectedTreatment(TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
-                    .setTagForUnderAgeOfConsent( 1 )
+            RequestConfiguration conf = MobileAds.getRequestConfiguration().toBuilder()
+                    .setTagForChildDirectedTreatment( TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE )
+                    .setTagForUnderAgeOfConsent( TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE )
+                    .setMaxAdContentRating( MAX_AD_CONTENT_RATING_G )
                     .build();
             MobileAds.setRequestConfiguration(conf);
         }

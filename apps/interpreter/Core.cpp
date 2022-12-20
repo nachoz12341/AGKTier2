@@ -684,6 +684,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_SYSCOMMAND:
 		{
 			if ( wParam == SC_SIZE && !agk::CanResize() ) return 0;
+			else if ( wParam == SC_KEYMENU && lParam != 32 ) return 0;
 			else return DefWindowProc(hWnd, message, wParam, lParam);
 			break;
 		}

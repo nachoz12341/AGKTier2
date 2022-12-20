@@ -12,6 +12,7 @@
 #define AGK_TEXT_BOLD				0x02
 #define AGK_TEXT_OVERRIDE_SCISSOR	0x04
 #define AGK_TEXT_SNAP_TO_PIXELS		0x08
+#define AGK_TEXT_CUSTOM_SHADER      0x10
 
 // Namespace
 namespace AGK

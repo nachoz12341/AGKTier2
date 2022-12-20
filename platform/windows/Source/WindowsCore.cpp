@@ -9536,9 +9536,7 @@ void agk::RequestConsentAdMob()
 
 //****f* Advert/AdMob/OverrideConsentAdMob
 // FUNCTION
-//   Forces AdMob to use the given consent value when showing ads, this is not saved to the AdMob server and overrides 
-//   the normal consent process. This is used if you have you own method of aquiring user consent to show personalised ads.
-//   Note that the GDPR requires you by law to have the consent from EU users before showing them personalised ads.
+//   This command does nothing, it is no longer possible to override the consent option
 // INPUTS
 //   consent -- The consent value to use, 1=non-personalised, 2=personalised
 // SOURCE
@@ -9831,15 +9829,7 @@ void agk::ShareFile( const char* szFilename )
 
 //****f* Extras/Facebook/FacebookActivateAppTracking
 // FUNCTION
-//   Activates tracking in the Facebook SDK, this is useful if you are using Facebook Ads as this will 
-//   associate installs to adverts previously seen and clicked on Facebook. Note that on iOS this 
-//   functionality requires the IDFA (Advertising Identifier) and you must declare this if you submit 
-//   the app to Apple. Apple will ask if you use the IDFA and what you use it for. For install tracking 
-//   with Facebook Ads you MUST tick "Attribute this app installation to a previously served Advertisement" 
-//   and "Attribute an action taken within this app to a previously served advertisement". If you are also 
-//   using AdMob, Amazon Ads, or Chartboost in your app then you must also tick "Serve advertisements 
-//   within the app".<br/><br/>
-//   This command does not require the user to be logged in.
+//   The Facebook SDK has been removed from AppGameKit, this command no longer does anything
 // SOURCE
 void agk::FacebookActivateAppTracking()
 //****

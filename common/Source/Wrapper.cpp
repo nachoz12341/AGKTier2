@@ -570,6 +570,7 @@ void agk::MasterReset()
 	agk::StopScreenRecording();
 	agk::StopSpeaking();
 
+	agk::DeleteAdvert();
 	agk::ARDestroy();
 
 	agk::UseNewDefaultFonts( 0 );
@@ -2052,6 +2053,26 @@ void agk::ResetAllStates ( void )
 	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iPrevKeyDown[ i ] = 0;
 	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iKeyDown[ i ] = 0;
 	for ( int i = 0; i < AGK_MAX_KEYS; i++ ) m_iResetKey[ i ] = 0;
+}
+
+void agk::ResetRenderState()
+{
+	cImage::BindTexture(0, 0);
+	PlatformBindBuffer(0);
+	PlatformBindIndexBuffer(0);
+
+	m_iCurrentBlendEnabled = -1;
+	m_iCurrentBlendFunc1 = -1;
+	m_iCurrentBlendFunc2 = -1;
+	m_iCurrentBoundVBO = 0;
+	m_iCurrentBoundIndexVBO = 0;
+	m_iCurrentDepthTest = -1;
+	m_iCurrentDepthFunc = -1;
+	m_iCurrentDepthWrite = -1;
+	m_iCurrentCullMode = -1;
+	m_fCurrentDepthBias = 0;
+	m_fCurrentDepthNear = 0;
+	m_fCurrentDepthFar = 1;
 }
 
 //****f* Core/Display/SetSyncRate
@@ -37501,6 +37522,23 @@ void agk::CreateZip( UINT zipID, const char* filename )
 	m_cZipFileList.AddItem( pZipFile, zipID );
 }
 
+void agk::CreateZip(UINT zipID, const char* filename,int append)
+{
+	if (m_cZipFileList.GetItem(zipID))
+	{
+#ifdef _AGK_ERROR_CHECK
+		uString errStr("Failed to create zip file ");
+		errStr.AppendUInt(zipID).Append(" - ID already exists");
+		Error(errStr);
+#endif
+		return;
+	}
+
+	ZipFile *pZipFile = new ZipFile();
+	pZipFile->CreateAppend(filename, append);
+	m_cZipFileList.AddItem(pZipFile, zipID);
+}
+
 //****f* File/Zip/CreateZip
 // FUNCTION
 //   Creates a zip file at the specified location and opens it ready for files to be added. Files cannot be read or extracted
@@ -38006,6 +38044,26 @@ char* agk::GetInAppPurchaseDescription ( int iID )
 //****
 {
     return PlatformGetInAppPurchaseDescription(iID);
+}
+
+//****f* Extras/In App Purchase/GetInAppPurchaseIsRenewing
+// FUNCTION
+//   This command returns 1 if the product is a subscription and it is set to auto-renew, 0 if it 
+//   is a subscription that will not auto-renew, or -1 if the renew status could not be determined.
+//   This command will only work on Android. iOS requires that you process the app receipt with 
+//   <i>GetAppReceipt</i> to detect renewal status.
+// INPUTS
+//   iID -- this ID corresponds to the product IDs that have been added e.g. your first product
+//         ID is 0, your second is 1 etc.
+// SOURCE
+int agk::GetInAppPurchaseIsRenewing( int iID )
+//****
+{
+#ifdef AGK_ANDROID
+	return PlatformGetInAppPurchaseIsRenewing( iID );
+#else
+    return -1;
+#endif
 }
 
 //****f* Extras/In App Purchase/GetInAppPurchaseState

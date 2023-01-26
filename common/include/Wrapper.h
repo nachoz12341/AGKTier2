@@ -544,6 +544,7 @@ namespace AGK
 			static int   PlatformGetInAppPurchaseAvailable2   ( int iID );
             static char* PlatformGetInAppPurchaseLocalPrice   ( int iID );
             static char* PlatformGetInAppPurchaseDescription  ( int iID );
+			static int   PlatformGetInAppPurchaseIsRenewing   ( int iID );
 			static bool  PlatformHasInAppPurchase             ( void );
 			static void  PlatformInAppPurchaseRestore		  ();
 			static char* PlatformGetInAppPurchaseSignature    ( int iID );
@@ -790,6 +791,7 @@ namespace AGK
 			static void UpdatePtr2( void* ptr ); // does minimal amount of changes
 			static void WindowMoved();
 			static void ResetAllStates ( void );
+			static void ResetRenderState( void );
 			static void CleanUp();
 			static void CompositionChanged();
 			static void PNToken( const char* token );
@@ -2666,6 +2668,7 @@ namespace AGK
 			static int   GetInAppPurchaseAvailable2   ( int iID );
             static char* GetInAppPurchaseLocalPrice   ( int iID );
             static char* GetInAppPurchaseDescription  ( int iID );
+			static int   GetInAppPurchaseIsRenewing   ( int iID );
 			static void  InAppPurchaseRestore		  ();
 			static char* GetInAppPurchaseSignature    ( int iID );
 			static char* GetInAppPurchaseToken        ( int iID );
@@ -2755,6 +2758,7 @@ namespace AGK
 
 			// zip functions
 			static void CreateZip( UINT zipID, const char* filename );
+			static void CreateZip(UINT zipID, const char* filename, int append);
 			static UINT CreateZip( const char* filename );
 			static void AddZipEntry( UINT zipID, const char* path, const char* zipPath );
 			static void CloseZip( UINT zipID );

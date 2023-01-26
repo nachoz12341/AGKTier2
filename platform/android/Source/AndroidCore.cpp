@@ -1583,23 +1583,10 @@ void agk::UpdatePtr2( void *ptr )
 	
 	RecalculateDisplay();
 	
+	// banner ad needs repositioning
 	if ( g_bAdvertActive )
 	{
-		int offsetX = agk::ScreenToDeviceX( g_fAdvertOffsetX );
-		int offsetY = agk::ScreenToDeviceY( g_fAdvertOffsetY );
-		
-		JNIEnv* lJNIEnv = g_pActivity->env;
-		JavaVM* vm = g_pActivity->vm;
-		vm->AttachCurrentThread(&lJNIEnv, NULL);
-
-		jobject lNativeActivity = g_pActivity->clazz;
-		if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
-		
-		jclass AGKHelper = GetAGKHelper(lJNIEnv);
-
-		jmethodID PositionAd = lJNIEnv->GetStaticMethodID( AGKHelper, "PositionAd","(Landroid/app/Activity;IIII)V" );
-		lJNIEnv->CallStaticVoidMethod( AGKHelper, PositionAd, lNativeActivity, g_iAdvertHorz, g_iAdvertVert, offsetX, offsetY );
-		vm->DetachCurrentThread();
+		PlatformAdMobPosition( g_iAdvertHorz, g_iAdvertVert, g_fAdvertOffsetX, g_fAdvertOffsetY );
 	}
 
 	// video
@@ -9221,6 +9208,32 @@ char* agk::PlatformGetInAppPurchaseDescription( int iID )
 	return retstr;
 }
 
+int agk::PlatformGetInAppPurchaseIsRenewing( int iID )
+{
+	JNIEnv* lJNIEnv = g_pActivity->env;
+	JavaVM* vm = g_pActivity->vm;
+	vm->AttachCurrentThread(&lJNIEnv, NULL);
+
+	jobject lNativeActivity = g_pActivity->clazz;
+	if ( !lNativeActivity ) agk::Warning("Failed to get native activity pointer");
+	
+	jclass sdkClass = GetAGKClass( lJNIEnv, "com/thegamecreators/agk_player/InAppPurchase" );
+	if ( !sdkClass ) 
+	{
+		vm->DetachCurrentThread();
+		return 0;
+	}
+
+	jmethodID method = lJNIEnv->GetStaticMethodID( sdkClass, "iapGetIsRenewing","(I)I" );
+
+	int result = -1;
+	if ( method ) result = lJNIEnv->CallStaticIntMethod( sdkClass, method, iID );
+
+	vm->DetachCurrentThread();
+
+	return result;
+}
+
 char* agk::PlatformGetInAppPurchaseSignature(int iID)
 {
 	JNIEnv* lJNIEnv = g_pActivity->env;
@@ -9945,9 +9958,7 @@ void agk::PlatformAdMobDestroy( void )
 }
 
 bool agk::PlatformHasAdMob( void )
-{
-	g_bAdvertActive = false;
-	
+{	
 	JNIEnv* lJNIEnv = g_pActivity->env;
 	JavaVM* vm = g_pActivity->vm;
 	vm->AttachCurrentThread(&lJNIEnv, NULL);

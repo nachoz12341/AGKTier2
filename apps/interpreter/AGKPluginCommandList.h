@@ -9,7 +9,7 @@ struct AGKPluginFunction
 	AGKVoidFunc pFunc;
 };
 
-int g_iNumAGKFunctions = 2132;
+int g_iNumAGKFunctions = 2133;
 AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"ABS_F_F", (AGKVoidFunc) (float(*)(float)) (agk::Abs) },
 	{"ACOSRAD_F_F", (AGKVoidFunc) (float(*)(float)) (agk::ACosRad) },
@@ -591,6 +591,7 @@ AGKPluginFunction g_ppAGKFunctionList[] = {
 	{"GETINAPPPURCHASEAVAILABLE2_L_L", (AGKVoidFunc) (int(*)(int)) (agk::GetInAppPurchaseAvailable2) },
 	{"GETINAPPPURCHASEAVAILABLE_L_L", (AGKVoidFunc) (int(*)(int)) (agk::GetInAppPurchaseAvailable) },
 	{"GETINAPPPURCHASEDESCRIPTION_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetInAppPurchaseDescription) },
+	{"GETINAPPPURCHASEISRENEWING_L_L", (AGKVoidFunc) (int(*)(int)) (agk::GetInAppPurchaseIsRenewing) },
 	{"GETINAPPPURCHASELOCALPRICE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetInAppPurchaseLocalPrice) },
 	{"GETINAPPPURCHASESIGNATURE_S_L", (AGKVoidFunc) (char*(*)(int)) (agk::GetInAppPurchaseSignature) },
 	{"GETINAPPPURCHASESTATE_L_0", (AGKVoidFunc) (int(*)()) (agk::GetInAppPurchaseState) },

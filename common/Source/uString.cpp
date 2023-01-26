@@ -2279,6 +2279,8 @@ uString& uString::ReplaceStr( const char* find, const char *replace, int qty )
 	if ( !IsUTF8( find ) ) szUTF8Find = (const unsigned char*)ConvertToUTF8( find, &lengthFind, &numCharsFind );
 	else numCharsFind = CountUTF8Chars( find, &lengthFind );
 
+	if ( lengthFind == 0 ) return *this;
+
 	if ( lengthFind > (int)m_iLength ) 
 	{
 		if ( szUTF8Find != (const unsigned char*)find ) delete [] szUTF8Find;
@@ -2331,6 +2333,8 @@ uString& uString::ReplaceStr( const char* find, const char *replace, int qty )
 				if ( shift2 > shift ) shift = shift2;
 
 				if ( (char*)str+shift+lengthFind > m_pData+m_iLength ) shift = m_iLength - (int)((char*)str-m_pData);
+
+				if ( shift <= 0 ) shift = 1;
 
 				if ( lengthFind == lengthReplace ) 
 				{

@@ -10780,3 +10780,9 @@ case AGKI_ISDARKTHEME_L_0:
     m_pStack[ m_iStackPtr++ ].i = agk::IsDarkTheme( );
     break;
 }
+case AGKI_GETINAPPPURCHASEISRENEWING_L_L:
+{
+    int param0 = m_pStack[ --m_iStackPtr ].i;
+    m_pStack[ m_iStackPtr++ ].i = agk::GetInAppPurchaseIsRenewing( param0 );
+    break;
+}

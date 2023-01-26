@@ -1190,7 +1190,6 @@
 		D899CB10140D21FC005A5A3A /* b2WheelJoint.h in Headers */ = {isa = PBXBuildFile; fileRef = D899CAFA140D21FC005A5A3A /* b2WheelJoint.h */; };
 		D899CB14140D2210005A5A3A /* b2Rope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D899CB12140D2210005A5A3A /* b2Rope.cpp */; };
 		D899CB15140D2210005A5A3A /* b2Rope.h in Headers */ = {isa = PBXBuildFile; fileRef = D899CB13140D2210005A5A3A /* b2Rope.h */; };
-		D89D9D701384A35B005E3808 /* glfw.h in Headers */ = {isa = PBXBuildFile; fileRef = D89D9D6E1384A35B005E3808 /* glfw.h */; };
 		D8A06917134E5A2E005C59DC /* libImages.h in Headers */ = {isa = PBXBuildFile; fileRef = D8A06916134E5A2E005C59DC /* libImages.h */; };
 		D8A5D68E13200C52000446C9 /* cFile.h in Headers */ = {isa = PBXBuildFile; fileRef = D8A5D68D13200C52000446C9 /* cFile.h */; };
 		D8A5D6AD13200D10000446C9 /* cFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D8A5D6AC13200D10000446C9 /* cFile.cpp */; };
@@ -2635,7 +2634,6 @@
 		D899CAFA140D21FC005A5A3A /* b2WheelJoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = b2WheelJoint.h; sourceTree = "<group>"; };
 		D899CB12140D2210005A5A3A /* b2Rope.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = b2Rope.cpp; path = Rope/b2Rope.cpp; sourceTree = "<group>"; };
 		D899CB13140D2210005A5A3A /* b2Rope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = b2Rope.h; path = Rope/b2Rope.h; sourceTree = "<group>"; };
-		D89D9D6E1384A35B005E3808 /* glfw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glfw.h; sourceTree = "<group>"; };
 		D8A06916134E5A2E005C59DC /* libImages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = libImages.h; path = common/Include/libImages.h; sourceTree = "<group>"; };
 		D8A5D68D13200C52000446C9 /* cFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cFile.h; path = common/Include/cFile.h; sourceTree = "<group>"; };
 		D8A5D6AC13200D10000446C9 /* cFile.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; name = cFile.cpp; path = common/Source/cFile.cpp; sourceTree = "<group>"; };
@@ -4607,7 +4605,6 @@
 		D89D9D6D1384A35B005E3808 /* GLFW */ = {
 			isa = PBXGroup;
 			children = (
-				D89D9D6E1384A35B005E3808 /* glfw.h */,
 			);
 			name = GLFW;
 			path = platform/mac/GLFW;
@@ -5086,7 +5083,6 @@
 				4AF7CF6A1BD7254A0021ED1E /* btTetrahedronShape.h in Headers */,
 				4AF7CD531BD7253F0021ED1E /* VertexTriangleAdjacency.h in Headers */,
 				4A45ABA91D01A2EC00CF29C4 /* codec_internal.h in Headers */,
-				D89D9D701384A35B005E3808 /* glfw.h in Headers */,
 				4AF7CC241BD7253F0021ED1E /* format.hpp in Headers */,
 				4AF7CF821BD7254A0021ED1E /* btGeometryOperations.h in Headers */,
 				4AF7CFA11BD7254A0021ED1E /* gim_tri_collision.h in Headers */,
@@ -6472,7 +6468,7 @@
 					platform/mac/GLFW,
 					"$(PROJECT_DIR)/platform/mac/GLFW",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				OTHER_CFLAGS = "-fvisibility=hidden";
 				PRODUCT_NAME = AGKMac;
 				SDKROOT = macosx;
@@ -6519,7 +6515,7 @@
 					platform/mac/GLFW,
 					"$(PROJECT_DIR)/platform/mac/GLFW",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = AGKMac;
 				SDKROOT = macosx;
@@ -6624,7 +6620,7 @@
 					platform/mac/GLFW,
 					"$(PROJECT_DIR)/platform/mac/GLFW",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = AGKMac;
 				SDKROOT = macosx;

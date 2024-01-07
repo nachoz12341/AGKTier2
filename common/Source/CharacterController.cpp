@@ -58,8 +58,10 @@ void CharacterController::Create( int objectID, int axis, const btVector3& objec
 
 	int debugObjectID = agk::CreateObjectCapsule( diameter, height, axis );
 	agk::SetObjectVisible( debugObjectID, false );
+	agk::SetObjectCollisionMode( debugObjectID, false );
 	int debugObjectID_Crouch = agk::CreateObjectCapsule( diameter, height * crouchScale, axis );
 	agk::SetObjectVisible(debugObjectID_Crouch, false );
+	agk::SetObjectCollisionMode( debugObjectID_Crouch, false );
 
 	agk::SetObjectPosition( debugObjectID, agk::GetObjectX( objectID ), agk::GetObjectY( objectID ), agk::GetObjectZ( objectID ) );
 	agk::SetObjectPosition(debugObjectID_Crouch, agk::GetObjectX(objectID), agk::GetObjectY(objectID), agk::GetObjectZ(objectID));

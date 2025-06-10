@@ -13,7 +13,7 @@
 
 	// Windows 7 for touch commands
 	#ifndef _WIN32_WINNT //experiment (using Windows SDK 8.0 to fix sensor output)
-	#define _WIN32_WINNT 0x0601 
+	#define _WIN32_WINNT 0x0A00 
 	#endif
 
 	#include <WinSock2.h>

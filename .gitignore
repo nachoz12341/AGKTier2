@@ -16,3 +16,6 @@ plugins
 tools
 BulletPhysicsDemos
 apps/interpreter_android_google_addapptr
+apps/Rhea
+apps/AGK-TC
+platform/windows/Lib

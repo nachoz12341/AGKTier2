@@ -2,6 +2,7 @@
 
 #ifndef _H_AGK_
 #define _H_AGK_
+#define NOMINMAX
 
 	#include "sha1.h"
 	#include "sha2.h"

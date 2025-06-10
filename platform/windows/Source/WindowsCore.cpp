@@ -7,7 +7,7 @@
 */
 
 // Windows 7 for touch commands
-#define _WIN32_WINNT 0x0601
+#define _WIN32_WINNT 0x0A00
 
 #include "winsock2.h"
 

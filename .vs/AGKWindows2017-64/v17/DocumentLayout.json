@@ -1,0 +1,74 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\nacho\\Documents\\GitHub\\AGKTier2\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{452BDFA1-680F-4ECE-9D35-AE124D23E58A}|Core2017-64.vcxproj|C:\\Users\\nacho\\Documents\\GitHub\\AGKTier2\\platform\\windows\\Source\\WindowsCore.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{452BDFA1-680F-4ECE-9D35-AE124D23E58A}|Core2017-64.vcxproj|solutionrelative:platform\\windows\\Source\\WindowsCore.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{452BDFA1-680F-4ECE-9D35-AE124D23E58A}|Core2017-64.vcxproj|C:\\Users\\nacho\\Documents\\GitHub\\AGKTier2\\common\\Include\\Common.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{452BDFA1-680F-4ECE-9D35-AE124D23E58A}|Core2017-64.vcxproj|solutionrelative:common\\Include\\Common.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\xaudio2.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:2:0:{34c7837f-3b3a-449c-bdf0-bdad86cbaf4a}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "WindowsCore.cpp",
+              "DocumentMoniker": "C:\\Users\\nacho\\Documents\\GitHub\\AGKTier2\\platform\\windows\\Source\\WindowsCore.cpp",
+              "RelativeDocumentMoniker": "platform\\windows\\Source\\WindowsCore.cpp",
+              "ToolTip": "C:\\Users\\nacho\\Documents\\GitHub\\AGKTier2\\platform\\windows\\Source\\WindowsCore.cpp",
+              "RelativeToolTip": "platform\\windows\\Source\\WindowsCore.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2025-05-23T18:23:04.79Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Common.h",
+              "DocumentMoniker": "C:\\Users\\nacho\\Documents\\GitHub\\AGKTier2\\common\\include\\Common.h",
+              "RelativeDocumentMoniker": "common\\include\\Common.h",
+              "ToolTip": "C:\\Users\\nacho\\Documents\\GitHub\\AGKTier2\\common\\include\\Common.h",
+              "RelativeToolTip": "common\\include\\Common.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-05-23T18:22:57.12Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "xaudio2.h",
+              "DocumentMoniker": "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\xaudio2.h",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\xaudio2.h",
+              "ToolTip": "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\xaudio2.h",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\um\\xaudio2.h",
+              "ViewState": "AgIAABIAAAAAAAAAAADwvxMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-05-23T17:56:50.06Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

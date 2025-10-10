@@ -15,7 +15,9 @@ information
 plugins
 tools
 BulletPhysicsDemos
+apps
 apps/interpreter_android_google_addapptr
 apps/Rhea
 apps/AGK-TC
 platform/windows/Lib
+.vs
